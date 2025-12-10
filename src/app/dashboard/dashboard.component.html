@@ -1,0 +1,28 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1>Dashboard</h1>
+    <button class="logout-button" (click)="logout()">Logout</button>
+  </header>
+
+  <main class="dashboard-content">
+    <div class="welcome-card">
+      <h2>Welcome to your Dashboard!</h2>
+      <p>You have successfully authenticated using OIDC.</p>
+
+      @if (userInfo) {
+      <div class="user-info">
+        <h3>User Information</h3>
+        <div class="info-item">
+          <strong>Name:</strong> {{ userInfo.name || userInfo.preferred_username || 'N/A' }}
+        </div>
+        <div class="info-item"><strong>Email:</strong> {{ userInfo.email || 'N/A' }}</div>
+        @if (userInfo.sub) {
+        <div class="info-item"><strong>Subject ID:</strong> {{ userInfo.sub }}</div>
+        }
+      </div>
+      } @else {
+      <p class="no-info">User information not available</p>
+      }
+    </div>
+  </main>
+</div>
