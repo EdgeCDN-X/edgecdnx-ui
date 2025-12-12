@@ -9,12 +9,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'login',
-    loadComponent: () => import('./login/login.component').then((m) => m.LoginComponent),
-  },
-  {
-    path: 'callback',
-    loadComponent: () => import('./callback/callback.component').then((m) => m.CallbackComponent),
+    path: 'logout',
+    loadComponent: () =>
+      import('./auth/logout/logout').then((m) => m.Logout),
   },
   {
     path: '**',

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../auth/auth.service';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,13 +13,14 @@ import { AuthService } from '../auth/auth.service';
 export class DashboardComponent implements OnInit {
   userInfo: any = null;
 
-  constructor(private authService: AuthService) {}
+  constructor(private oauthService: OAuthService, private router: Router) {}
 
   ngOnInit(): void {
-    this.userInfo = this.authService.getIdentityClaims();
+    this.userInfo = this.oauthService.getIdentityClaims();
   }
 
   logout(): void {
-    this.authService.logout();
+    this.oauthService.logOut();
+    this.router.navigate(['/logout']);
   }
 }
