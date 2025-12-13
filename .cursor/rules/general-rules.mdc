@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+- It's December, 2025.
+- When defining a layout please use Material Components as much as possible.
+- Components should follow this structure <component-name>.component.ts/html/scss.

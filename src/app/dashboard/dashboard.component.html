@@ -1,28 +1,73 @@
 <div class="dashboard-container">
   <header class="dashboard-header">
-    <h1>Dashboard</h1>
-    <button class="logout-button" (click)="logout()">Logout</button>
+    <mat-toolbar class="toolbar">
+      <div class="toolbar-content">
+        <div class="search-container">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search tenants</mat-label>
+            <input
+              matInput
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearchChange()"
+              placeholder="Search by name or description"
+            />
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+        </div>
+        <div class="user-menu-container">
+          <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
+            <mat-icon>account_circle</mat-icon>
+            <span class="user-name">{{ getUserDisplayName() }}</span>
+            <mat-icon>arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #userMenu="matMenu">
+            <button mat-menu-item (click)="navigateToProfile()">
+              <mat-icon>person</mat-icon>
+              <span>My Profile</span>
+            </button>
+            <button mat-menu-item (click)="navigateToSettings()">
+              <mat-icon>settings</mat-icon>
+              <span>Settings</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="logout()">
+              <mat-icon>logout</mat-icon>
+              <span>Logout</span>
+            </button>
+          </mat-menu>
+        </div>
+      </div>
+    </mat-toolbar>
   </header>
 
   <main class="dashboard-content">
-    <div class="welcome-card">
-      <h2>Welcome to your Dashboard!</h2>
-      <p>You have successfully authenticated using OIDC.</p>
-
-      @if (userInfo) {
-      <div class="user-info">
-        <h3>User Information</h3>
-        <div class="info-item">
-          <strong>Name:</strong> {{ userInfo.name || userInfo.preferred_username || 'N/A' }}
-        </div>
-        <div class="info-item"><strong>Email:</strong> {{ userInfo.email || 'N/A' }}</div>
-        @if (userInfo.sub) {
-        <div class="info-item"><strong>Subject ID:</strong> {{ userInfo.sub }}</div>
-        }
-      </div>
-      } @else {
-      <p class="no-info">User information not available</p>
+    @if (filteredTenants.length > 0) {
+    <div class="tenants-grid">
+      @for (tenant of filteredTenants; track tenant.id) {
+      <mat-card class="tenant-card">
+        <mat-card-header>
+          <mat-card-title>{{ tenant.name }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="tenant-description">{{ tenant.description }}</p>
+          <div class="tenant-meta">
+            <div class="meta-item">
+              <mat-icon class="meta-icon">people</mat-icon>
+              <span>{{ tenant.memberCount }} members</span>
+            </div>
+            <mat-chip [color]="getStatusColor(tenant.status)" class="status-chip">
+              {{ tenant.status }}
+            </mat-chip>
+          </div>
+        </mat-card-content>
+      </mat-card>
       }
     </div>
+    } @else {
+    <div class="no-tenants">
+      <mat-icon class="no-tenants-icon">folder_off</mat-icon>
+      <p>No tenants found matching your search.</p>
+    </div>
+    }
   </main>
 </div>
