@@ -84,6 +84,17 @@
                   "with": "src/environments/environment.development.ts"
                 }
               ]
+            },
+            "demo": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.demo.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -93,6 +104,9 @@
           "configurations": {
             "production": {
               "buildTarget": "edgecdnx:build:production"
+            },
+            "demo": {
+              "buildTarget": "edgecdnx:build:demo"
             },
             "development": {
               "buildTarget": "edgecdnx:build:development"

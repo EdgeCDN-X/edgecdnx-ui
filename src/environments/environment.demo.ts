@@ -1,0 +1,12 @@
+export const environment = {
+    production: false,
+    auth: {
+        oidc: {
+            issuer: 'https://dex.demo.edgecdnx.com/dex',
+            token: 'https://dex.demo.edgecdnx.com/dex/token_endpoint',
+            clientId: 'edgecdnx',
+            scope: 'openid profile email',
+            requireHttps: true,
+        }
+    }
+};
