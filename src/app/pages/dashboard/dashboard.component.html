@@ -1,0 +1,45 @@
+<app-page-breadcrumb pageTitle="Dashboard" />
+<div class="base-card">
+  <p class="card-title">
+    Profile Overview
+  </p>
+  <div class="sub-card">
+    <h2 class="sub-card-title">User Information</h2>
+
+    @if (userInfo) {
+
+    <div>
+      <p class="content-label">
+        Name:
+      </p>
+      <p class="content-label-value">
+        {{ userInfo.name || userInfo.preferred_username || 'N/A' }}
+      </p>
+    </div>
+
+
+    <div>
+      <p class="content-label">
+        Email:
+      </p>
+      <p class="content-label-value">
+        {{ userInfo.email || 'N/A' }}
+      </p>
+    </div>
+
+    @if (userInfo.sub) {
+    <div>
+      <p class="content-label">
+        Subject ID:
+      </p>
+      <p class="content-label-value">
+        {{ userInfo.sub }}
+      </p>
+    </div>
+    }
+
+    } @else {
+    <p class="content-label-value">User information not available</p>
+    }
+  </div>
+</div>
