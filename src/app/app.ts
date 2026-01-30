@@ -14,14 +14,6 @@ export class App implements OnInit {
   constructor(private oauthService: OAuthService) { }
 
   ngOnInit(): void {
-    // this.oauthService.configure(authConfig);
-    // this.oauthService.loadDiscoveryDocumentAndLogin().then((loaded) => {
-    //   console.log('Discovery document loaded:', loaded);
-    //   if (this.oauthService.hasValidAccessToken()) {
-    //     console.log('User is authenticated');
-    //   } else {
-    //     console.log('User is not authenticated');
-    //   }
-    // });
+    this.oauthService.configure(authConfig);
   }
 }

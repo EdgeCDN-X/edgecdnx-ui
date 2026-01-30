@@ -1,0 +1,140 @@
+<app-page-breadcrumb pageTitle="Projects" />
+<div class="base-card">
+    <div class="flex justify-between gap-2 mb-4 sm:items-center">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                Projects
+            </h3>
+        </div>
+        <div class="flex items-center gap-3">
+            <button (click)="openModal()"
+                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="20px" height="20px">
+                    <path fill="currentColor"
+                        d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 24 13 L 24 24 L 13 24 L 13 26 L 24 26 L 24 37 L 26 37 L 26 26 L 37 26 L 37 24 L 26 24 L 26 13 L 24 13 z" />
+                </svg>
+                Create Project
+            </button>
+        </div>
+    </div>
+
+    <div class="max-w-full overflow-x-auto">
+        @if (loading()) {
+        <div class="mx-auto w-full rounded-md border p-4">
+            <div class="flex animate-pulse space-x-4">
+                <div class="flex-1 space-y-6 py-1">
+                    <div class="h-2 rounded bg-gray-200"></div>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-2 h-2 rounded bg-gray-200"></div>
+                            <div class="col-span-1 h-2 rounded bg-gray-200"></div>
+                        </div>
+                        <div class="h-2 rounded bg-gray-200"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        } @else {
+        @if (error() && error()!.action == 'list') {
+        <p class="text-red-600">
+            Error loading projects: {{ error()!.message }}
+        </p>
+        } @else {
+
+
+
+        <table class="w-full table-auto">
+            <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+                <tr>
+                    <th scope="col" class="table-label">
+                        Project Name
+                    </th>
+                    <th scope="col" class="table-label">
+                        Description
+                    </th>
+                    <th scope="col" class="table-label">
+                        Created At
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="table-divider">
+                @for (item of projects(); track $index) {
+                <tr>
+                    <td class="py-3">
+                        <div class="flex items-center gap-[18px]">
+                            <div>
+                                <p class="base-text">
+                                    {{item.spec.name}}
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3">
+                        <div class="flex items-center w-full gap-5">
+                            <div class="truncate">
+                                <p class="mb-0.5 truncate base-text">
+                                    {{item.spec.description}}
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3">
+                        <div class="flex items-center w-full gap-5">
+                            <div class="truncate">
+                                <p class="mb-0.5 truncate base-text">
+                                    {{item.metadata.creationTimestamp | date:'medium'}}
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        }
+        }
+    </div>
+</div>
+
+
+
+<app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
+    <div class="card-title">
+        Create Project
+    </div>
+
+    <div>
+        <form [formGroup]="createProjectForm">
+            <div class="pt-3">
+                <label for="name" class="form-label">Name:
+                </label>
+                <input id="name" type="text" [formControl]="createProjectForm.controls['name']" class="form-input-field"
+                    placeholder="Enter project name" />
+            </div>
+
+            <div class="pt-3">
+                <label for="name" class="form-label">Description: </label>
+                <input id="name" type="text" [formControl]="createProjectForm.controls['description']"
+                    class="form-input-field" placeholder="Enter project description" />
+            </div>
+
+            <button type="submit" [disabled]="!createProjectForm.valid || creating() || created()"
+                class="btn-primary my-4" (click)="createProject()">
+                @if (creating()) {
+                <span>Creating...</span>
+                } @else if (created()) {
+                <span>Created!</span>
+                } @else {
+                <span>Create Project</span>
+                }
+            </button>
+
+            @if (created()) {
+            <p class="mt-1.5 text-s text-success-500">
+                Project created successfully! Closing modal..
+            </p>
+            }
+        </form>
+    </div>
+
+</app-modal>
