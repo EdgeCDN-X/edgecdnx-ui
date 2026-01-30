@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { BackdropComponent } from '../backdrop/backdrop.component';
 import { RouterModule } from '@angular/router';
 import { AppHeaderComponent } from '../app-header/app-header.component';
-import { SidebarStore } from '../state/sidebar.store';
+import { SidebarStore } from '../../store/sidebar.store';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
 
 @Component({

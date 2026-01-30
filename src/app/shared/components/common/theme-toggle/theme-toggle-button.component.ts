@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { ThemeService } from '../../../services/theme.service';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ThemeStore } from '../../../store/theme.store';
 
 @Component({
   selector: 'app-theme-toggle-button',
@@ -9,13 +9,12 @@ import { CommonModule } from '@angular/common';
 })
 export class ThemeToggleButtonComponent {
   
-  theme$;
+  themeStore = inject(ThemeStore);
+  theme = this.themeStore.theme
 
-  constructor(private themeService: ThemeService) {
-    this.theme$ = this.themeService.theme$;
-  }
+  constructor() {}
 
   toggleTheme() {
-    this.themeService.toggleTheme();
+    this.themeStore.toggleTheme();
   }
 }

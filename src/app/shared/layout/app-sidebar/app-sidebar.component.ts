@@ -3,7 +3,7 @@ import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, inje
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
 import { Subscription } from 'rxjs';
-import { SidebarStore } from '../state/sidebar.store';
+import { SidebarStore } from '../../store/sidebar.store';
 
 type NavItem = {
   name: string;
