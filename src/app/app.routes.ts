@@ -14,6 +14,15 @@ export const routes: Routes = [
         component: DashboardComponent,
         title: 'Dashboard',
         canActivate: [authGuard],
+      },
+      {
+        path: 'projects',
+        loadComponent: () =>
+          import('./pages/projects/projects').then(
+            (m) => m.Projects
+          ),
+        title: 'Projects',
+        canActivate: [authGuard],
       }
     ]
   },

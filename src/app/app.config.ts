@@ -1,19 +1,24 @@
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
-  provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideOAuthClient } from 'angular-oauth2-oidc';
+import { DefaultOAuthInterceptor, provideOAuthClient } from 'angular-oauth2-oidc';
 import { routes } from './app.routes';
-import { provideHttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(),
-    // provideZoneChangeDetection({ eventCoalescing: true }),
+    provideHttpClient(withInterceptorsFromDi()),
     provideRouter(routes),
-    provideOAuthClient(),
+    provideOAuthClient({
+      resourceServer: {
+        allowedUrls: [environment.apiUrl],
+        sendAccessToken: true,
+      },
+    }),
+    { provide: HTTP_INTERCEPTORS, useClass: DefaultOAuthInterceptor, multi: true },
   ],
 };

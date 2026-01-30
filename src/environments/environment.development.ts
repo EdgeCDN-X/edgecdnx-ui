@@ -1,5 +1,6 @@
 export const environment = {
     production: false,
+    apiUrl : 'http://localhost:5555',
     auth: {
         oidc: {
             issuer: 'http://127.0.0.1:5556/dex',
