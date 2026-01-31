@@ -12,6 +12,7 @@ import { catchError, tap } from "rxjs";
 export class ProjectsStore {
     private readonly _projects = signal<ProjectList>([]);
     private readonly _loading = signal<boolean>(false);
+    private readonly _loaded = signal<boolean>(false);
 
     private readonly _creating = signal<boolean>(false);
     private readonly _created = signal<Project | null>(null);
@@ -20,6 +21,7 @@ export class ProjectsStore {
 
     readonly projects = this._projects.asReadonly();
     readonly loading = this._loading.asReadonly();
+    readonly loaded = this._loaded.asReadonly();
 
     readonly creating = this._creating.asReadonly();
     readonly created = this._created.asReadonly();
@@ -43,9 +45,11 @@ export class ProjectsStore {
                     action: "list"
                 });
                 this._loading.set(false);
+                this._loaded.set(false);
             },
             complete: () => {
                 this._loading.set(false);
+                this._loaded.set(true);
             }
         })
     }

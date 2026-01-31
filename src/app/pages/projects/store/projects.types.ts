@@ -56,3 +56,16 @@ export interface ProjectActionError {
     message: string;
     action: "create" | "list";
 }
+
+export interface UserGroupMapping {
+    groupName: string;
+    users: string[];
+}
+
+export interface RbacRule {
+    role: string;
+    rules: Array<{
+        resource: string;
+        action: string;
+    }>;
+}

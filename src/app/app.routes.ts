@@ -23,6 +23,15 @@ export const routes: Routes = [
           ),
         title: 'Projects',
         canActivate: [authGuard],
+      },
+      {
+        path: 'projects/:name',
+        loadComponent: () =>
+          import('./pages/projects/details/details').then(
+            (m) => m.ProjectDetails
+          ),
+        title: 'Project Details',
+        canActivate: [authGuard],
       }
     ]
   },

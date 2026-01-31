@@ -1,18 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, OnInit } from '@angular/core';
-import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { ProjectsStore } from './store/projects.store';
 import { ModalComponent } from '../../shared/components/ui/modal/modal.component';
 import { ModalStore } from '../../shared/store/modal.store';
-import { InputFieldComponent } from '../../shared/components/form/input/input-field.component';
-import { LabelComponent } from '../../shared/components/form/label/label.component';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CreateProjectDto } from './store/projects.types';
+import { RouterModule } from '@angular/router';
+import { Placeholder } from '../../shared/components/common/placeholder/placeholder';
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, PageBreadcrumbComponent, ModalComponent, ReactiveFormsModule],
+  imports: [CommonModule, ModalComponent, ReactiveFormsModule, RouterModule, Placeholder],
   templateUrl: './projects.html',
   styleUrl: './projects.css',
 })
