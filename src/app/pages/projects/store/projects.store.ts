@@ -61,7 +61,7 @@ export class ProjectsStore {
             },
             error: (err) => {
                 this._error.set({
-                    message: err.error?.message || 'Failed to create project',
+                    message: err.error?.error ?? 'Failed to create project',
                     action: "create"
                 });
                 this._creating.set(false);
@@ -74,6 +74,7 @@ export class ProjectsStore {
     }
 
     clearCreationState() {
+        this.clearError();
         this._created.set(null);
         this._creating.set(false);
     }

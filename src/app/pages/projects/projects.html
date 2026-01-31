@@ -110,13 +110,49 @@
                 </label>
                 <input id="name" type="text" [formControl]="createProjectForm.controls['name']" class="form-input-field"
                     placeholder="Enter project name" />
+
+                @if (createProjectForm.controls['name'].invalid && (createProjectForm.controls['name'].dirty ||
+                createProjectForm.controls['name'].touched)) {
+                <p class="mt-1.5 text-xs text-error-500"
+                    *ngIf="createProjectForm.controls['name'].errors?.['required']">
+                    Name is required.
+                </p>
+                <p class="mt-1.5 text-xs text-error-500"
+                    *ngIf="createProjectForm.controls['name'].errors?.['minlength']">
+                    Name must be at least 3 characters long.
+                </p>
+                <p class="mt-1.5 text-xs text-error-500"
+                    *ngIf="createProjectForm.controls['name'].errors?.['maxlength']">
+                    Name cannot be more than 63 characters long.
+                </p>
+                <p class="mt-1.5 text-xs text-error-500"
+                    *ngIf="createProjectForm.controls['name'].errors?.['invalidName']">
+                    {{ createProjectForm.controls['name'].errors?.['invalidName'] }}
+                </p>
+                }
             </div>
 
             <div class="pt-3">
-                <label for="name" class="form-label">Description: </label>
-                <input id="name" type="text" [formControl]="createProjectForm.controls['description']"
+                <label for="description" class="form-label">Description: </label>
+                <input id="description" type="text" [formControl]="createProjectForm.controls['description']"
                     class="form-input-field" placeholder="Enter project description" />
+                @if (createProjectForm.controls['description'].invalid &&
+                (createProjectForm.controls['description'].dirty ||
+                createProjectForm.controls['description'].touched)) {
+                <p class="mt-1.5 text-xs text-error-500"
+                    *ngIf="createProjectForm.controls['description'].errors?.['maxlength']">
+                    Description cannot be more than 255 characters long.
+                </p>
+                }
             </div>
+
+            @if (!creating() && !created() && error() && error()!.action == 'create') {
+            <div class="pt-3">
+                <p class="text-red-600">
+                    Error creating project: {{ error()!.message || 'Unknown error' }}
+                </p>
+            </div>
+            }
 
             <button type="submit" [disabled]="!createProjectForm.valid || creating() || created()"
                 class="btn-primary my-4" (click)="createProject()">

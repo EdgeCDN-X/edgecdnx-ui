@@ -33,14 +33,36 @@ export class Projects implements OnInit {
 
   // TODO: allow longer names once done on backend
   createProjectForm = new FormGroup({
-    name: new FormControl("", { nonNullable: true, validators: [Validators.minLength(3), Validators.maxLength(30), Validators.required] }),
-    description: new FormControl("", { nonNullable: true, validators: [Validators.maxLength(255)] }),
+    name: new FormControl(
+      "",
+      {
+        nonNullable: true,
+        validators: [
+          Validators.minLength(3),
+          Validators.maxLength(63),
+          Validators.required,
+          (control) => {
+            const value = control.value;
+            // Must start with a letter, allow only letters, numbers, and spaces
+            const regex = /^[a-zA-Z][a-zA-Z0-9 ]*$/;
+            return regex.test(value)
+              ? null
+              : { invalidName: 'Name must start with a letter and contain only letters, numbers, and spaces.' };
+          }
+        ]
+      }
+    ),
+    description: new FormControl(
+      "",
+      {
+        nonNullable: true,
+        validators: [Validators.maxLength(255)]
+      }
+    ),
   })
 
   ngOnInit() {
     this.projectsStore.loadProjects();
-
-
   }
 
   closeModal() {
