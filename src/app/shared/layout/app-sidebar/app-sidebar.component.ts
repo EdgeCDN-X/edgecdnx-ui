@@ -61,6 +61,7 @@ export class AppSidebarComponent {
       this.router.events.subscribe(event => {
         if (event instanceof NavigationEnd) {
           this.setActiveMenuFromRoute(this.router.url);
+          this.sidebarStore.setMobileOpen(false);
         }
       })
     );
