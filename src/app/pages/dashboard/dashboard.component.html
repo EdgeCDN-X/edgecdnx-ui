@@ -6,14 +6,14 @@
   <div class="sub-card">
     <h2 class="sub-card-title">User Information</h2>
 
-    @if (userInfo) {
+    @if (userInfo()) {
 
     <div>
       <p class="content-label">
         Name:
       </p>
       <p class="content-label-value">
-        {{ userInfo.name || userInfo.preferred_username || 'N/A' }}
+        {{ userInfo()['name'] || userInfo()['preferred_username'] || 'N/A' }}
       </p>
     </div>
 
@@ -23,7 +23,7 @@
         Email:
       </p>
       <p class="content-label-value">
-        {{ userInfo.email || 'N/A' }}
+        {{ userInfo()['email'] || 'N/A' }}
       </p>
     </div>
 

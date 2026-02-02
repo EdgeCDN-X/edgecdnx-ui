@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
-import { authGuard } from './auth/auth.guard';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
   {
@@ -9,7 +9,7 @@ export const routes: Routes = [
     component: AppLayoutComponent,
     children: [
       {
-        path: '',
+        path: 'dashboard',
         pathMatch: 'full',
         component: DashboardComponent,
         title: 'Dashboard',
@@ -31,9 +31,8 @@ export const routes: Routes = [
             (m) => m.ProjectDetails
           ),
         title: 'Project Details',
-        canActivate: [authGuard],
       }
-    ]
+    ],
   },
   {
     path: 'logout',
@@ -41,7 +40,7 @@ export const routes: Routes = [
       import('./auth/logout/logout').then((m) => m.Logout),
   },
   {
-    path: '**',
+    path: 'callback',
     redirectTo: '',
-  },
+  }
 ];

@@ -193,7 +193,7 @@ layer(base);
 
 @layer components {
   .card-title {
-    @apply text-lg py-3 font-semibold text-gray-800 dark:text-white/90 lg:mb-6
+    @apply text-lg py-3 font-semibold text-gray-800 dark:text-white/90
   }
   .base-card {
     @apply rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6

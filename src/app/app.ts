@@ -1,19 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { OAuthService } from 'angular-oauth2-oidc';
-import { authConfig } from './auth/auth.config';
+import { AuthStore } from './auth/auth.store';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, CommonModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App implements OnInit {
+  authStore = inject(AuthStore);
 
-  constructor(private oauthService: OAuthService) { }
+  isAuthenticated = this.authStore.isAuthenticated;
 
-  ngOnInit(): void {
-    this.oauthService.configure(authConfig);
+  constructor() { }
+
+  async ngOnInit(): Promise<void> {
+    await this.authStore.runInitialLoginSequence();
   }
 }

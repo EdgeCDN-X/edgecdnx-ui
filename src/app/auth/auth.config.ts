@@ -39,7 +39,7 @@ export const authConfig: AuthConfig = {
   timeoutFactor: 0.75,
 
   // Session check interval
-  sessionChecksEnabled: true,
+  sessionChecksEnabled: false,
 
   // Clear hash after login
   clearHashAfterLogin: true,
