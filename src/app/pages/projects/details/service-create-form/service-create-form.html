@@ -1,0 +1,56 @@
+<div class="card-title">
+    New Service
+</div>
+
+<div>
+    <p class="base-text">Creating service for project {{ projectId }}</p>
+
+
+    <div>
+        <form [formGroup]="serviceCreateForm" (ngSubmit)="onSubmit()">
+            <div class="pt-3">
+                <label for="name" class="form-label">Service Name</label>
+                <input type="text" id="name" formControlName="name" class="form-input-field" />
+            </div>
+
+            <div class="pt-3">
+                <label for="originType" class="form-label">Origin Type</label>
+                <select id="originType" formControlName="originType" class="form-input-field">
+                    <option [ngValue]="null">Select Origin Type</option>
+                    @for (type of originTypes ; track type) {
+                    <option [ngValue]="type">{{ type }}</option>
+                    }
+                </select>
+            </div>
+
+            @switch(serviceCreateForm.get('originType')!.value) {
+            @case("static") {
+            <div formGroupName="staticOrigin" class="pt-3">
+                <div class="pt-3">
+                    <label for="upstream" class="form-label">Upstream IP or URL</label>
+                    <p class="text-xs pb-1">IP Address or Domain Name can be used.</p>
+                    <input type="text" id="upstream" formControlName="upstream" class="form-input-field" />
+                </div>
+
+                <div class="pt-3">
+                    <label for="hostHeader" class="form-label">Host Header</label>
+                    <p class="text-xs pb-1">If you're using an IP address for an upstream, you can specify the host header here (optional).</p>
+                    <input type="text" id="hostHeader" formControlName="hostHeader" class="form-input-field" />
+                </div>
+
+                <div class="pt-3">
+                    <label for="port" class="form-label">Port</label>
+                    <input type="text" id="port" formControlName="port" class="form-input-field" />
+                </div>
+
+                <div class="pt-3">
+                    <label for="scheme" class="form-label">Scheme</label>
+                    <input type="text" id="scheme" formControlName="scheme" class="form-input-field" />
+                </div>
+            </div>
+            }
+            }
+        </form>
+    </div>
+
+</div>

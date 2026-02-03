@@ -6,11 +6,12 @@ import { map } from 'rxjs';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Placeholder } from '../../../shared/components/common/placeholder/placeholder';
 import { RbacRule, UserGroupMapping } from '../store/projects.types';
+import { ServiceList } from './service-list/service-list';
 
 @Component({
   standalone: true,
   selector: 'app-project-details',
-  imports: [DatePipe, CommonModule, Placeholder],
+  imports: [DatePipe, CommonModule, Placeholder, ServiceList],
   templateUrl: './details.html',
   styleUrl: './details.css',
 })

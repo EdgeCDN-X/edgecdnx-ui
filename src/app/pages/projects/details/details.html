@@ -24,6 +24,10 @@
     </p>
 
     <div class="sub-card">
+        <app-service-list [projectId]="project()!.metadata.name"></app-service-list>
+    </div>
+
+    <div class="sub-card">
         <div class="flex justify-between">
             <h2 class="sub-card-title">Members</h2>
         </div>
