@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BackdropComponent } from '../backdrop/backdrop.component';
 import { RouterModule } from '@angular/router';
 import { AppHeaderComponent } from '../app-header/app-header.component';
 import { SidebarStore } from '../../store/sidebar.store';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
+import { AuthStore } from '../../../auth/auth.store';
 
 @Component({
   selector: 'app-layout',
@@ -18,15 +19,22 @@ import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
   templateUrl: './app-layout.component.html',
 })
 
-export class AppLayoutComponent {
+export class AppLayoutComponent implements OnInit {
 
   sidebarStore = inject(SidebarStore);
+  authStore = inject(AuthStore);
+
+  isAuthenticated = this.authStore.isAuthenticated;
 
   readonly isExpanded = this.sidebarStore.isExpanded;
   readonly isHovered = this.sidebarStore.isHovered;
   readonly isMobileOpen = this.sidebarStore.isMobileOpen;
 
-  constructor() {}
+  constructor() {
+
+  }
+
+  async ngOnInit(): Promise<void> {}
 
   get containerClasses() {
     return [

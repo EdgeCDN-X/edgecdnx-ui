@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AuthStore } from './auth/auth.store';
 import { CommonModule } from '@angular/common';
+import { AuthStore } from './auth/auth.store';
 
 @Component({
   selector: 'app-root',

@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { authGuard } from './auth/auth.guard';
+import { SignInComponent } from './auth/sign-in/sign-in.component';
 
 export const routes: Routes = [
   {
@@ -13,7 +14,6 @@ export const routes: Routes = [
         pathMatch: 'full',
         component: DashboardComponent,
         title: 'Dashboard',
-        canActivate: [authGuard],
       },
       {
         path: 'projects',
@@ -22,7 +22,6 @@ export const routes: Routes = [
             (m) => m.Projects
           ),
         title: 'Projects',
-        canActivate: [authGuard],
       },
       {
         path: 'projects/:name',
@@ -33,6 +32,12 @@ export const routes: Routes = [
         title: 'Project Details',
       }
     ],
+    canActivate: [authGuard],
+  },
+  {
+    path: 'signin',
+    component: SignInComponent,
+    title: 'Angular Sign In Dashboard | TailAdmin - Angular Admin Dashboard Template'
   },
   {
     path: 'logout',

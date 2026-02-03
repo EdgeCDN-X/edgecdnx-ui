@@ -2,7 +2,6 @@ import { effect, inject, Injectable, signal } from "@angular/core";
 import { Router } from "@angular/router";
 import { OAuthErrorEvent, OAuthService } from "angular-oauth2-oidc";
 import { filter } from "rxjs";
-import { environment } from "../../environments/environment";
 import { authConfig } from "./auth.config";
 
 
@@ -70,14 +69,20 @@ export class AuthStore {
     public async runInitialLoginSequence(): Promise<void> {
         this.oauthService.configure(authConfig);
         await this.oauthService.loadDiscoveryDocumentAndTryLogin();
+        this._isAuthenticated.set(this.oauthService.hasValidAccessToken());
 
-        this._isLoaded.set(true);
-
-        if (this.oauthService.hasValidAccessToken()) {
-            return;
+        if (this.isAuthenticated()) {
+            const state = this.oauthService.state;
+            if (state) {
+                this.router.navigateByUrl(decodeURIComponent(state));
+            }
         }
 
-        this.oauthService.initLoginFlow();
+        this._isLoaded.set(true);
+    }
+
+    public async login(targetUrl?: string): Promise<void> {
+        return this.oauthService.initCodeFlow(targetUrl || '/dashboard');
     }
 
     public logout(): void {
