@@ -1,6 +1,7 @@
-import { Component, inject, Input, OnInit, signal } from '@angular/core';
-import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
+import { Component, inject, Input, OnDestroy, OnInit, signal } from '@angular/core';
+import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder, FormArray } from '@angular/forms';
 import { CreateServiceDto, OriginType } from '../../store/service.types';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-service-create-form',
@@ -8,11 +9,8 @@ import { CreateServiceDto, OriginType } from '../../store/service.types';
   templateUrl: './service-create-form.html',
   styleUrl: './service-create-form.css',
 })
-export class ServiceCreateForm implements OnInit {
+export class ServiceCreateForm implements OnInit, OnDestroy {
   @Input() projectId!: string;
-
-  private formBuilder = inject(FormBuilder);
-
 
   step = signal(1);
 
@@ -23,6 +21,8 @@ export class ServiceCreateForm implements OnInit {
   previousStep() {
     this.step.update(s => s - 1);
   }
+
+  OriginChanges: Subscription | undefined = null as any;
 
   originTypes: OriginType[] = Object.values(OriginType) as OriginType[];
   awsSigsVersions: (2 | 4)[] = [2, 4];
@@ -44,11 +44,20 @@ export class ServiceCreateForm implements OnInit {
         }
       ]
     }),
-    originType: new FormControl<OriginType | null>(null, { nonNullable: true, validators: [Validators.required] })
+    originType: new FormControl<OriginType | null>(null, { nonNullable: true, validators: [Validators.required] }),
+    cache: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
+    hostAliases: new FormArray<FormControl<string>>([]),
+    signedUrlsEnabled: new FormControl(false, { nonNullable: true }),
+    wafEnabled: new FormControl(false, { nonNullable: true }),
+
+    cacheKey: new FormGroup({
+      queryParams: new FormArray<FormControl<string>>([]),
+      headers: new FormArray<FormControl<string>>([]),
+    })
   })
 
   ngOnInit(): void {
-    this.serviceCreateForm.get('originType')?.valueChanges.subscribe(value => {
+    this.OriginChanges = this.serviceCreateForm.get('originType')?.valueChanges.subscribe(value => {
       if (value === OriginType.Static) {
         (this.serviceCreateForm as any).removeControl('s3OriginSpec');
         (this.serviceCreateForm as any).addControl('staticOrigin', new FormGroup({
@@ -78,7 +87,10 @@ export class ServiceCreateForm implements OnInit {
         this.nextStep();
       }
     });
+  }
 
+  ngOnDestroy(): void {
+    this.OriginChanges?.unsubscribe();
   }
 
   onSubmit() { }
