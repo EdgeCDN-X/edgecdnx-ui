@@ -4,7 +4,7 @@
 
 <div>
     <div>
-        <form [formGroup]="serviceCreateForm" (ngSubmit)="onSubmit()">
+        <form [formGroup]="serviceCreateForm">
 
             @if (step() === 1) {
 
@@ -124,7 +124,44 @@
             }
 
             @if (step() === 3) {
+            <p class="base-text">Caching Parameters</p>
 
+            <!-- TODO fetch from API -->
+            <div class="pt-3">
+                <label for="cache" class="form-label">Caching Tier</label>
+                <select id="cache" formControlName="cache" class="form-input-field">
+                    <option [ngValue]="'ssd'">SSD</option>
+                    <option [ngValue]="'hdd'">HDD</option>
+                </select>
+            </div>
+
+            <div formGroupName="cacheKey" class="pt-3">
+                <div class="pt-3">
+                    <label for="queryParams" class="form-label">Query Parameters</label>
+                    <p class="text-xs pb-1">If you have query parameters that should be included in the cache key, add
+                        them here.</p>
+                    <app-tag-input formControlName="queryParams"
+                        [placeholder]="'Type and tab to add a query parameter'"></app-tag-input>
+                </div>
+            </div>
+            }
+
+            @if (step() === 4) {
+            <p class="base-text">Security and Privacy</p>
+
+            <div class="pt-3">
+                <label for="signedUrlsEnabled" class="form-label">Private Endpoint</label>
+                <p class="text-xs pb-1">If checked, content will be accessible only with signed URLs or with a Secure
+                    Session Cookie.</p>
+                <input type="checkbox" id="signedUrlsEnabled" formControlName="signedUrlsEnabled" />
+            </div>
+
+            <div class="pt-3">
+                <label for="wafEnabled" class="form-label">WAF Enabled</label>
+                <p class="text-xs pb-1">If checked, the Web Application Firewall (WAF) will be enabled for this service.
+                </p>
+                <input type="checkbox" id="wafEnabled" formControlName="wafEnabled" />
+            </div>
             }
 
 
@@ -136,13 +173,11 @@
                     </button>
                 </div>
                 <div class="flex w-full justify-end">
-                    <button type="button" class="flex btn-primary my-4 w-1/2 text-center" (click)="nextStep()"
-                        [disabled]="step() === 3">
-                        <p class="text-center w-full">Next</p>
+                    <button type="button" class="flex btn-primary my-4 w-1/2 text-center" (click)="nextStep()">
+                        <p class="text-center w-full">{{ step() === 4 ? 'Submit' : 'Next' }}</p>
                     </button>
                 </div>
             </div>
-
         </form>
     </div>
 

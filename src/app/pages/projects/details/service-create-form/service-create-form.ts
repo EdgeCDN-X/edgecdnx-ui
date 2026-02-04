@@ -2,10 +2,11 @@ import { Component, inject, Input, OnDestroy, OnInit, signal } from '@angular/co
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder, FormArray } from '@angular/forms';
 import { CreateServiceDto, OriginType } from '../../store/service.types';
 import { Subscription } from 'rxjs';
+import { TagInputComponent } from '../../../../shared/components/form/input/tag-input.component';
 
 @Component({
   selector: 'app-service-create-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TagInputComponent],
   templateUrl: './service-create-form.html',
   styleUrl: './service-create-form.css',
 })
@@ -16,6 +17,8 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
 
   nextStep() {
     this.step.update(s => s + 1);
+    
+    console.log("FORM VALUE????", this.serviceCreateForm.value);
   }
 
   previousStep() {
@@ -51,7 +54,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
     wafEnabled: new FormControl(false, { nonNullable: true }),
 
     cacheKey: new FormGroup({
-      queryParams: new FormArray<FormControl<string>>([]),
+      queryParams: new FormControl<string[]>([]),
       headers: new FormArray<FormControl<string>>([]),
     })
   })
