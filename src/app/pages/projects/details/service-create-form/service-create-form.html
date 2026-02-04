@@ -3,11 +3,13 @@
 </div>
 
 <div>
-    <p class="base-text">Creating service for project {{ projectId }}</p>
-
-
     <div>
         <form [formGroup]="serviceCreateForm" (ngSubmit)="onSubmit()">
+
+            @if (step() === 1) {
+
+            <p class="base-text">Creating service for project {{ projectId }}</p>
+
             <div class="pt-3">
                 <label for="name" class="form-label">Service Name</label>
                 <input type="text" id="name" formControlName="name" class="form-input-field" />
@@ -22,9 +24,15 @@
                     }
                 </select>
             </div>
+            }
+
+            @if (step() === 2) {
 
             @switch(serviceCreateForm.get('originType')!.value) {
             @case("static") {
+
+            <p class="base-text">Configure Upstream parameters</p>
+
             <div formGroupName="staticOrigin" class="pt-3">
                 <div class="pt-3">
                     <label for="upstream" class="form-label">Upstream IP or URL</label>
@@ -34,7 +42,8 @@
 
                 <div class="pt-3">
                     <label for="hostHeader" class="form-label">Host Header</label>
-                    <p class="text-xs pb-1">If you're using an IP address for an upstream, you can specify the host header here (optional).</p>
+                    <p class="text-xs pb-1">If you're using an IP address for an upstream, you can specify the host
+                        header here (optional).</p>
                     <input type="text" id="hostHeader" formControlName="hostHeader" class="form-input-field" />
                 </div>
 
@@ -49,7 +58,91 @@
                 </div>
             </div>
             }
+
+            @case("s3") {
+            <p class="base-text">Configure S3 parameters</p>
+
+            <div formGroupName="s3OriginSpec" class="pt-3">
+                <div class="pt-3">
+                    <label for="s3BucketName" class="form-label">Bucket Name</label>
+                    <input type="text" id="s3BucketName" formControlName="s3BucketName" class="form-input-field" />
+                </div>
+
+                <div class="pt-3">
+                    <label for="s3Region" class="form-label">Region</label>
+                    <input type="text" id="s3Region" formControlName="s3Region" class="form-input-field" />
+                </div>
+
+                <div class="pt-3">
+                    <label for="s3AccessKeyId" class="form-label">Access Key ID</label>
+                    <input type="text" id="s3AccessKeyId" formControlName="s3AccessKeyId" class="form-input-field" />
+                </div>
+
+
+                <div class="pt-3">
+                    <label for="s3SecretKey" class="form-label">Secret Key</label>
+                    <input type="text" id="s3SecretKey" formControlName="s3SecretKey" class="form-input-field" />
+                </div>
+
+                <div class="pt-3">
+                    <label for="s3Server" class="form-label">Server</label>
+                    <input type="text" id="s3Server" formControlName="s3Server" class="form-input-field" />
+                </div>
+
+                <div class="pt-3">
+                    <label for="s3ServerPort" class="form-label">Port</label>
+                    <input type="text" id="s3ServerPort" formControlName="s3ServerPort" class="form-input-field" />
+                </div>
+
+                <div class="pt-3">
+                    <label for="s3ServerProto" class="form-label">Protocol</label>
+                    <select id="s3ServerProto" formControlName="s3ServerProto" class="form-input-field">
+                        <option [ngValue]="'Http'">http</option>
+                        <option [ngValue]="'Https'">https</option>
+                    </select>
+                </div>
+
+                <div class="pt-3">
+                    <label for="s3Style" class="form-label">Style</label>
+                    <select id="s3Style" formControlName="s3Style" class="form-input-field">
+                        <option [ngValue]="'virtual'">Virtual Host</option>
+                        <option [ngValue]="'path'">Path</option>
+                    </select>
+                </div>
+
+                <div class="pt-3">
+                    <label for="awsSigsVersion" class="form-label">Signature Version</label>
+                    <select id="awsSigsVersion" formControlName="awsSigsVersion" class="form-input-field">
+                        @for (type of awsSigsVersions ; track type) {
+                        <option [ngValue]="type">{{ type }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
             }
+            }
+            }
+
+            @if (step() === 3) {
+
+            }
+
+
+            <div class="flex w-full justify-between">
+                <div class="flex w-full justify-start">
+                    <button type="button" class="flex btn-primary my-4 w-1/2 text-center" (click)="previousStep()"
+                        [disabled]="step() === 1">
+                        <p class="text-center w-full">Previous</p>
+                    </button>
+                </div>
+                <div class="flex w-full justify-end">
+                    <button type="button" class="flex btn-primary my-4 w-1/2 text-center" (click)="nextStep()"
+                        [disabled]="step() === 3">
+                        <p class="text-center w-full">Next</p>
+                    </button>
+                </div>
+            </div>
+
         </form>
     </div>
 

@@ -22,9 +22,8 @@ export class ModalComponent {
   @Output() close = new EventEmitter<void>();
   @Input() className = '';
   @Input() showCloseButton = true;
-  @Input() isFullscreen = false;
 
-  constructor(private el: ElementRef) {}
+  constructor(private el: ElementRef) { }
 
   ngOnInit() {
     if (this.isOpen) {
@@ -41,7 +40,10 @@ export class ModalComponent {
   }
 
   onBackdropClick(event: MouseEvent) {
-    if (!this.isFullscreen) {
+
+    console.log('Backdrop clicked', event);
+
+    if (this.isOpen) {
       this.close.emit();
     }
   }
@@ -50,7 +52,7 @@ export class ModalComponent {
     event.stopPropagation();
   }
 
- @HostListener('document:keydown.escape')
+  @HostListener('document:keydown.escape')
   onEscape() {
     if (this.isOpen) {
       this.close.emit();

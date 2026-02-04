@@ -9,12 +9,13 @@ export enum OriginType {
 export interface CreateServiceDto {
     name: string;
     originType: OriginType;
-    staticOrigin?: {
-        upstream: string;
-        hostHeader?: string;
-        port?: number;
-        scheme?: "Http" | "Https";
-    };
+    staticOrigin?: StaticOrigin;
+    s3OriginSpec?: S3OriginSpec;
+    cache: string;
+    hostAliases?: HostAlias[];
+
+    signedUrlsEnabled: boolean;
+    wafEnabled: boolean;
 }
 
 export interface ServiceActionError {
