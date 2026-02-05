@@ -1,10 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-switch',
+  standalone: true,
   imports: [
     CommonModule
+  ],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      multi: true,
+      useExisting: SwitchComponent
+    }
   ],
   template: `
    <label
@@ -30,25 +39,48 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
     </label>
   `
 })
-export class SwitchComponent {
-
+export class SwitchComponent implements ControlValueAccessor {
   @Input() label!: string;
-  @Input() defaultChecked: boolean = false;
-  @Input() disabled: boolean = false;
   @Input() color: 'blue' | 'gray' = 'blue';
-
-  @Output() valueChange = new EventEmitter<boolean>();
 
   isChecked: boolean = false;
 
-  ngOnInit() {
-    this.isChecked = this.defaultChecked;
+  onChange = (tags: boolean) => { };
+
+  onTouched = () => { };
+
+  touched = false;
+
+  disabled = false;
+
+  writeValue(value: boolean): void {
+    this.isChecked = value;
+  }
+
+  registerOnChange(onChange: any) {
+    this.onChange = onChange;
+  }
+
+  registerOnTouched(onTouched: any) {
+    this.onTouched = onTouched;
+  }
+
+  markAsTouched() {
+    if (!this.touched) {
+      this.onTouched();
+      this.touched = true;
+    }
+  }
+
+  setDisabledState(disabled: boolean) {
+    this.disabled = disabled;
   }
 
   handleToggle() {
     if (this.disabled) return;
     this.isChecked = !this.isChecked;
-    this.valueChange.emit(this.isChecked);
+    this.onChange(this.isChecked);
+    this.markAsTouched();
   }
 
   get switchColors() {

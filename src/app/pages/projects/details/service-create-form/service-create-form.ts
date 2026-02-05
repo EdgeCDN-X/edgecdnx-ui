@@ -3,22 +3,29 @@ import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder, F
 import { CreateServiceDto, OriginType } from '../../store/service.types';
 import { Subscription } from 'rxjs';
 import { TagInputComponent } from '../../../../shared/components/form/input/tag-input.component';
+import { SwitchComponent } from '../../../../shared/components/form/input/switch.component';
+import { ServiceStore } from '../../store/service.store';
 
 @Component({
   selector: 'app-service-create-form',
-  imports: [ReactiveFormsModule, TagInputComponent],
+  imports: [ReactiveFormsModule, TagInputComponent, SwitchComponent],
   templateUrl: './service-create-form.html',
   styleUrl: './service-create-form.css',
 })
 export class ServiceCreateForm implements OnInit, OnDestroy {
   @Input() projectId!: string;
 
+  serviceStore = inject(ServiceStore);
+
+  creating = this.serviceStore.creating;
+  created = this.serviceStore.created;
+  error = this.serviceStore.error;
+
   step = signal(1);
+  submitStep = 4;
 
   nextStep() {
-    this.step.update(s => s + 1);
-    
-    console.log("FORM VALUE????", this.serviceCreateForm.value);
+    this.step.update(s => s + 1);    
   }
 
   previousStep() {
@@ -65,7 +72,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
         (this.serviceCreateForm as any).removeControl('s3OriginSpec');
         (this.serviceCreateForm as any).addControl('staticOrigin', new FormGroup({
           upstream: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
-          hostHeader: new FormControl(null, { nonNullable: true }),
+          hostHeader: new FormControl(null, { nonNullable: false }),
           port: new FormControl(443, { nonNullable: true, validators: [Validators.min(1), Validators.max(65535)] }),
           scheme: new FormControl("Https", { nonNullable: true, validators: [Validators.required] }),
         }));
@@ -96,6 +103,10 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
     this.OriginChanges?.unsubscribe();
   }
 
-  onSubmit() { }
-
+  onSubmit() {
+    if (this.serviceCreateForm.valid) {
+      const createService = this.serviceCreateForm.value as CreateServiceDto;
+      this.serviceStore.createService(createService);
+    }
+   }
 }

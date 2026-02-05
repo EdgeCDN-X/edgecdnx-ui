@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, Input, OnInit, signal } from '@angular/core';
 import { ServiceStore } from '../../store/service.store';
 import { CommonModule } from '@angular/common';
 import { Placeholder } from '../../../../shared/components/common/placeholder/placeholder';
@@ -20,10 +20,20 @@ export class ServiceList implements OnInit {
   loading = this.serviceStore.loading;
   error = this.serviceStore.error;
 
+  created = this.serviceStore.created;
+
   modalStore = inject(ModalStore);
   isOpen = this.modalStore.isOpen;
 
   modalSelector = signal<{ type: string, serviceId?: string }>({ type: '' });
+
+  constructor() {
+    effect(() => {
+      if (this.created()) {
+        setTimeout(() => { this.closeModal() }, 5000);
+      }
+    })
+  }
 
   closeModal() {
     this.modalStore.closeModal();

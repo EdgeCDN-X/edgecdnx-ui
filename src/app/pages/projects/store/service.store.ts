@@ -1,6 +1,6 @@
 import { Injectable, signal } from "@angular/core";
 import { environment } from "../../../../environments/environment";
-import { ServiceActionError, ServiceList } from "./service.types";
+import { CreateServiceDto, ServiceActionError, ServiceList } from "./service.types";
 import { HttpClient } from "@angular/common/http";
 
 
@@ -15,10 +15,16 @@ export class ServiceStore {
     private readonly _error = signal<ServiceActionError | null>(null);
     private readonly _selectedProjectId = signal<string | null>(null);
 
+    private readonly _creating = signal<boolean>(false);
+    private readonly _created = signal<boolean>(false);
+
     readonly services = this._services.asReadonly();
     readonly loading = this._loading.asReadonly();
     readonly loaded = this._loaded.asReadonly();
     readonly error = this._error.asReadonly();
+
+    readonly creating = this._creating.asReadonly();
+    readonly created = this._created.asReadonly();
 
     constructor(private http: HttpClient) { }
 
@@ -51,4 +57,36 @@ export class ServiceStore {
         });
     }
 
+    createService(serviceDto: CreateServiceDto) {
+        this._error.set(null);
+        this._creating.set(true);
+        this._created.set(false);
+
+        const projectId = this._selectedProjectId();
+        if (!projectId) {
+            this._error.set({
+                message: 'No project selected',
+                action: "create"
+            });
+            this._creating.set(false);
+            return;
+        }
+
+        this.http.post(`${environment.apiUrl}/project/${projectId}/services`, serviceDto).subscribe({
+            next: (data) => {
+                this._created.set(true);
+                this._services.update(services => services ? [...services, data] : [data]);
+            },
+            error: (err) => {
+                this._error.set({
+                    message: err.error?.message || 'Failed to create service',
+                    action: "create"
+                });
+                this._creating.set(false);
+            },
+            complete: () => {
+                this._creating.set(false);
+            }
+        });
+    }
 }
