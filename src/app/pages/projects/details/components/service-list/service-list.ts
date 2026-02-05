@@ -1,10 +1,11 @@
 import { Component, effect, inject, Input, OnInit, signal } from '@angular/core';
-import { ServiceStore } from '../../store/service.store';
 import { CommonModule } from '@angular/common';
-import { Placeholder } from '../../../../shared/components/common/placeholder/placeholder';
-import { ModalStore } from '../../../../shared/store/modal.store';
-import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
+
 import { ServiceCreateForm } from '../service-create-form/service-create-form';
+import { Placeholder } from '../../../../../shared/components/common/placeholder/placeholder';
+import { ModalComponent } from '../../../../../shared/components/ui/modal/modal.component';
+import { ModalStore } from '../../../../../shared/store/modal.store';
+import { ServiceStore } from '../../../store/service.store';
 
 @Component({
   selector: 'app-service-list',

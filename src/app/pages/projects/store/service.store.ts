@@ -18,6 +18,8 @@ export class ServiceStore {
     private readonly _creating = signal<boolean>(false);
     private readonly _created = signal<boolean>(false);
 
+    readonly selectedProjectId = this._selectedProjectId.asReadonly();
+
     readonly services = this._services.asReadonly();
     readonly loading = this._loading.asReadonly();
     readonly loaded = this._loaded.asReadonly();

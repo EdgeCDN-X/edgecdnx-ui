@@ -1,0 +1,56 @@
+<div class="sub-card">
+    <div class="flex justify-between">
+        <h2 class="sub-card-title">Roles</h2>
+    </div>
+
+    <table class="w-full table-fixed">
+        <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+            <tr>
+                <th scope="col" class="table-label">
+                    Role
+                </th>
+                <th scope="col" class="table-label">
+                    Resource
+                </th>
+                <th scope="col" class="table-label">
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody class="table-divider">
+            @for (item of roles(); track $index) {
+            @for (rule of item.rules; track $index) {
+            <tr>
+                <td class="py-3">
+                    <div class="flex items-center gap-[18px]">
+                        <div>
+                            <p class="base-text">
+                                {{item.role}}
+                            </p>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3">
+                    <div class="flex items-center w-full gap-5">
+                        <div class="truncate">
+                            <p class="mb-0.5 truncate base-text">
+                                {{rule.resource}}
+                            </p>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3">
+                    <div class="flex items-center w-full gap-5">
+                        <div class="truncate">
+                            <p class="mb-0.5 truncate base-text">
+                                {{rule.action}}
+                            </p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            }
+            }
+        </tbody>
+    </table>
+</div>

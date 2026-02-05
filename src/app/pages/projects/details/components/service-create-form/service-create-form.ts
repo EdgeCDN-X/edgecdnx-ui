@@ -1,10 +1,10 @@
 import { Component, inject, Input, OnDestroy, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder, FormArray } from '@angular/forms';
-import { CreateServiceDto, OriginType } from '../../store/service.types';
 import { Subscription } from 'rxjs';
-import { TagInputComponent } from '../../../../shared/components/form/input/tag-input.component';
-import { SwitchComponent } from '../../../../shared/components/form/input/switch.component';
-import { ServiceStore } from '../../store/service.store';
+import { TagInputComponent } from '../../../../../shared/components/form/input/tag-input.component';
+import { SwitchComponent } from '../../../../../shared/components/form/input/switch.component';
+import { ServiceStore } from '../../../store/service.store';
+import { CreateServiceDto, OriginType } from '../../../store/service.types';
 
 @Component({
   selector: 'app-service-create-form',

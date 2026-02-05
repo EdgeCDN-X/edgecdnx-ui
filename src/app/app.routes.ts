@@ -29,6 +29,17 @@ export const routes: Routes = [
           import('./pages/projects/details/details').then(
             (m) => m.ProjectDetails
           ),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./pages/projects/details/overview/overview').then(
+                (m) => m.Overview
+              ),
+            title: 'Overview',
+          }
+        ],
         title: 'Project Details',
       }
     ],
