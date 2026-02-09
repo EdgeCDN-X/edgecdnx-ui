@@ -48,7 +48,7 @@ export class ProjectsStore {
             },
             error: (err) => {
                 this._error.set({
-                    message: err.error?.message || 'Failed to load projects',
+                    message: err.error?.error || err.error?.message || 'Failed to load projects',
                     action: "list"
                 });
                 this._loading.set(false);
@@ -65,14 +65,18 @@ export class ProjectsStore {
         this._creating.set(true);
         this._error.set(null);
 
-        this.http.post<Project>(`${this.configService.environment()?.apiUrl}/projects`, project).subscribe({
+        this.http.post<Project>(`${this.configService.environment()?.apiUrl}/projects`, project, {
+            headers: {
+                'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
+            }
+        }).subscribe({
             next: (data) => {
                 this._projects.update(projects => [...projects, data]);
                 this._created.set(data);
             },
             error: (err) => {
                 this._error.set({
-                    message: err.error?.error ?? 'Failed to create project',
+                    message: err.error?.error || err.error?.message || 'Failed to create project',
                     action: "create"
                 });
                 this._creating.set(false);

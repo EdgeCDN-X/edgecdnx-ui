@@ -54,7 +54,7 @@ export class ServiceStore {
             },
             error: (err) => {
                 this._error.set({
-                    message: err.error?.message || 'Failed to load services',
+                    message: err.error.error || err.error.message || 'Failed to load services',
                     action: "list"
                 })
                 this._loading.set(false);
@@ -82,14 +82,18 @@ export class ServiceStore {
             return;
         }
 
-        this.http.post(`${this.configService.environment()?.apiUrl}/project/${projectId}/services`, serviceDto).subscribe({
+        this.http.post(`${this.configService.environment()?.apiUrl}/project/${projectId}/services`, serviceDto, {
+            headers: {
+                'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
+            }
+        }).subscribe({
             next: (data) => {
                 this._created.set(true);
                 this._services.update(services => services ? [...services, data] : [data]);
             },
             error: (err) => {
                 this._error.set({
-                    message: err.error?.message || 'Failed to create service',
+                    message: err.error.error || err.error.message || 'Failed to create service',
                     action: "create"
                 });
                 this._creating.set(false);
