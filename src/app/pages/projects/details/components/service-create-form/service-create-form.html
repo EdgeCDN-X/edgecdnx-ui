@@ -34,6 +34,19 @@
             <div class="pt-3">
                 <label for="name" class="form-label">Service Name</label>
                 <input type="text" id="name" formControlName="name" class="form-input-field" />
+                @if (serviceCreateForm.get('name')!.invalid && serviceCreateForm.get('name')!.touched) {
+                @if (serviceCreateForm.get('name')!.hasError('required')) {
+                <p class="text-red-600 text-xs pt-1">Service name is required.</p>
+                }
+                @if (serviceCreateForm.get('name')!.hasError('maxlength') ||
+                serviceCreateForm.get('name')!.hasError('minlength')) {
+                <p class="text-red-600 text-xs pt-1">Service name must be between 3 and 63 characters long.</p>
+                }
+                @if (serviceCreateForm.get('name')!.hasError('invalidName')) {
+                <p class="text-red-600 text-xs pt-1">Service name must start with a letter and contain only letters,
+                    numbers, and spaces.</p>
+                }
+                }
             </div>
 
             <div class="pt-3">
@@ -44,6 +57,11 @@
                     <option [ngValue]="type">{{ type }}</option>
                     }
                 </select>
+                @if (serviceCreateForm.get('originType')!.invalid && serviceCreateForm.get('originType')!.touched) {
+                @if (serviceCreateForm.get('originType')!.hasError('required')) {
+                <p class="text-red-600 text-xs pt-1">Origin type is required.</p>
+                }
+                }
             </div>
             }
 
@@ -59,23 +77,52 @@
                     <label for="upstream" class="form-label">Upstream IP or URL</label>
                     <p class="text-xs pb-1">IP Address or Domain Name can be used.</p>
                     <input type="text" id="upstream" formControlName="upstream" class="form-input-field" />
+
+                    @if (serviceCreateForm.get('staticOrigin')!.get('upstream') &&
+                    serviceCreateForm.get('staticOrigin')!.get('upstream')!.touched) {
+                    @if (serviceCreateForm.get('staticOrigin')!.get('upstream')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Upstream is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
                     <label for="hostHeader" class="form-label">Host Header</label>
                     <p class="text-xs pb-1">If you're using an IP address for an upstream, you can specify the host
-                        header here (optional).</p>
+                        header here. If using a domain name, use the same value here</p>
                     <input type="text" id="hostHeader" formControlName="hostHeader" class="form-input-field" />
+                    @if (serviceCreateForm.get('staticOrigin')!.get('hostHeader') &&
+                    serviceCreateForm.get('staticOrigin')!.get('hostHeader')!.touched) {
+                    @if (serviceCreateForm.get('staticOrigin')!.get('hostHeader')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Host Header is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
                     <label for="port" class="form-label">Port</label>
                     <input type="text" id="port" formControlName="port" class="form-input-field" />
+
+                    @if (serviceCreateForm.get('staticOrigin')!.get('port') &&
+                    serviceCreateForm.get('staticOrigin')!.get('port')!.touched) {
+                    @if (serviceCreateForm.get('staticOrigin')!.get('port')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Port is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
                     <label for="scheme" class="form-label">Scheme</label>
-                    <input type="text" id="scheme" formControlName="scheme" class="form-input-field" />
+                    <select id="scheme" formControlName="scheme" class="form-input-field">
+                        <option [ngValue]="'Http'">http</option>
+                        <option [ngValue]="'Https'">https</option>
+                    </select>
+                    @if (serviceCreateForm.get('staticOrigin')!.get('scheme') &&
+                    serviceCreateForm.get('staticOrigin')!.get('scheme')!.touched) {
+                    @if (serviceCreateForm.get('staticOrigin')!.get('scheme')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Scheme is required. (Https or Http)</p>
+                    }
+                    }
                 </div>
             </div>
             }
@@ -87,32 +134,68 @@
                 <div class="pt-3">
                     <label for="s3BucketName" class="form-label">Bucket Name</label>
                     <input type="text" id="s3BucketName" formControlName="s3BucketName" class="form-input-field" />
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3BucketName') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('s3BucketName')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3BucketName')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Bucket Name is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
                     <label for="s3Region" class="form-label">Region</label>
                     <input type="text" id="s3Region" formControlName="s3Region" class="form-input-field" />
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3Region') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('s3Region')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3Region')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Region is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
                     <label for="s3AccessKeyId" class="form-label">Access Key ID</label>
                     <input type="text" id="s3AccessKeyId" formControlName="s3AccessKeyId" class="form-input-field" />
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3AccessKeyId') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('s3AccessKeyId')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3AccessKeyId')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Access Key ID is required.</p>
+                    }
+                    }
                 </div>
 
 
                 <div class="pt-3">
                     <label for="s3SecretKey" class="form-label">Secret Key</label>
                     <input type="text" id="s3SecretKey" formControlName="s3SecretKey" class="form-input-field" />
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3SecretKey') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('s3SecretKey')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3SecretKey')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Secret Key is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
                     <label for="s3Server" class="form-label">Server</label>
                     <input type="text" id="s3Server" formControlName="s3Server" class="form-input-field" />
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3Server') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('s3Server')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3Server')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Server is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
                     <label for="s3ServerPort" class="form-label">Port</label>
                     <input type="text" id="s3ServerPort" formControlName="s3ServerPort" class="form-input-field" />
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3ServerPort') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('s3ServerPort')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3ServerPort')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Port is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
@@ -121,6 +204,12 @@
                         <option [ngValue]="'Http'">http</option>
                         <option [ngValue]="'Https'">https</option>
                     </select>
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3ServerProto') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('s3ServerProto')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3ServerProto')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Protocol is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
@@ -129,6 +218,12 @@
                         <option [ngValue]="'virtual'">Virtual Host</option>
                         <option [ngValue]="'path'">Path</option>
                     </select>
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3Style') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('s3Style')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('s3Style')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Style is required.</p>
+                    }
+                    }
                 </div>
 
                 <div class="pt-3">
@@ -138,6 +233,12 @@
                         <option [ngValue]="type">{{ type }}</option>
                         }
                     </select>
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('awsSigsVersion') &&
+                    serviceCreateForm.get('s3OriginSpec')!.get('awsSigsVersion')!.touched) {
+                    @if (serviceCreateForm.get('s3OriginSpec')!.get('awsSigsVersion')!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">Signature Version is required.</p>
+                    }
+                    }
                 </div>
             </div>
             }
@@ -154,6 +255,12 @@
                     <option [ngValue]="'ssd'">SSD</option>
                     <option [ngValue]="'hdd'">HDD</option>
                 </select>
+                @if (serviceCreateForm.get('cache') &&
+                serviceCreateForm.get('cache')!.touched) {
+                @if (serviceCreateForm.get('cache')!.hasError('required')) {
+                <p class="text-red-600 text-xs pt-1">Caching Tier is required.</p>
+                }
+                }
             </div>
 
             <div formGroupName="cacheKey" class="pt-3">
@@ -193,7 +300,7 @@
                 <div class="flex w-full justify-end">
                     @if (submitStep > step()) {
                     <button type="button" class="flex btn-primary my-4 w-1/2 text-center"
-                        [disabled]="step() > submitStep" (click)="nextStep()">
+                        [disabled]="step() > submitStep || !canClickNext()" (click)="nextStep()">
                         <p class="text-center w-full">Next</p>
                     </button>
                     }

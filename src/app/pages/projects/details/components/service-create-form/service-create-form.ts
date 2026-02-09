@@ -24,8 +24,33 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
   step = signal(1);
   submitStep = 4;
 
+  /**
+   * Step by step validation to ensure users fill in the required fields before proceeding to the next step.
+   * @returns 
+   */
+  canClickNext() {
+    if (this.step() === 1) {
+      return this.serviceCreateForm.get('name')?.valid && this.serviceCreateForm.get('originType')?.valid;
+    }
+
+    if (this.step() === 2) {
+      const originType = this.serviceCreateForm.get('originType')?.value;
+      if (originType === OriginType.Static) {
+        return this.serviceCreateForm.get('staticOrigin')?.valid;
+      } else if (originType === OriginType.S3) {
+        return this.serviceCreateForm.get('s3OriginSpec')?.valid;
+      }
+    }
+
+    if (this.step() === 3) {
+      return this.serviceCreateForm.get('cache')?.valid;
+    }
+
+    return true;
+  }
+
   nextStep() {
-    this.step.update(s => s + 1);    
+    this.step.update(s => s + 1);
   }
 
   previousStep() {
@@ -72,7 +97,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
         (this.serviceCreateForm as any).removeControl('s3OriginSpec');
         (this.serviceCreateForm as any).addControl('staticOrigin', new FormGroup({
           upstream: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
-          hostHeader: new FormControl(null, { nonNullable: false }),
+          hostHeader: new FormControl(null, { nonNullable: false, validators: [Validators.required] }),
           port: new FormControl(443, { nonNullable: true, validators: [Validators.min(1), Validators.max(65535)] }),
           scheme: new FormControl("Https", { nonNullable: true, validators: [Validators.required] }),
         }));
@@ -92,10 +117,6 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
           s3Style: new FormControl<"virtual" | "path">("virtual", { nonNullable: true, validators: [Validators.required] }),
         }));
       }
-
-      if (value == OriginType.Static || value == OriginType.S3) {
-        this.nextStep();
-      }
     });
   }
 
@@ -108,5 +129,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
       const createService = this.serviceCreateForm.value as CreateServiceDto;
       this.serviceStore.createService(createService);
     }
-   }
+
+    // this.serviceCreateForm.get('stati')
+  }
 }
