@@ -1,12 +1,11 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
-import { environment } from '../../environments/environment';
 
 export const authConfig: AuthConfig = {
   // Replace with your OIDC provider's issuer URL
-  issuer: environment.auth.oidc.issuer,
+  issuer: 'issuer',
 
   // Replace with your client ID
-  clientId: environment.auth.oidc.clientId,
+  clientId: 'clientId',
   // Redirect URI after successful authentication
   redirectUri: 'http://localhost:4200/callback',
 
@@ -14,14 +13,11 @@ export const authConfig: AuthConfig = {
   responseType: 'code',
 
   // Scopes to request
-  scope: environment.auth.oidc.scope,
+  scope: 'openid profile email',
 
   // Use PKCE for security
   requireHttps: false,
   showDebugInformation: true, // Set to false in production
-
-  // Token endpoint
-  // tokenEndpoint: environment.auth.oidc.token,
 
   // User info endpoint
   userinfoEndpoint: undefined, // Will be auto-discovered from issuer

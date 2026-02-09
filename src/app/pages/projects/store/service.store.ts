@@ -1,7 +1,8 @@
-import { Injectable, signal } from "@angular/core";
-import { environment } from "../../../../environments/environment";
+import { inject, Injectable, signal } from "@angular/core";
 import { CreateServiceDto, ServiceActionError, ServiceList } from "./service.types";
 import { HttpClient } from "@angular/common/http";
+import { OAuthService } from "angular-oauth2-oidc";
+import { ConfigService } from "../../../config/config.store";
 
 
 
@@ -9,6 +10,9 @@ import { HttpClient } from "@angular/common/http";
     providedIn: 'root'
 })
 export class ServiceStore {
+    private configService = inject(ConfigService);
+    private oauthService = inject(OAuthService);
+
     private readonly _services = signal<any>(null);
     private readonly _loading = signal<boolean>(false);
     private readonly _loaded = signal<boolean>(false);
@@ -40,7 +44,11 @@ export class ServiceStore {
         this._error.set(null);
         this._selectedProjectId.set(projectId);
 
-        this.http.get<ServiceList>(`${environment.apiUrl}/project/${projectId}/services`).subscribe({
+        this.http.get<ServiceList>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services`, {
+            headers: {
+                'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
+            }
+        }).subscribe({
             next: (data) => {
                 this._services.set(data);
             },
@@ -74,7 +82,7 @@ export class ServiceStore {
             return;
         }
 
-        this.http.post(`${environment.apiUrl}/project/${projectId}/services`, serviceDto).subscribe({
+        this.http.post(`${this.configService.environment()?.apiUrl}/project/${projectId}/services`, serviceDto).subscribe({
             next: (data) => {
                 this._created.set(true);
                 this._services.update(services => services ? [...services, data] : [data]);

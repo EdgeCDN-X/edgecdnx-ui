@@ -1,8 +1,8 @@
-import { Injectable, signal } from "@angular/core";
+import { inject, Injectable, signal } from "@angular/core";
 import { CreateProjectDto, Project, ProjectActionError, ProjectList } from "./projects.types";
 import { HttpClient } from "@angular/common/http";
-import { environment } from "../../../../environments/environment";
-import { catchError, tap } from "rxjs";
+import { OAuthService } from "angular-oauth2-oidc";
+import { ConfigService } from "../../../config/config.store";
 
 
 
@@ -10,6 +10,9 @@ import { catchError, tap } from "rxjs";
     providedIn: 'root'
 })
 export class ProjectsStore {
+    private oauthService = inject(OAuthService);
+    private configService = inject(ConfigService);
+
     private readonly _projects = signal<ProjectList>([]);
     private readonly _loading = signal<boolean>(false);
     private readonly _loaded = signal<boolean>(false);
@@ -35,7 +38,11 @@ export class ProjectsStore {
         this._loading.set(true);
         this._error.set(null);
 
-        this.http.get<ProjectList>(`${environment.apiUrl}/projects`).subscribe({
+        this.http.get<ProjectList>(`${this.configService.environment()?.apiUrl}/projects`, {
+            headers: {
+                'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
+            }
+        }).subscribe({
             next: (data) => {
                 this._projects.set(data);
             },
@@ -58,7 +65,7 @@ export class ProjectsStore {
         this._creating.set(true);
         this._error.set(null);
 
-        this.http.post<Project>(`${environment.apiUrl}/projects`, project).subscribe({
+        this.http.post<Project>(`${this.configService.environment()?.apiUrl}/projects`, project).subscribe({
             next: (data) => {
                 this._projects.update(projects => [...projects, data]);
                 this._created.set(data);

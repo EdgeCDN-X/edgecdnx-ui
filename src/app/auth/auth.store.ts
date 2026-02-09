@@ -3,12 +3,14 @@ import { Router } from "@angular/router";
 import { OAuthErrorEvent, OAuthService } from "angular-oauth2-oidc";
 import { filter } from "rxjs";
 import { authConfig } from "./auth.config";
+import { ConfigService } from "../config/config.store";
 
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthStore {
+    private config = inject(ConfigService);
     private oauthService = inject(OAuthService);
     private router = inject(Router);
 
@@ -67,7 +69,16 @@ export class AuthStore {
     }
 
     public async runInitialLoginSequence(): Promise<void> {
-        this.oauthService.configure(authConfig);
+        this.oauthService.configure(
+            {
+                ...authConfig,
+                issuer: this.config.environment()?.auth.oidc.issuer || authConfig.issuer,
+                clientId: this.config.environment()?.auth.oidc.clientId || authConfig.clientId,
+                scope: this.config.environment()?.auth.oidc.scope || authConfig.scope,
+                requireHttps: this.config.environment()?.auth.oidc.requireHttps ?? authConfig.requireHttps,
+                redirectUri: this.config.environment()?.auth.oidc.redirectUri || authConfig.redirectUri,
+            }
+        );
         await this.oauthService.loadDiscoveryDocumentAndTryLogin();
         this._isAuthenticated.set(this.oauthService.hasValidAccessToken());
 
