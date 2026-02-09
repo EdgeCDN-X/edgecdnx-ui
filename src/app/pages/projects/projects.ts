@@ -82,7 +82,6 @@ export class Projects implements OnInit {
 
   constructor() {
     effect(() => {
-      console.log("Created project:", this.created());
       if (this.created() !== null) {
         setTimeout(() => { this.closeModal() }, 3000);
       }

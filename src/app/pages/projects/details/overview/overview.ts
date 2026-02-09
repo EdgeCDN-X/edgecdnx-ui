@@ -9,6 +9,7 @@ import { Roles } from '../components/roles/roles';
 
 @Component({
   selector: 'app-overview',
+  standalone: true,
   imports: [ServiceList, Members, Roles],
   templateUrl: './overview.html',
   styleUrl: './overview.css',
@@ -21,7 +22,7 @@ export class Overview {
     this.route.paramMap.pipe(map(params => params.get('name')))
   )
 
-    project = computed(() => {
+  project = computed(() => {
     const name = this.projectId();
     return name ? this.projectsStore.projects().find(p => p.metadata.name === name) : undefined;
   })

@@ -6,15 +6,17 @@ import { Placeholder } from '../../../../../shared/components/common/placeholder
 import { ModalComponent } from '../../../../../shared/components/ui/modal/modal.component';
 import { ModalStore } from '../../../../../shared/store/modal.store';
 import { ServiceStore } from '../../../store/service.store';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-service-list',
-  imports: [CommonModule, Placeholder, ModalComponent, ServiceCreateForm],
+  imports: [CommonModule, Placeholder, ModalComponent, ServiceCreateForm, RouterModule],
   templateUrl: './service-list.html',
   styleUrl: './service-list.css',
 })
 export class ServiceList implements OnInit {
   @Input() projectId!: string;
+  @Input() routerLinkRoot: string = "./";
 
   serviceStore = inject(ServiceStore);
   services = this.serviceStore.services;

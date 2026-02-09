@@ -38,6 +38,22 @@ export const routes: Routes = [
                 (m) => m.Overview
               ),
             title: 'Overview',
+          },
+          {
+            path: 'services',
+            loadComponent: () =>
+              import('./pages/projects/details/services/services').then(
+                (m) => m.Services
+              ),
+            title: 'Services',
+          },
+          {
+            path: 'service/:serviceName',
+            loadComponent: () =>
+              import('./pages/projects/details/service-details/service-details').then(
+                (m) => m.ServiceDetails
+              ),
+            title: 'Service Details',
           }
         ],
         title: 'Project Details',

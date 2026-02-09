@@ -1,0 +1,129 @@
+<div class="sub-card">
+	<div class="flex justify-between">
+		<h2 class="sub-card-title">Service Details</h2>
+	</div>
+
+	@if (loading()) {
+	<app-placeholder></app-placeholder>
+	} @else {
+	@if (error() && error()!.action === 'list') {
+	<p class="text-red-600">
+		Error loading services: {{ error()!.message }}
+	</p>
+	} @else {
+	@if (service()) {
+	<div class="grid gap-6 md:grid-cols-2">
+		<div>
+			<p class="content-label">Name</p>
+			<p class="content-label-value">{{ service()!.spec.name || service()!.metadata.name || 'N/A' }}</p>
+		</div>
+		<div>
+			<p class="content-label">Status</p>
+			<p class="content-label-value">{{ service()!.status?.status || 'N/A' }}</p>
+		</div>
+		<div>
+			<p class="content-label">Domain</p>
+			<p class="content-label-value">{{ service()!.spec.domain || 'N/A' }}</p>
+		</div>
+		<div>
+			<p class="content-label">Origin Type</p>
+			<p class="content-label-value">{{ service()!.spec.originType || 'N/A' }}</p>
+		</div>
+		<div>
+			<p class="content-label">Cache</p>
+			<p class="content-label-value">{{ service()!.spec.cache || 'N/A' }}</p>
+		</div>
+		<div>
+			<p class="content-label">WAF</p>
+			<p class="content-label-value">{{ service()!.spec.waf!.enabled ? 'Enabled' : 'Disabled' }}</p>
+		</div>
+	</div>
+
+	<div class="mt-6">
+		<h3 class="content-label">Static Origins</h3>
+		@if (service()!.spec.staticOrigins?.length) {
+		<div class="grid gap-4 md:grid-cols-2">
+			@for (origin of service()!.spec.staticOrigins; track $index) {
+			<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+				<p class="content-label">Upstream</p>
+				<p class="content-label-value">{{ origin.upstream || 'N/A' }}</p>
+				<p class="content-label">Host Header</p>
+				<p class="content-label-value">{{ origin.hostHeader || 'N/A' }}</p>
+				<p class="content-label">Scheme</p>
+				<p class="content-label-value">{{ origin.scheme || 'N/A' }}</p>
+				<p class="content-label">Port</p>
+				<p class="content-label-value">{{ origin.port || 'N/A' }}</p>
+			</div>
+			}
+		</div>
+		} @else {
+		<p class="content-label-value">N/A</p>
+		}
+	</div>
+
+	<div class="mt-6">
+		<h3 class="content-label">S3 Origins</h3>
+		@if (service()!.spec.s3OriginSpec?.length) {
+		<div class="grid gap-4 md:grid-cols-2">
+			@for (origin of service()!.spec.s3OriginSpec; track $index) {
+			<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+				<p class="content-label">Bucket</p>
+				<p class="content-label-value">{{ origin.s3BucketName || 'N/A' }}</p>
+				<p class="content-label">Region</p>
+				<p class="content-label-value">{{ origin.s3Region || 'N/A' }}</p>
+				<p class="content-label">Access Key</p>
+				<p class="content-label-value">{{ origin.s3AccessKeyId || 'N/A' }}</p>
+				<p class="content-label">Signature Version</p>
+				<p class="content-label-value">{{ origin.awsSigsVersion || 'N/A' }}</p>
+				<p class="content-label">Server</p>
+				<p class="content-label-value">
+					{{ origin.s3Server || 'Default' }}{{ origin.s3ServerPort ? ':' + origin.s3ServerPort : '' }}
+				</p>
+				<p class="content-label">Protocol</p>
+				<p class="content-label-value">{{ origin.s3ServerProto || 'N/A' }}</p>
+				<p class="content-label">Style</p>
+				<p class="content-label-value">{{ origin.s3Style || 'N/A' }}</p>
+			</div>
+			}
+		</div>
+		} @else {
+		<p class="content-label-value">N/A</p>
+		}
+	</div>
+
+	<div class="mt-6 grid gap-6 md:grid-cols-2">
+		<div>
+			<h3 class="content-label">Host Aliases</h3>
+			@if (service()!.spec.hostAliases?.length) {
+			<ul class="list-disc pl-5">
+				@for (alias of service()!.spec.hostAliases; track $index) {
+				<li class="content-label-value">{{ alias.name }}</li>
+				}
+			</ul>
+			} @else {
+			<p class="content-label-value">N/A</p>
+			}
+		</div>
+		<div>
+			<h3 class="content-label">Secure Keys</h3>
+			@if (service()!.spec.secureKeys?.length) {
+			<ul class="list-disc pl-5">
+				@for (key of service()!.spec.secureKeys; track $index) {
+				<li class="content-label-value">
+					{{ key.name || 'Unnamed' }} - {{ key.value }}
+				</li>
+				}
+			</ul>
+			} @else {
+			<p class="content-label-value">N/A</p>
+			}
+		</div>
+	</div>
+
+	} @else {
+	<p class="content-label-value">Service not found.</p>
+	}
+	}
+	}
+</div>
+

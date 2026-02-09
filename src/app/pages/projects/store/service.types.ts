@@ -30,7 +30,7 @@ export interface Service {
     apiVersion: "infrastructure.edgecdnx.com/v1alpha1";
     metadata: Metadata;
     spec: ServiceSpec;
-    status?: Record<string, never>;
+    status?: ServiceStatus;
 }
 
 export interface ServiceSpec {
