@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map, of } from 'rxjs';
@@ -37,6 +37,43 @@ export class ServiceDetails {
     }
     return list.find(item => item.spec?.name === name);
   });
+
+  private visibleKeyIndexes = signal<Set<number>>(new Set());
+  private clipboardClickedIndexers = signal<Set<number>>(new Set());
+
+  isKeyVisible(index: number): boolean {
+    return this.visibleKeyIndexes().has(index);
+  }
+
+  isClipboardClicked(index: number): boolean {
+    return this.clipboardClickedIndexers().has(index);
+  }
+
+  toggleKeyVisibility(index: number): void {
+    const next = new Set(this.visibleKeyIndexes());
+    if (next.has(index)) {
+      next.delete(index);
+    } else {
+      next.add(index);
+    }
+    this.visibleKeyIndexes.set(next);
+  }
+
+  copyKeyValue(index: number, value?: string | null): void {
+    if (!value) {
+      return;
+    }
+    navigator.clipboard?.writeText(value);
+    const next = new Set(this.clipboardClickedIndexers());
+    next.add(index);
+    this.clipboardClickedIndexers.set(next);
+
+    setTimeout(() => {
+      const next = new Set(this.clipboardClickedIndexers());
+      next.delete(index);
+      this.clipboardClickedIndexers.set(next);
+    }, 2000);
+  }
 
   constructor() {
     effect(() => {
