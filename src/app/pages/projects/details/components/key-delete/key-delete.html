@@ -1,0 +1,32 @@
+<div class="card-title">
+    Delete Key
+</div>
+
+
+<div>
+
+    @if (updating()) {
+    <p class="text-green-600">
+        Deleting Key...
+    </p>
+    }
+
+    @if (error() && error()!.action === 'key-delete') {
+    <p class="text-red-600">
+        Error deleting key: {{ error()!.message }}
+    </p>
+    }
+
+    @if (updated()) {
+    <p class="text-green-600">
+        Key deleted successfully! Closing modal...
+    </p>
+    }
+
+    @if (!updating() && !updated()) {
+    <p class="content-label">Are you sure you want to delete the key <span class="font-mono">{{ keyName }}</span>?</p>
+    <div class="flex gap-4 mt-4">
+        <button class="btn-primary" (click)="onDelete()">Delete Key</button>
+    </div>
+    }
+</div>

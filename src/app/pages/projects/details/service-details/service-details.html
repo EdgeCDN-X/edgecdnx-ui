@@ -109,63 +109,76 @@
 		<p class="content-label-value">{{ service()!.spec.waf!.enabled ? 'Enabled' : 'Disabled' }}</p>
 	</div>
 
-	<div class="mt-6 grid gap-6">
-		<div>
+	<div class="mt-6 gap-6">
+		<div class="flex items-center justify-between">
 			<h3 class="content-label">Secure Keys</h3>
-			@if (service()!.spec.secureKeys?.length) {
-			<div class="max-w-full overflow-x-auto">
-				<table class="w-full table-auto">
-					<thead class="border-gray-100 border-y dark:border-white/[0.05]">
-						<tr>
-							<th scope="col col-2" class="table-label">Name</th>
-							<th scope="col col-2" class="table-label">Value</th>
-							<th scope="col" class="table-label hidden md:table-cell">Created At</th>
-						</tr>
-					</thead>
-					<tbody class="table-divider">
-						@for (key of service()!.spec.secureKeys; track $index) {
-						<tr>
-							<td class="base-text py-3">{{ key.name || 'Unnamed' }}</td>
-							<td class="base-text">
-								<div class="flex items-center gap-2">
-									<span>{{ isKeyVisible($index) ? (key.value || 'N/A') :
-										'********************************' }}</span>
-									<button type="button"
-										class="inline-flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-										(click)="toggleKeyVisibility($index)"
-										[attr.aria-label]="isKeyVisible($index) ? 'Hide value' : 'Show value'">
-										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18"
-											height="18" fill="currentColor">
-											<path
-												d="M12 5c-7.633 0-11 7-11 7s3.367 7 11 7 11-7 11-7-3.367-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
-										</svg>
-									</button>
-									<button type="button"
-										class="inline-flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-										(click)="copyKeyValue($index, key.value)" aria-label="Copy value">
-										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18"
-											height="18" fill="currentColor">
-											<path
-												d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h9v14z" />
-										</svg>
-									</button>
-									@if (isClipboardClicked($index)) {
-									<span class="text-green-500">Copied!</span>
-									}
-								</div>
-							</td>
-							<td class="base-text hidden md:table-cell ">
-								{{ key.createdAt ? (key.createdAt | date:'short') : 'N/A' }}
-							</td>
-						</tr>
-						}
-					</tbody>
-				</table>
-			</div>
-			} @else {
-			<p class="content-label-value">N/A</p>
-			}
+			<button type="button" (click)="addKey()" class="btn-primary">Add Key</button>
 		</div>
+		@if (service()!.spec.secureKeys?.length) {
+		<div class="max-w-full overflow-x-auto">
+			<table class="w-full table-auto">
+				<thead class="border-gray-100 border-y dark:border-white/[0.05]">
+					<tr>
+						<th scope="col" class="table-label">Name</th>
+						<th scope="col" class="table-label">Value</th>
+						<th scope="col" class="table-label hidden md:table-cell">Created At</th>
+						<th scope="col"></th>
+					</tr>
+				</thead>
+				<tbody class="table-divider">
+					@for (key of service()!.spec.secureKeys; track $index) {
+					<tr>
+						<td class="base-text py-3">{{ key.name || 'Unnamed' }}</td>
+						<td class="base-text">
+							<div class="flex items-center gap-2">
+								<span>{{ isKeyVisible($index) ? (key.value || 'N/A') :
+									'********************************' }}</span>
+								<button type="button"
+									class="inline-flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+									(click)="toggleKeyVisibility($index)"
+									[attr.aria-label]="isKeyVisible($index) ? 'Hide value' : 'Show value'">
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
+										fill="currentColor">
+										<path
+											d="M12 5c-7.633 0-11 7-11 7s3.367 7 11 7 11-7 11-7-3.367-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+									</svg>
+								</button>
+								<button type="button"
+									class="inline-flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+									(click)="copyKeyValue($index, key.value)" aria-label="Copy value">
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
+										fill="currentColor">
+										<path
+											d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h9v14z" />
+									</svg>
+								</button>
+								@if (isClipboardClicked($index)) {
+								<span class="text-green-500">Copied!</span>
+								}
+							</div>
+						</td>
+						<td class="base-text hidden md:table-cell ">
+							{{ key.createdAt ? (key.createdAt | date:'short') : 'N/A' }}
+						</td>
+						<td>
+							<button type="button"
+								class="inline-flex items-center text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
+								(click)="deleteKey(key)" aria-label="Delete key">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
+									fill="currentColor">
+									<path
+										d="M9 3h6a1 1 0 0 1 1 1v1h4v2h-1v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7H4V5h4V4a1 1 0 0 1 1-1zm1 4v12h2V7h-2zm4 0v12h2V7h-2zM9 5v1h6V5H9z" />
+								</svg>
+							</button>
+						</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+		} @else {
+		<p class="content-label-value">N/A</p>
+		}
 	</div>
 </div>
 
@@ -174,3 +187,14 @@
 }
 }
 }
+
+
+<app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
+	@if (modalSelector().type == 'key-add') {
+	<app-key-add [serviceId]="service()!.metadata.name" (onKeyAdded)="closeModalDelayed(1500)" />
+	}
+
+	@if (modalSelector().type == 'key-delete') {
+	<app-key-delete [serviceId]="service()!.metadata.name" [keyName]="modalSelector()!.params!.keyName" (onKeyDeleted)="closeModalDelayed(1500)" />
+	}
+</app-modal>

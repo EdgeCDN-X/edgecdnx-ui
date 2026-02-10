@@ -1,0 +1,39 @@
+<div class="card-title">
+    New Key
+</div>
+
+<div>
+    @if (updating()) {
+    <p class="text-green-600">
+        Creating Key...
+    </p>
+    }
+
+    @if (error() && error()!.action === 'key-add') {
+    <p class="text-red-600">
+        Error creating key: {{ error()!.message }}
+    </p>
+    }
+
+    @if (updated()) {
+    <p class="text-green-600">
+        Key added successfully! Closing modal...
+    </p>
+    }
+
+    @if (!updating() && !updated()) {
+    <form [formGroup]="newKeyForm" (ngSubmit)="onSubmit()">
+        <label for="name" class="form-label">Key Name</label>
+        <input formControlName="keyName" placeholder="Enter key name" class="form-input-field" />
+
+        @if(newKeyForm.get('keyName')?.invalid && newKeyForm.get('keyName')?.touched) {
+        <p class="text-red-600 text-xs pt-1">Key name is required and may contain chars a-z and 0-9. Cannot start with
+            number</p>
+        }
+
+        <button type="submit" class="flex btn-primary my-4 text-center" [disabled]="newKeyForm.invalid">Add
+            Key</button>
+    </form>
+    }
+
+</div>

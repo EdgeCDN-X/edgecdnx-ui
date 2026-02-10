@@ -5,11 +5,15 @@ import { ActivatedRoute } from '@angular/router';
 import { map, of } from 'rxjs';
 import { Placeholder } from '../../../../shared/components/common/placeholder/placeholder';
 import { ServiceStore } from '../../store/service.store';
-import { Service } from '../../store/service.types';
+import { SecureKey, Service } from '../../store/service.types';
+import { ModalStore } from '../../../../shared/store/modal.store';
+import { KeyAdd } from '../components/key-add/key-add';
+import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
+import { KeyDelete } from '../components/key-delete/key-delete';
 
 @Component({
   selector: 'app-service-details',
-  imports: [CommonModule, Placeholder],
+  imports: [CommonModule, Placeholder, KeyAdd, ModalComponent, KeyDelete],
   templateUrl: './service-details.html',
   styleUrl: './service-details.css',
 })
@@ -37,6 +41,10 @@ export class ServiceDetails {
     }
     return list.find(item => item.spec?.name === name);
   });
+
+  modalStore = inject(ModalStore);
+  isOpen = this.modalStore.isOpen;
+  modalSelector = signal<{ type: string, params?: any }>({ type: '' });
 
   private visibleKeyIndexes = signal<Set<number>>(new Set());
   private clipboardClickedIndexers = signal<Set<number>>(new Set());
@@ -73,6 +81,39 @@ export class ServiceDetails {
       next.delete(index);
       this.clipboardClickedIndexers.set(next);
     }, 2000);
+  }
+
+  deleteKey(key: SecureKey): void {
+    if (!this.service()) {
+      return;
+    }
+
+    this.modalSelector.set({ type: 'key-delete', params: { keyName: key.name } });
+    this.modalStore.openModal();
+  }
+
+  addKey(): void {
+    this.modalSelector.set({ type: 'key-add' });
+    this.modalStore.openModal();
+  }
+
+  handleKeyAdded(event: { name: string | undefined }): void {
+    if (!this.service() || !event.name) {
+      return;
+    }
+    // this.serviceStore.createSecureKey(this.service()!.metadata.name, event.name);
+    this.closeModal();
+  }
+
+  closeModal(): void {
+    this.modalStore.closeModal();
+    this.modalSelector.set({ type: '' });
+  }
+
+  closeModalDelayed(delay: number): void {
+    setTimeout(() => {
+      this.closeModal();
+    }, delay);
   }
 
   constructor() {
