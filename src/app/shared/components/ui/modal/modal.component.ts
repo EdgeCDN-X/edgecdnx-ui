@@ -40,9 +40,6 @@ export class ModalComponent {
   }
 
   onBackdropClick(event: MouseEvent) {
-
-    console.log('Backdrop clicked', event);
-
     if (this.isOpen) {
       this.close.emit();
     }

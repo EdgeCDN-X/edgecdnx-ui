@@ -14,7 +14,7 @@ import { CreateServiceDto, OriginType } from '../../../store/service.types';
 })
 export class ServiceCreateForm implements OnInit, OnDestroy {
   @Input() projectId!: string;
-  @Input() isEditMode: boolean = true;
+  @Input() isEditMode: boolean = false;
   @Input() serviceId?: string;
 
   // TODO perhaps implement onSuccess hook
@@ -102,10 +102,10 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
   })
 
   ngOnInit(): void {
+    this.serviceStore.resetUpdate();
+    this.serviceStore.resetCreate();
+
     if (this.isEditMode && this.serviceId) {
-
-      this.serviceStore.resetUpdate();
-
       const service = this.serviceStore.services()?.find(s => s.metadata.name === this.serviceId);
       if (service) {
         this.serviceCreateForm.patchValue({
@@ -148,11 +148,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
           }));
         }
       }
-    } else {
-      this.serviceStore.resetCreate();
     }
-
-
 
     this.OriginChanges = this.serviceCreateForm.get('originType')?.valueChanges.subscribe(value => {
       if (value === OriginType.Static) {

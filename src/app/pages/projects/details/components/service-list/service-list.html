@@ -72,7 +72,7 @@
 
 
     <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
-        @if (modalSelector().type == 'create') {
+        @if (modalSelector().type == 'create' && isOpen()) {
         <app-service-create-form [projectId]="projectId" />
         }
     </app-modal>

@@ -217,16 +217,16 @@
 
 
 <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
-	@if (modalSelector().type == 'key-add') {
+	@if (modalSelector().type == 'key-add' && isOpen()) {
 	<app-key-add [serviceId]="service()!.metadata.name" (onKeyAdded)="closeModalDelayed(1500)" />
 	}
 
-	@if (modalSelector().type == 'key-delete') {
+	@if (modalSelector().type == 'key-delete' && isOpen()) {
 	<app-key-delete [serviceId]="service()!.metadata.name" [keyName]="modalSelector()!.params!.keyName"
 		(onKeyDeleted)="closeModalDelayed(1500)" />
 	}
 
-	@if (modalSelector().type == 'edit') {
+	@if (modalSelector().type == 'edit' && isOpen()) {
 	<app-service-create-form [projectId]="projectId()!" [isEditMode]="true" [serviceId]="service()!.metadata.name" />
 	}
 </app-modal>
