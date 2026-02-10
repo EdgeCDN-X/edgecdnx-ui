@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output, signal } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder, FormArray } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { TagInputComponent } from '../../../../../shared/components/form/input/tag-input.component';
@@ -14,11 +14,18 @@ import { CreateServiceDto, OriginType } from '../../../store/service.types';
 })
 export class ServiceCreateForm implements OnInit, OnDestroy {
   @Input() projectId!: string;
+  @Input() isEditMode: boolean = true;
+  @Input() serviceId?: string;
+
+  // TODO perhaps implement onSuccess hook
 
   serviceStore = inject(ServiceStore);
 
   creating = this.serviceStore.creating;
   created = this.serviceStore.created;
+
+  updating = this.serviceStore.updating;
+  updated = this.serviceStore.updated;
   error = this.serviceStore.error;
 
   step = signal(1);
@@ -30,6 +37,9 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
    */
   canClickNext() {
     if (this.step() === 1) {
+      if (this.isEditMode) {
+        return this.serviceCreateForm.get('originType')?.valid;
+      }
       return this.serviceCreateForm.get('name')?.valid && this.serviceCreateForm.get('originType')?.valid;
     }
 
@@ -92,6 +102,58 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
   })
 
   ngOnInit(): void {
+    if (this.isEditMode && this.serviceId) {
+
+      this.serviceStore.resetUpdate();
+
+      const service = this.serviceStore.services()?.find(s => s.metadata.name === this.serviceId);
+      if (service) {
+        this.serviceCreateForm.patchValue({
+          name: service.spec.name,
+          originType: service.spec.originType,
+          cache: service.spec.cache,
+          signedUrlsEnabled: service.spec.secureKeys && service.spec.secureKeys.length > 0,
+          wafEnabled: service.spec.waf.enabled,
+          cacheKey: {
+            queryParams: service.spec.cacheKey?.queryParams || [],
+            headers: service.spec.cacheKey?.headers || [],
+          }
+        }, { emitEvent: true });
+
+        // These fields are editable elsewehere or not allowed.
+        this.serviceCreateForm.get('name')?.disable();
+        this.serviceCreateForm.get('signedUrlsEnabled')?.disable();
+        this.serviceCreateForm.get('hostAliases')?.disable();
+
+        if (service.spec.originType === OriginType.Static && service.spec.staticOrigins && service.spec.staticOrigins.length > 0) {
+          (this.serviceCreateForm as any).addControl('staticOrigin', new FormGroup({
+            upstream: new FormControl(service.spec.staticOrigins[0]!.upstream, { nonNullable: true, validators: [Validators.required] }),
+            hostHeader: new FormControl(service.spec.staticOrigins[0]!.hostHeader, { nonNullable: false, validators: [Validators.required] }),
+            port: new FormControl(service.spec.staticOrigins[0]!.port, { nonNullable: true, validators: [Validators.min(1), Validators.max(65535)] }),
+            scheme: new FormControl(service.spec.staticOrigins[0]!.scheme, { nonNullable: true, validators: [Validators.required] }),
+          }));
+        }
+
+        if (service.spec.originType === OriginType.S3 && service.spec.s3OriginSpec && service.spec.s3OriginSpec.length > 0) {
+          (this.serviceCreateForm as any).addControl('s3OriginSpec', new FormGroup({
+            awsSigsVersion: new FormControl<2 | 4>(service.spec.s3OriginSpec[0].awsSigsVersion, { nonNullable: true, validators: [Validators.required] }),
+            s3AccessKeyId: new FormControl(service.spec.s3OriginSpec[0].s3AccessKeyId, { nonNullable: true, validators: [Validators.required] }),
+            s3BucketName: new FormControl(service.spec.s3OriginSpec[0].s3BucketName, { nonNullable: true, validators: [Validators.required] }),
+            s3Region: new FormControl(service.spec.s3OriginSpec[0].s3Region, { nonNullable: true, validators: [Validators.required] }),
+            s3SecretKey: new FormControl(service.spec.s3OriginSpec[0].s3SecretKey, { nonNullable: true, validators: [Validators.required] }),
+            s3Server: new FormControl(service.spec.s3OriginSpec[0].s3Server, { nonNullable: true, validators: [Validators.required] }),
+            s3ServerPort: new FormControl(service.spec.s3OriginSpec[0].s3ServerPort, { nonNullable: true, validators: [Validators.min(1), Validators.max(65535)] }),
+            s3ServerProto: new FormControl(service.spec.s3OriginSpec[0].s3ServerProto, { nonNullable: true, validators: [Validators.required] }),
+            s3Style: new FormControl<"virtual" | "path">(service.spec.s3OriginSpec[0].s3Style!, { nonNullable: true, validators: [Validators.required] }),
+          }));
+        }
+      }
+    } else {
+      this.serviceStore.resetCreate();
+    }
+
+
+
     this.OriginChanges = this.serviceCreateForm.get('originType')?.valueChanges.subscribe(value => {
       if (value === OriginType.Static) {
         (this.serviceCreateForm as any).removeControl('s3OriginSpec');
@@ -127,9 +189,12 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
   onSubmit() {
     if (this.serviceCreateForm.valid) {
       const createService = this.serviceCreateForm.value as CreateServiceDto;
-      this.serviceStore.createService(createService);
-    }
 
-    // this.serviceCreateForm.get('stati')
+      if (this.isEditMode) {
+        this.serviceStore.updateService(this.serviceId!, createService);
+      } else {
+        this.serviceStore.createService(createService);
+      }
+    }
   }
 }

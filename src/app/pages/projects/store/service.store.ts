@@ -110,6 +110,53 @@ export class ServiceStore {
         });
     }
 
+    updateService(serviceId: string, serviceDto: Partial<CreateServiceDto>) {
+        this._error.set(null);
+        this._updating.set(true);
+        this._updated.set(false);
+
+        const projectId = this._selectedProjectId();
+        if (!projectId) {
+            this._error.set({
+                message: 'No project selected',
+                action: "update"
+            });
+            this._updating.set(false);
+            return;
+        }
+
+        this.http.patch<Service>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services/${serviceId}`, serviceDto, {
+            headers: {
+                'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
+            }
+        }).subscribe({
+            next: (data) => {
+                this._updated.set(true);
+                this._services.update(services => {
+                    if (!services) return services;
+                    return services.map(service => {
+                        if (service.metadata.name === serviceId) {
+                            return {
+                                ...data,
+                            }
+                        }
+                        return service;
+                    });
+                });
+            },
+            error: (err) => {
+                this._error.set({
+                    message: err.error.error || err.error.message || 'Failed to update service',
+                    action: "update"
+                });
+                this._updating.set(false);
+            },
+            complete: () => {
+                this._updating.set(false);
+            }
+        });
+    }
+
     addKey(serviceId: string, keyName: string) {
         const projectId = this._selectedProjectId();
         if (!projectId) {

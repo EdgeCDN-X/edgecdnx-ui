@@ -10,10 +10,11 @@ import { ModalStore } from '../../../../shared/store/modal.store';
 import { KeyAdd } from '../components/key-add/key-add';
 import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
 import { KeyDelete } from '../components/key-delete/key-delete';
+import { ServiceCreateForm } from '../components/service-create-form/service-create-form';
 
 @Component({
   selector: 'app-service-details',
-  imports: [CommonModule, Placeholder, KeyAdd, ModalComponent, KeyDelete],
+  imports: [CommonModule, Placeholder, KeyAdd, ModalComponent, KeyDelete, ServiceCreateForm],
   templateUrl: './service-details.html',
   styleUrl: './service-details.css',
 })
@@ -24,6 +25,7 @@ export class ServiceDetails {
   loading = this.serviceStore.loading;
   error = this.serviceStore.error;
   services = this.serviceStore.services;
+  updated = this.serviceStore.updated;
 
   projectId = toSignal(
     this.route.parent?.paramMap.pipe(map(params => params.get('name'))) ?? of(null)
@@ -97,6 +99,11 @@ export class ServiceDetails {
     this.modalStore.openModal();
   }
 
+  onEdit(): void {
+      this.modalSelector.set({ type: 'edit' });
+      this.modalStore.openModal();
+  }
+
   handleKeyAdded(event: { name: string | undefined }): void {
     if (!this.service() || !event.name) {
       return;
@@ -121,6 +128,10 @@ export class ServiceDetails {
       const projectId = this.projectId();
       if (projectId) {
         this.serviceStore.selectProject(projectId);
+      }
+
+      if (this.updated()) {
+        setTimeout(() => { this.closeModal() }, 3000);
       }
     });
   }

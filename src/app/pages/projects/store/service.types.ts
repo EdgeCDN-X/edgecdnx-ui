@@ -20,7 +20,7 @@ export interface CreateServiceDto {
 
 export interface ServiceActionError {
     message: string;
-    action: "create" | "list" | "key-add" | "key-delete";
+    action: "create" | "list" | "key-add" | "key-delete" | "update";
 }
 
 export type ServiceList = Service[];

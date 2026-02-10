@@ -1,5 +1,9 @@
 <div class="card-title">
+    @if (isEditMode) {
+    Update Service
+    } @else {
     New Service
+    }
 </div>
 
 <div>
@@ -11,9 +15,21 @@
         </p>
         }
 
+        @if (updating()) {
+        <p class="text-green-600">
+            Service update in progress...
+        </p>
+        }
+
         @if (error() && error()!.action == 'create') {
         <p class="text-red-600">
             Error creating service: {{ error()!.message }}
+        </p>
+        }
+
+        @if (error() && error()!.action == 'update') {
+        <p class="text-red-600">
+            Error updating service: {{ error()!.message }}
         </p>
         }
 
@@ -23,13 +39,23 @@
         </p>
         }
 
-        @if (!creating() && !created()) {
+        @if (updated()) {
+        <p class="text-green-600">
+            Service updated successfully! Closing modal...
+        </p>
+        }
+
+        @if (!creating() && !created() || !updating() && !updated()) {
 
         <form [formGroup]="serviceCreateForm">
 
             @if (step() === 1) {
 
+            @if (isEditMode) {
+            <p class="base-text">Updating service {{ serviceCreateForm.get('name')?.value }} </p>
+            } @else {
             <p class="base-text">Creating service for project {{ projectId }}</p>
+            }
 
             <div class="pt-3">
                 <label for="name" class="form-label">Service Name</label>
@@ -277,11 +303,14 @@
             @if (step() === 4) {
             <p class="base-text">Security and Privacy</p>
 
+            @if (!isEditMode) {
             <div class="pt-3">
                 <p class="text-xs pb-1">If checked, content will be accessible only with signed URLs or with a Secure
                     Session Cookie.
                     <app-switch [label]="'Private Endpoint'" formControlName="signedUrlsEnabled"></app-switch>
             </div>
+            }
+
 
             <div class="pt-3">
                 <p class="text-xs pb-1">If checked, the Web Application Firewall (WAF) will be enabled for this service.
