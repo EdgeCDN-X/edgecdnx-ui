@@ -37,7 +37,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
       <!-- Input -->
       <input
-        class="flex-1 min-w-[120px] border-none p-1 focus:outline-none"
+        class="form-input-field flex-1 min-w-[120px] border-none p-1 focus:outline-none"
         [placeholder]="placeholder"
         [value]="input"
         (input)="input = $event.target.value"

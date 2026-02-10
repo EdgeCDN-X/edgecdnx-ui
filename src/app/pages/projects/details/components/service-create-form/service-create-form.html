@@ -292,7 +292,7 @@
             <div formGroupName="cacheKey" class="pt-3">
                 <div class="pt-3">
                     <label for="queryParams" class="form-label">Query Parameters</label>
-                    <p class="text-xs pb-1">If you have query parameters that should be included in the cache key, add
+                    <p class="form-label text-xs pb-1">If you have query parameters that should be included in the cache key, add
                         them here.</p>
                     <app-tag-input formControlName="queryParams"
                         [placeholder]="'Type and tab to add a query parameter'"></app-tag-input>
@@ -313,7 +313,7 @@
 
 
             <div class="pt-3">
-                <p class="text-xs pb-1">If checked, the Web Application Firewall (WAF) will be enabled for this service.
+                <p class="form-label text-xs mb-2 pb-2">If checked, the Web Application Firewall (WAF) will be enabled for this service.</p>
                     <app-switch [label]="'WAF Enabled'" formControlName="wafEnabled"></app-switch>
             </div>
             }
