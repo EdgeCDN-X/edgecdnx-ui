@@ -130,16 +130,19 @@
             </div>
             }
 
-            <button type="submit" [disabled]="!createProjectForm.valid || creating() || created()"
-                class="btn-primary my-4" (click)="createProject()">
-                @if (creating()) {
-                <span>Creating...</span>
-                } @else if (created()) {
-                <span>Created!</span>
-                } @else {
-                <span>Create Project</span>
-                }
-            </button>
+            <div class="flex w-full justify-end">
+                <button type="submit" [disabled]="!createProjectForm.valid || creating() || created()"
+                    class="btn-primary my-4" (click)="createProject()">
+                    @if (creating()) {
+                    <span>Creating...</span>
+                    } @else if (created()) {
+                    <span>Created!</span>
+                    } @else {
+                    <span>Create Project</span>
+                    }
+                </button>
+            </div>
+
 
             @if (created()) {
             <p class="mt-1.5 text-s text-success-500">

@@ -54,6 +54,14 @@ export const routes: Routes = [
                 (m) => m.ServiceDetails
               ),
             title: 'Service Details',
+          },
+          {
+            path: 'zones',
+            loadComponent: () =>
+              import('./pages/projects/details/zones/zones').then(
+                (m) => m.Zones
+              ),
+            title: 'Zones',
           }
         ],
         title: 'Project Details',

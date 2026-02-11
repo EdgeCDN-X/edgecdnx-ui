@@ -22,7 +22,6 @@ export class ProjectDetails implements OnInit {
     this.route.paramMap.pipe(map(params => params.get('name')))
   )
 
-  loaded = this.projectsStore.loaded;
   loading = this.projectsStore.loading;
   error = this.projectsStore.error;
 
@@ -35,8 +34,6 @@ export class ProjectDetails implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    if (!this.loaded()) {
-      this.projectsStore.loadProjects();
-    }
+    this.projectsStore.loadProjects();
   }
 }

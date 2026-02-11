@@ -15,16 +15,18 @@ export class ProjectsStore {
 
     private readonly _projects = signal<ProjectList>([]);
     private readonly _loading = signal<boolean>(false);
-    private readonly _loaded = signal<boolean>(false);
 
     private readonly _creating = signal<boolean>(false);
     private readonly _created = signal<Project | null>(null);
 
     private readonly _error = signal<ProjectActionError | null>(null);
 
+    private readonly _selectedProjectId = signal<string | null>(null);
+    readonly selectedProjectId = this._selectedProjectId.asReadonly();
+
+
     readonly projects = this._projects.asReadonly();
     readonly loading = this._loading.asReadonly();
-    readonly loaded = this._loaded.asReadonly();
 
     readonly creating = this._creating.asReadonly();
     readonly created = this._created.asReadonly();
@@ -32,6 +34,7 @@ export class ProjectsStore {
     readonly error = this._error.asReadonly();
 
     constructor(private http: HttpClient) { }
+
 
     loadProjects() {
         this._projects.set([]);
@@ -52,11 +55,9 @@ export class ProjectsStore {
                     action: "list"
                 });
                 this._loading.set(false);
-                this._loaded.set(false);
             },
             complete: () => {
                 this._loading.set(false);
-                this._loaded.set(true);
             }
         })
     }
@@ -96,5 +97,9 @@ export class ProjectsStore {
 
     clearError() {
         this._error.set(null);
+    }
+
+    selectProject(projectId: string) {
+        this._selectedProjectId.set(projectId);
     }
 }

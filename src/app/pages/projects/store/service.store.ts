@@ -3,6 +3,7 @@ import { CreateServiceDto, Service, ServiceActionError, ServiceList } from "./se
 import { HttpClient } from "@angular/common/http";
 import { OAuthService } from "angular-oauth2-oidc";
 import { ConfigService } from "../../../config/config.store";
+import { ProjectsStore } from "./projects.store";
 
 
 
@@ -10,14 +11,14 @@ import { ConfigService } from "../../../config/config.store";
     providedIn: 'root'
 })
 export class ServiceStore {
+    private projectStore = inject(ProjectsStore);
+
     private configService = inject(ConfigService);
     private oauthService = inject(OAuthService);
 
     private readonly _services = signal<ServiceList | null>(null);
     private readonly _loading = signal<boolean>(false);
-    private readonly _loaded = signal<boolean>(false);
     private readonly _error = signal<ServiceActionError | null>(null);
-    private readonly _selectedProjectId = signal<string | null>(null);
 
     private readonly _creating = signal<boolean>(false);
     private readonly _created = signal<boolean>(false);
@@ -25,11 +26,8 @@ export class ServiceStore {
     private readonly _updating = signal<boolean>(false);
     private readonly _updated = signal<boolean>(false);
 
-    readonly selectedProjectId = this._selectedProjectId.asReadonly();
-
     readonly services = this._services.asReadonly();
     readonly loading = this._loading.asReadonly();
-    readonly loaded = this._loaded.asReadonly();
     readonly error = this._error.asReadonly();
 
     readonly creating = this._creating.asReadonly();
@@ -41,14 +39,13 @@ export class ServiceStore {
     constructor(private http: HttpClient) { }
 
     selectProject(projectId: string) {
-        if (this._selectedProjectId() !== projectId) {
+        if (this.projectStore.selectedProjectId() !== projectId) {
             this._services.set(null);
             this._loading.set(true);
-            this._loaded.set(false);
         }
 
         this._error.set(null);
-        this._selectedProjectId.set(projectId);
+        this.projectStore.selectProject(projectId);
 
         this.http.get<ServiceList>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services`, {
             headers: {
@@ -64,11 +61,9 @@ export class ServiceStore {
                     action: "list"
                 })
                 this._loading.set(false);
-                this._loaded.set(false);
             },
             complete: () => {
                 this._loading.set(false);
-                this._loaded.set(true);
             }
         });
     }
@@ -78,7 +73,7 @@ export class ServiceStore {
         this._creating.set(true);
         this._created.set(false);
 
-        const projectId = this._selectedProjectId();
+        const projectId = this.projectStore.selectedProjectId();
         if (!projectId) {
             this._error.set({
                 message: 'No project selected',
@@ -115,7 +110,7 @@ export class ServiceStore {
         this._updating.set(true);
         this._updated.set(false);
 
-        const projectId = this._selectedProjectId();
+        const projectId = this.projectStore.selectedProjectId();
         if (!projectId) {
             this._error.set({
                 message: 'No project selected',
@@ -158,7 +153,7 @@ export class ServiceStore {
     }
 
     addKey(serviceId: string, keyName: string) {
-        const projectId = this._selectedProjectId();
+        const projectId = this.projectStore.selectedProjectId();
         if (!projectId) {
             this._error.set({
                 message: 'No project selected',
@@ -205,7 +200,7 @@ export class ServiceStore {
     }
 
     deleteKey(serviceId: string, keyName: string) {
-        const projectId = this._selectedProjectId();
+        const projectId = this.projectStore.selectedProjectId();
         if (!projectId) {
             this._error.set({
                 message: 'No project selected',

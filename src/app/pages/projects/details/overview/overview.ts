@@ -6,11 +6,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { Members } from '../components/members/members';
 import { Roles } from '../components/roles/roles';
+import { ZoneList } from '../components/zone-list/zone-list';
 
 @Component({
   selector: 'app-overview',
   standalone: true,
-  imports: [ServiceList, Members, Roles],
+  imports: [ServiceList, Members, Roles, ZoneList],
   templateUrl: './overview.html',
   styleUrl: './overview.css',
 })

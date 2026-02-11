@@ -1,0 +1,69 @@
+<div class="card-title">
+    New Zone
+</div>
+
+
+<div>
+
+    @if (creating()) {
+    <p class="text-green-600">
+        Zone creation in progress...
+    </p>
+    }
+
+    @if (error() && error()!.action == 'create') {
+    <p class="text-red-600">
+        Error creating zone: {{ error()!.message }}
+    </p>
+    }
+
+
+    @if (created()) {
+    <p class="text-green-600">
+        Zone created successfully! Closing modal...
+    </p>
+    }
+
+    @if (!creating() && !created()) {
+    <form [formGroup]="zoneCreateForm">
+        <div class="pt-3">
+            <label for="zone" class="form-label">Zone Domain</label>
+            <p class="form-label text-xs pb-1">Subzone of your domain name to be delegated to the platform</p>
+            <input type="text" id="zone" formControlName="zone" class="form-input-field" />
+            @if (zoneCreateForm.get('zone')!.invalid && zoneCreateForm.get('zone')!.touched) {
+            @if (zoneCreateForm.get('zone')!.hasError('required')) {
+            <p class="text-red-600 text-xs pt-1">Zone name is required.</p>
+            }
+            @if (zoneCreateForm.get('zone')!.hasError('maxlength')) {
+            <p class="text-red-600 text-xs pt-1">Zone name cannot exceed 253 characters.</p>
+            }
+            @if (zoneCreateForm.get('zone')!.hasError('pattern')) {
+            <p class="text-red-600 text-xs pt-1">Zone must be a valid fqdn.</p>
+            }
+            }
+        </div>
+
+        <div class="pt-3">
+            <label for="email" class="form-label">Email</label>
+            <p class="form-label text-xs pb-1">Email address to use for SOA records</p>
+            <input type="text" id="email" formControlName="email" class="form-input-field" />
+            @if (zoneCreateForm.get('email')!.invalid && zoneCreateForm.get('email')!.touched) {
+            @if (zoneCreateForm.get('email')!.hasError('required')) {
+            <p class="text-red-600 text-xs pt-1">Email is required.</p>
+            }
+            @if (zoneCreateForm.get('email')!.hasError('email')) {
+            <p class="text-red-600 text-xs pt-1">Email must be a valid email address.</p>
+            }
+            }
+        </div>
+
+        <div class="pt-3 flex w-full justify-end">
+            <button type="submit" class="flex btn-primary my-4 w-1/4 text-center" (click)="onSubmit()"
+                [disabled]="zoneCreateForm.invalid || creating()">
+                <p class="text-center w-full">Create</p>
+            </button>
+        </div>
+    </form>
+    }
+
+</div>

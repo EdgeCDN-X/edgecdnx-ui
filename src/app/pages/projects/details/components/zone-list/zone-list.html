@@ -1,14 +1,14 @@
 <div class="sub-card">
     <div class="flex justify-between">
-        <h2 class="sub-card-title">Services</h2>
+        <h2 class="sub-card-title">Zones</h2>
         <div class="flex items-center gap-3">
-            <button (click)="openModal('create-service')"
+            <button (click)="openModal('create-zone')"
                 class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="20px" height="20px">
                     <path fill="currentColor"
                         d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 24 13 L 24 24 L 13 24 L 13 26 L 24 26 L 24 37 L 26 37 L 26 26 L 37 26 L 37 24 L 26 24 L 26 13 L 24 13 z" />
                 </svg>
-                New Service
+                New Zone
             </button>
         </div>
     </div>
@@ -23,18 +23,15 @@
         </p>
         } @else {
 
-        @if (services()!.length > 0) {
+        @if (zones()!.length > 0) {
         <table class="w-full table-auto">
             <thead class="border-gray-100 border-y dark:border-white/[0.05]">
                 <tr>
                     <th scope="col" class="table-label">
-                        Service Name
+                        Zone
                     </th>
                     <th scope="col" class="table-label hidden lg:table-cell">
-                        Origin Type
-                    </th>
-                    <th scope="col" class="table-label hidden lg:table-cell">
-                        WAF Enabled
+                        Email
                     </th>
                     <th scope="col" class="table-label hidden md:table-cell">
                         Status
@@ -43,23 +40,20 @@
                 </tr>
             </thead>
             <tbody class="table-divider">
-                @for (item of services(); track $index) {
+                @for (item of zones(); track $index) {
                 <tr>
                     <td class="base-text py-3">
-                        {{item.spec.name}}
+                        {{item.spec.zone}}
                     </td>
                     <td class="base-text hidden lg:table-cell">
-                        {{item.spec.originType}}
-                    </td>
-                    <td class="base-text hidden lg:table-cell">
-                        {{item.spec.waf.enabled ? 'Yes' : 'No'}}
+                        {{item.spec.email}}
                     </td>
                     <td class="base-text hidden md:table-cell">
                         {{item.status!.status}}
                     </td>
                     <td class="base-text">
                         <div class="flex justify-end">
-                            <a class="link-primary" [routerLink]="[routerLinkRoot, 'service', item.spec.name]">
+                            <a class="link-primary" [routerLink]="[routerLinkRoot, 'zone', item.spec.zone]">
                                 View Details
                             </a>
                         </div>
@@ -70,17 +64,16 @@
         </table>
         } @else {
         <p class="text-gray-500">
-            No services found. Click "New Service" to add your first service.
+            No zones found. Click "New Zone" to add your first zone.
         </p>
         }
-
         }
         }
     </div>
 
-    @if (modalSelector().type == 'create-service' && isOpen()) {
+    @if (modalSelector().type == 'create-zone' && isOpen()) {
     <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
-        <app-service-create-form [projectId]="projectId" />
+        <app-zone-create-form [projectId]="projectId" (onZoneCreated)="closeModalDelayed(3000)"></app-zone-create-form>
     </app-modal>
     }
 </div>

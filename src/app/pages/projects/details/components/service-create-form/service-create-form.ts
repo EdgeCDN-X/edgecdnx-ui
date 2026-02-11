@@ -17,7 +17,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
   @Input() isEditMode: boolean = false;
   @Input() serviceId?: string;
 
-  // TODO perhaps implement onSuccess hook
+  // TODO perhaps implement onSuccess hook for closing modal in parent
 
   serviceStore = inject(ServiceStore);
 

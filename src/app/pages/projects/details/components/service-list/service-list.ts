@@ -28,7 +28,7 @@ export class ServiceList implements OnInit {
   modalStore = inject(ModalStore);
   isOpen = this.modalStore.isOpen;
 
-  modalSelector = signal<{ type: string, serviceId?: string }>({ type: '' });
+  modalSelector = signal<{ type: string | null, serviceId?: string }>({ type: null });
 
   constructor() {
     effect(() => {
@@ -39,10 +39,11 @@ export class ServiceList implements OnInit {
   }
 
   closeModal() {
+    this.modalSelector.set({ type: null });
     this.modalStore.closeModal();
   }
 
-  openModal(action: 'create' | 'edit', serviceId?: string) {
+  openModal(action: 'create-service' | 'edit-service', serviceId?: string) {
     this.modalSelector.set({ type: action, serviceId });
     this.modalStore.openModal();
   }

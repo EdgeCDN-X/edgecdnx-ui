@@ -5,6 +5,8 @@ import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
 import { Subscription } from 'rxjs';
 import { SidebarStore } from '../../store/sidebar.store';
 import { ServiceStore } from '../../../pages/projects/store/service.store';
+import { ZoneStore } from '../../../pages/projects/store/zone.store';
+import { ProjectsStore } from '../../../pages/projects/store/projects.store';
 
 type NavItem = {
   name: string;
@@ -25,9 +27,8 @@ type NavItem = {
   templateUrl: './app-sidebar.component.html',
 })
 export class AppSidebarComponent {
-
+  projectStore = inject(ProjectsStore);
   sidebarStore = inject(SidebarStore);
-  serviceStore = inject(ServiceStore);
 
   navItems = signal<NavItem[]>([
     {
@@ -48,8 +49,26 @@ export class AppSidebarComponent {
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H18.5001C19.7427 20.75 20.7501 19.7426 20.7501 18.5V5.5C20.7501 4.25736 19.7427 3.25 18.5001 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H18.5001C18.9143 4.75 19.2501 5.08579 19.2501 5.5V18.5C19.2501 18.9142 18.9143 19.25 18.5001 19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5V5.5ZM6.25005 9.7143C6.25005 9.30008 6.58583 8.9643 7.00005 8.9643L17 8.96429C17.4143 8.96429 17.75 9.30008 17.75 9.71429C17.75 10.1285 17.4143 10.4643 17 10.4643L7.00005 10.4643C6.58583 10.4643 6.25005 10.1285 6.25005 9.7143ZM6.25005 14.2857C6.25005 13.8715 6.58583 13.5357 7.00005 13.5357H17C17.4143 13.5357 17.75 13.8715 17.75 14.2857C17.75 14.6999 17.4143 15.0357 17 15.0357H7.00005C6.58583 15.0357 6.25005 14.6999 6.25005 14.2857Z" fill="currentColor"></path></svg>`,
       name: "Services",
-      path: `/projects/${this.serviceStore.selectedProjectId()}/services`,
-      visible: this.serviceStore.selectedProjectId() !== null,
+      path: `/projects/${this.projectStore.selectedProjectId()}/services`,
+      visible: this.projectStore.selectedProjectId() !== null,
+    },
+    {
+      icon: `<svg fill="none" width="1em" height="1em" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+    </style>
+  </defs>
+  <rect x="20" y="20" width="10" height="2" fill="currentColor"/>
+  <rect x="20" y="24" width="6" height="2" fill="currentColor"/>
+  <path d="M30,17V16A13.9871,13.9871,0,1,0,19.23,29.625l-.46-1.9463A12.0419,12.0419,0,0,1,16,28c-.19,0-.375-.0186-.563-.0273A20.3044,20.3044,0,0,1,12.0259,17Zm-2.0415-2H21.9751A24.2838,24.2838,0,0,0,19.2014,4.4414,12.0228,12.0228,0,0,1,27.9585,15ZM16.563,4.0273A20.3044,20.3044,0,0,1,19.9741,15H12.0259A20.3044,20.3044,0,0,1,15.437,4.0273C15.625,4.0186,15.81,4,16,4S16.375,4.0186,16.563,4.0273Zm-3.7644.4141A24.2838,24.2838,0,0,0,10.0249,15H4.0415A12.0228,12.0228,0,0,1,12.7986,4.4414Zm0,23.1172A12.0228,12.0228,0,0,1,4.0415,17h5.9834A24.2838,24.2838,0,0,0,12.7986,27.5586Z" transform="translate(0 0)" fill="currentColor"/>
+  <rect class="cls-1" width="32" height="32" fill="currentColor"/>
+</svg>`,
+      name: "Zones",
+      path: `/projects/${this.projectStore.selectedProjectId()}/zones`,
+      visible: this.projectStore.selectedProjectId() !== null,
     }
   ])
 
