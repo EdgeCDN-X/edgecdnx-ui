@@ -18,7 +18,9 @@
 					fill="currentColor" aria-hidden="true">
 					<path d="M9.55 17.2 4.8 12.45l1.4-1.4 3.35 3.35 8.25-8.25 1.4 1.4-9.65 9.65Z" />
 				</svg>
-				Healthy
+				<p class="hidden md:block">
+					Healthy
+				</p>
 			</span>
 			} @else if ((service()!.status?.status || 'N/A') === 'Progressing') {
 			<span class="inline-flex items-center text-yellow-600">
@@ -38,7 +40,8 @@
 			</span>
 			}
 		</div>
-		<button class="btn-primary" (click)="onEdit()">Update Service</button>
+		<button class="btn-primary" (click)="onEdit()"><span class="block md:hidden">Update</span><span
+				class="hidden md:block">Update Service</span></button>
 	</div>
 
 
@@ -66,13 +69,10 @@
 		@for (origin of service()!.spec.staticOrigins; track $index) {
 		<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
 			<p class="content-label">Upstream</p>
-			<p class="content-label-value">{{ origin.upstream || 'N/A' }}</p>
+			<p class="content-label-value">{{ origin.scheme | lowercase }}://{{ origin.upstream || 'N/A' }}:{{
+				origin.port || 'N/A' }}</p>
 			<p class="content-label">Host Header</p>
 			<p class="content-label-value">{{ origin.hostHeader || 'N/A' }}</p>
-			<p class="content-label">Scheme</p>
-			<p class="content-label-value">{{ origin.scheme || 'N/A' }}</p>
-			<p class="content-label">Port</p>
-			<p class="content-label-value">{{ origin.port || 'N/A' }}</p>
 		</div>
 		}
 	</div>
@@ -110,19 +110,20 @@
 	}
 	}
 
-	<div class="mt-6 grid gap-6 md:grid-cols-2">
-		<div>
+	<div class="mt-6 grid gap-6">
+		<div class="flex items-center justify-between">
 			<h3 class="content-label">Host Aliases</h3>
-			@if (service()!.spec.hostAliases?.length) {
-			<ul class="list-disc pl-5">
-				@for (alias of service()!.spec.hostAliases; track $index) {
-				<li class="content-label-value">{{ alias.name }}</li>
-				}
-			</ul>
-			} @else {
-			<p class="content-label-value">N/A</p>
-			}
+			<button type="button" (click)="addHostAlias()" class="btn-primary">Add Host Alias</button>
 		</div>
+		@if (service()!.spec.hostAliases?.length) {
+		<ul class="list-disc pl-5">
+			@for (alias of service()!.spec.hostAliases; track $index) {
+			<li class="content-label-value">{{ alias.name }}</li>
+			}
+		</ul>
+		} @else {
+		<p class="content-label-value">No Host Aliases Configured</p>
+		}
 	</div>
 </div>
 
@@ -137,7 +138,7 @@
 	</div>
 
 	<div class="mt-6 gap-6">
-		<div class="flex items-center justify-between">
+		<div class="flex items-center justify-between pb-3">
 			<h3 class="content-label">Secure Keys</h3>
 			<button type="button" (click)="addKey()" class="btn-primary">Add Key</button>
 		</div>
@@ -158,14 +159,14 @@
 						<td class="base-text py-3">{{ key.name || 'Unnamed' }}</td>
 						<td class="base-text">
 							<div class="flex items-center gap-2">
-								<span>{{ isKeyVisible($index) ? (key.value || 'N/A') :
+								<span class="hidden md:block">{{ isKeyVisible($index) ? (key.value || 'N/A') :
 									'********************************' }}</span>
 								<button type="button"
-									class="inline-flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+									class="inline-flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hidden md:block"
 									(click)="toggleKeyVisibility($index)"
 									[attr.aria-label]="isKeyVisible($index) ? 'Hide value' : 'Show value'">
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
-										fill="currentColor">
+										class="hidden md:block" fill="currentColor">
 										<path
 											d="M12 5c-7.633 0-11 7-11 7s3.367 7 11 7 11-7 11-7-3.367-7-11-7zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
 									</svg>
@@ -204,7 +205,7 @@
 			</table>
 		</div>
 		} @else {
-		<p class="content-label-value">N/A</p>
+		<p class="content-label-value">Public Service. No Secure Keys Configured.</p>
 		}
 	</div>
 </div>
@@ -224,6 +225,10 @@
 	@if (modalSelector().type == 'key-delete' && isOpen()) {
 	<app-key-delete [serviceId]="service()!.metadata.name" [keyName]="modalSelector()!.params!.keyName"
 		(onKeyDeleted)="closeModalDelayed(1500)" />
+	}
+
+	@if (modalSelector().type == 'host-alias-add' && isOpen()) {
+	<app-host-alias-add [serviceId]="service()!.metadata.name" [serviceDomain]="service()!.spec.domain || ''" (onHostAliasAdded)="closeModalDelayed(1500)" />
 	}
 
 	@if (modalSelector().type == 'edit' && isOpen()) {

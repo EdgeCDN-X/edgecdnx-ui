@@ -127,7 +127,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
 
         if (service.spec.originType === OriginType.Static && service.spec.staticOrigins && service.spec.staticOrigins.length > 0) {
           (this.serviceCreateForm as any).addControl('staticOrigin', new FormGroup({
-            upstream: new FormControl(service.spec.staticOrigins[0]!.upstream, { nonNullable: true, validators: [Validators.required] }),
+            upstream: new FormControl(service.spec.staticOrigins[0]!.upstream, { nonNullable: true, validators: [Validators.required, Validators.pattern(/(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63}$)/)] }),
             hostHeader: new FormControl(service.spec.staticOrigins[0]!.hostHeader, { nonNullable: false, validators: [Validators.required] }),
             port: new FormControl(service.spec.staticOrigins[0]!.port, { nonNullable: true, validators: [Validators.min(1), Validators.max(65535)] }),
             scheme: new FormControl(service.spec.staticOrigins[0]!.scheme, { nonNullable: true, validators: [Validators.required] }),

@@ -1,0 +1,106 @@
+<div class="card-title">
+    New Host Alias
+</div>
+
+<div>
+    @if (updating()) {
+    <p class="text-green-600">
+        Creating Host Alias...
+    </p>
+    }
+
+    @if (error() && error()!.action === 'host-alias-add') {
+    <p class="text-red-600">
+        Error creating host alias: {{ error()!.message }}
+    </p>
+    }
+
+    @if (updated()) {
+    <p class="text-green-600">
+        Host alias added successfully! Closing modal...
+    </p>
+    }
+
+    @if (!updating() && !updated()) {
+    <form [formGroup]="newHostAliasForm" (ngSubmit)="onSubmit()">
+
+        <div class="py-3">
+            <label for="type" class="form-label">Alias Type</label>
+            <select id="type" formControlName="type" class="form-input-field">
+                <option [ngValue]="'CNAME'">CNAME</option>
+                <option [ngValue]="'ZONE'">Zone Delegation</option>
+            </select>
+            @if (newHostAliasForm.get('type')!.invalid && newHostAliasForm.get('type')!.touched) {
+            @if (newHostAliasForm.get('type')!.hasError('required')) {
+            <p class="text-red-600 text-xs pt-1">Alias type is required.</p>
+            }
+            }
+        </div>
+
+        <div class="py-3">
+            <label for="name" class="form-label">Host Alias Domain</label>
+            <input formControlName="domain" placeholder="Enter host alias domain" class="form-input-field" />
+
+            @if(newHostAliasForm.get('domain')?.invalid && newHostAliasForm.get('domain')?.touched) {
+            <p class="text-red-600 text-xs pt-1">Host alias domain is required and must be a valid domain name.</p>
+            }
+        </div>
+
+        <div class="py-3">
+
+            @if (newHostAliasForm.get('type')!.value === 'CNAME') {
+            <p class="form-label text-s">
+                Create a CNAME record pointing from the alias domain to your service's domain. This allows you to use a
+                custom domain for your service. The following records are required to be added to your DNS provider:
+            </p>
+            @if (newHostAliasForm.get('domain')!.value != "") {
+            <p class="form-label text-s font-light">
+                {{ newHostAliasForm.get('domain')!.value }} CNAME {{ serviceDomain }}
+            </p>
+            }
+            }
+
+            @if (newHostAliasForm.get('type')!.value === 'ZONE') {
+            <p class="form-label text-s">
+                Create NS records and A Glue records for zone deletaion. The zone itself must be registered with your project first. 
+            </p>
+            @if (newHostAliasForm.get('domain')!.value != "") {
+            <p class="form-label text-s font-light">
+                The following steps and records are required to be added to your DNS provider:<br>
+                Subzone containing <span class="font-bold">{{ newHostAliasForm.get('domain')!.value }}</span> registerd with the platform <br>
+                <span class="font-bold">NS</span> records pointing to our nameservers<br>
+                <span class="font-bold">A</span> records pointing to the platform's nameservers<br>
+                <br>
+                {{ newHostAliasForm.get('domain')!.value }} NS ns1.{{ newHostAliasForm.get('domain')!.value }}. <br>
+                ns1.{{ newHostAliasForm.get('domain')!.value }}. A 74.220.25.73
+            </p>
+            }
+            }
+
+            @if (validating()) {
+            <p class="text-blue-600 text-xs pt-1">Validation in progress...</p>
+            }
+
+            @if (validationError()) {
+            <p class="text-red-600 text-xs pt-1">Validation error: {{ validationError() }}</p>
+            }
+
+            @if (newHostAliasForm.get('validated')!.value) {
+            <p class="text-green-600 text-xs pt-1">Validation successful! You can now submit the form to add the host
+                alias.</p>
+            }
+
+        </div>
+
+
+        <div class="flex justify-between">
+            <button type="submit" class="flex btn-primary my-4 text-center" [disabled]="newHostAliasForm.invalid">Add
+                Host Alias</button>
+            <button type="submit" class="flex btn-primary my-4 text-center" (click)="validate()">Validate
+                Settings</button>
+        </div>
+
+    </form>
+    }
+
+</div>

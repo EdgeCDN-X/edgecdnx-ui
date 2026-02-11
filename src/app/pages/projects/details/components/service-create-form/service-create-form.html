@@ -100,8 +100,8 @@
 
             <div formGroupName="staticOrigin" class="pt-3">
                 <div class="pt-3">
-                    <label for="upstream" class="form-label">Upstream IP or URL</label>
-                    <p class="text-xs pb-1">IP Address or Domain Name can be used.</p>
+                    <label for="upstream" class="form-label">Upstream URL</label>
+                    <p class="form-label text-xs pb-1">IP Address or Domain Name can be used.</p>
                     <input type="text" id="upstream" formControlName="upstream" class="form-input-field" />
 
                     @if (serviceCreateForm.get('staticOrigin')!.get('upstream') &&
@@ -114,8 +114,7 @@
 
                 <div class="pt-3">
                     <label for="hostHeader" class="form-label">Host Header</label>
-                    <p class="text-xs pb-1">If you're using an IP address for an upstream, you can specify the host
-                        header here. If using a domain name, use the same value here</p>
+                    <p class="form-label text-xs pb-1">Usually the same as the upstream URL.</p>
                     <input type="text" id="hostHeader" formControlName="hostHeader" class="form-input-field" />
                     @if (serviceCreateForm.get('staticOrigin')!.get('hostHeader') &&
                     serviceCreateForm.get('staticOrigin')!.get('hostHeader')!.touched) {

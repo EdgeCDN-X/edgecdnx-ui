@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, LowerCasePipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
@@ -11,10 +11,11 @@ import { KeyAdd } from '../components/key-add/key-add';
 import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
 import { KeyDelete } from '../components/key-delete/key-delete';
 import { ServiceCreateForm } from '../components/service-create-form/service-create-form';
+import { HostAliasAdd } from '../components/host-alias-add/host-alias-add';
 
 @Component({
   selector: 'app-service-details',
-  imports: [CommonModule, Placeholder, KeyAdd, ModalComponent, KeyDelete, ServiceCreateForm],
+  imports: [CommonModule, Placeholder, KeyAdd, ModalComponent, KeyDelete, ServiceCreateForm, LowerCasePipe, HostAliasAdd],
   templateUrl: './service-details.html',
   styleUrl: './service-details.css',
 })
@@ -96,6 +97,11 @@ export class ServiceDetails {
 
   addKey(): void {
     this.modalSelector.set({ type: 'key-add' });
+    this.modalStore.openModal();
+  }
+
+  addHostAlias(): void {
+    this.modalSelector.set({ type: 'host-alias-add' });
     this.modalStore.openModal();
   }
 
