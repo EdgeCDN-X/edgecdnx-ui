@@ -45,7 +45,5 @@ export class ZoneList {
     this.modalStore.openModal();
   }
 
-  ngOnInit(): void {
-    this.zoneStore.selectProject(this.projectId);
-  }
+  ngOnInit(): void {}
 }

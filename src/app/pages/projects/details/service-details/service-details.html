@@ -110,13 +110,13 @@
 	}
 	}
 
-	<div class="mt-6 grid gap-6">
+	<div class="mt-6 grid">
 		<div class="flex items-center justify-between">
 			<h3 class="content-label">Host Aliases</h3>
 			<button type="button" (click)="addHostAlias()" class="btn-primary">Add Host Alias</button>
 		</div>
 		@if (service()!.spec.hostAliases?.length) {
-		<ul class="list-disc pl-5">
+		<ul class="list-none">
 			@for (alias of service()!.spec.hostAliases; track $index) {
 			<li class="content-label-value">{{ alias.name }}</li>
 			}

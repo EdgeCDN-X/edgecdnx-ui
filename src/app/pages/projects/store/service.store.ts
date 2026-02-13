@@ -45,7 +45,6 @@ export class ServiceStore {
         }
 
         this._error.set(null);
-        this.projectStore.selectProject(projectId);
 
         this.http.get<ServiceList>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services`, {
             headers: {
@@ -152,6 +151,51 @@ export class ServiceStore {
         });
     }
 
+    addHostAlias(serviceId: string, hostAlias: string) {
+        const projectId = this.projectStore.selectedProjectId();
+        if (!projectId) {
+            this._error.set({
+                message: 'No project selected',
+                action: "host-alias-add"
+            });
+            this._updating.set(false);
+            return;
+        }
+
+        this.resetUpdate()
+
+        this.http.post<Service>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services/${serviceId}/host-alias`, {name: hostAlias}, {
+            headers: {
+                'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
+            }
+        }).subscribe({
+            next: (data) => {
+                this._updated.set(true);
+                this._services.update(services => {
+                    if (!services) return services;
+                    return services.map(service => {
+                        if (service.metadata.name === serviceId) {
+                            return {
+                                ...data,
+                            }
+                        }
+                        return service;
+                    });
+                });
+            },
+            error: (err) => {
+                this._error.set({
+                    message: err.error.error || err.error.message || 'Failed to add hostAlias',
+                    action: "host-alias-add"
+                });
+                this._updating.set(false);
+            },
+            complete: () => {
+                this._updating.set(false);
+            }
+        });
+    }
+
     addKey(serviceId: string, keyName: string) {
         const projectId = this.projectStore.selectedProjectId();
         if (!projectId) {
@@ -163,9 +207,7 @@ export class ServiceStore {
             return;
         }
 
-        this._error.set(null);
-        this._updating.set(true);
-        this._updated.set(false);
+        this.resetUpdate();
 
         this.http.post<Service>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services/${serviceId}/keys`, { name: keyName }, {
             headers: {

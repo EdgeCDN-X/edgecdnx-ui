@@ -48,7 +48,5 @@ export class ServiceList implements OnInit {
     this.modalStore.openModal();
   }
 
-  ngOnInit(): void {
-    this.serviceStore.selectProject(this.projectId);
-  }
+  ngOnInit(): void {}
 }

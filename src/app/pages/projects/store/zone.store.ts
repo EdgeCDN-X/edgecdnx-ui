@@ -73,7 +73,6 @@ export class ZoneStore {
         }
 
         this._error.set(null);
-        this.projectStore.selectProject(projectId);
 
         this.http.get<ZoneList>(`${this.configService.environment()?.apiUrl}/project/${projectId}/zones`, {
             headers: {

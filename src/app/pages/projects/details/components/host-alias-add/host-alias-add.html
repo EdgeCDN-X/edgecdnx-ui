@@ -22,7 +22,7 @@
     }
 
     @if (!updating() && !updated()) {
-    <form [formGroup]="newHostAliasForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="newHostAliasForm">
 
         <div class="py-3">
             <label for="type" class="form-label">Alias Type</label>
@@ -37,9 +37,40 @@
             }
         </div>
 
+        @if (newHostAliasForm.get('type')!.value === 'ZONE') {
+        <div class="py-3"> <label for="zone" class="form-label">Zone Name</label>
+
+            <select id="zone" formControlName="zone" class="form-input-field">
+                <option [ngValue]="null">Select zone</option>
+                @for (zone of zones() ; track zone) {
+                <option [value]="zone.spec.zone">{{ zone.spec.zone }}</option>
+                }
+            </select>
+
+            @if(zones()?.length === 0) {
+            <p class="text-red-600 text-xs pt-1">No Zones found in project. First you need to create a private zone.</p>
+            }
+
+
+            @if(newHostAliasForm.get('zone')?.invalid && newHostAliasForm.get('zone')?.touched) {
+            <p class="text-red-600 text-xs pt-1">Zone name is required for zone delegation and must be a valid domain
+                name.</p>
+            }
+        </div>
+
+        }
+
+        {{ newHostAliasForm.get('domain')?.errors | json }}
+
         <div class="py-3">
             <label for="name" class="form-label">Host Alias Domain</label>
-            <input formControlName="domain" placeholder="Enter host alias domain" class="form-input-field" />
+            <div class="flex w-full gap-1">
+                <input formControlName="domain" placeholder="Enter host alias domain" class="form-input-field flex-1" />
+                @if (newHostAliasForm.get('type')!.value == "ZONE") {
+                <p class="flex-1 form-input-field bg-gray-200 dark:bg-gray-800">{{ newHostAliasForm.get('zone')!.value
+                    }}</p>
+                }
+            </div>
 
             @if(newHostAliasForm.get('domain')?.invalid && newHostAliasForm.get('domain')?.touched) {
             <p class="text-red-600 text-xs pt-1">Host alias domain is required and must be a valid domain name.</p>
@@ -54,27 +85,71 @@
                 custom domain for your service. The following records are required to be added to your DNS provider:
             </p>
             @if (newHostAliasForm.get('domain')!.value != "") {
-            <p class="form-label text-s font-light">
-                {{ newHostAliasForm.get('domain')!.value }} CNAME {{ serviceDomain }}
-            </p>
+            <table class="w-full table-auto mt-5">
+                <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+                    <tr>
+                        <th scope="col" class="table-label">Domain</th>
+                        <th scope="col" class="table-label">Type</th>
+                        <th scope="col" class="table-label">Value</th>
+                    </tr>
+                </thead>
+                <tbody class="table-divider">
+                    <tr>
+                        <td class="base-text py-3">{{ newHostAliasForm.get('domain')!.value }}</td>
+                        <td class="base-text py-3">CNAME</td>
+                        <td class="base-text py-3">{{ serviceDomain }}</td>
+                    </tr>
+                </tbody>
+            </table>
             }
             }
 
             @if (newHostAliasForm.get('type')!.value === 'ZONE') {
             <p class="form-label text-s">
-                Create NS records and A Glue records for zone deletaion. The zone itself must be registered with your project first. 
+                Create NS records and A Glue records for zone deletaion. The zone itself must be registered with your
+                project first.
             </p>
-            @if (newHostAliasForm.get('domain')!.value != "") {
             <p class="form-label text-s font-light">
                 The following steps and records are required to be added to your DNS provider:<br>
-                Subzone containing <span class="font-bold">{{ newHostAliasForm.get('domain')!.value }}</span> registerd with the platform <br>
-                <span class="font-bold">NS</span> records pointing to our nameservers<br>
-                <span class="font-bold">A</span> records pointing to the platform's nameservers<br>
-                <br>
-                {{ newHostAliasForm.get('domain')!.value }} NS ns1.{{ newHostAliasForm.get('domain')!.value }}. <br>
-                ns1.{{ newHostAliasForm.get('domain')!.value }}. A 74.220.25.73
+
             </p>
+            <ul class="list-disc pl-10">
+                <li>
+                    Subzone <span class="font-bold">{{ newHostAliasForm.get('zone')!.value }}</span> registered
+                    with the platform
+                </li>
+                <li>
+                    <span class="font-bold">NS</span> records pointing to our nameservers<br>
+                </li>
+                <li>
+                    <span class="font-bold">A</span> records pointing to the platform's nameservers<br>
+                </li>
+            </ul>
+
+            @if (newHostAliasForm.get('zone')!.value) {
+            <table class="w-full table-auto mt-5">
+                <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+                    <tr>
+                        <th scope="col" class="table-label">Domain</th>
+                        <th scope="col" class="table-label">Type</th>
+                        <th scope="col" class="table-label">Value</th>
+                    </tr>
+                </thead>
+                <tbody class="table-divider">
+                    <tr>
+                        <td class="base-text py-3">{{ newHostAliasForm.get('zone')!.value }}</td>
+                        <td class="base-text py-3">NS</td>
+                        <td class="base-text py-3">ns1.{{ newHostAliasForm.get('zone')!.value }}.</td>
+                    </tr>
+                    <tr>
+                        <td class="base-text py-3">ns1.{{ newHostAliasForm.get('zone')!.value }}.</td>
+                        <td class="base-text py-3">A</td>
+                        <td class="base-text py-3">74.220.25.73</td>
+                    </tr>
+                </tbody>
+            </table>
             }
+
             }
 
             @if (validating()) {
@@ -91,16 +166,14 @@
             }
 
         </div>
-
-
-        <div class="flex justify-between">
-            <button type="submit" class="flex btn-primary my-4 text-center" [disabled]="newHostAliasForm.invalid">Add
-                Host Alias</button>
-            <button type="submit" class="flex btn-primary my-4 text-center" (click)="validate()">Validate
-                Settings</button>
-        </div>
-
     </form>
+
+    <div class="flex justify-between">
+        <button class="flex btn-primary my-4 text-center" [disabled]="newHostAliasForm.invalid" (click)="onSubmit()">Add
+            Host Alias</button>
+        <button class="flex btn-primary my-4 text-center" (click)="validate()">Validate
+            Settings</button>
+    </div>
     }
 
 </div>

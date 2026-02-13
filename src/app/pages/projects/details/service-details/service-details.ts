@@ -131,11 +131,7 @@ export class ServiceDetails {
 
   constructor() {
     effect(() => {
-      const projectId = this.projectId();
-      if (projectId) {
-        this.serviceStore.selectProject(projectId);
-      }
-
+      // TODO rework this to OnUpdated event.
       if (this.updated()) {
         setTimeout(() => { this.closeModal() }, 3000);
       }
