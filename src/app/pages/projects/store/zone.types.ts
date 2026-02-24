@@ -26,5 +26,5 @@ export interface CreateZoneDto {
 
 export interface ZoneActionError {
     message: string;
-    action: "create" | "list";
+    action: "create" | "list" | "delete" | "update";
 }

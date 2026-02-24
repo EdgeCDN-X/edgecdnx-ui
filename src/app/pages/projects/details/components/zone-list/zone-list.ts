@@ -5,10 +5,11 @@ import { ModalComponent } from '../../../../../shared/components/ui/modal/modal.
 import { RouterModule } from '@angular/router';
 import { Placeholder } from '../../../../../shared/components/common/placeholder/placeholder';
 import { ZoneCreateForm } from '../zone-create-form/zone-create-form';
+import { ZoneDelete } from '../zone-delete/zone-delete';
 
 @Component({
   selector: 'app-zone-list',
-  imports: [ModalComponent, RouterModule, Placeholder, ZoneCreateForm],
+  imports: [ModalComponent, RouterModule, Placeholder, ZoneCreateForm, ZoneDelete],
   templateUrl: './zone-list.html',
   styleUrl: './zone-list.css',
 })
@@ -25,7 +26,7 @@ export class ZoneList {
   modalStore = inject(ModalStore);
   isOpen = this.modalStore.isOpen;
 
-  modalSelector = signal<{ type: 'create-zone' | 'edit-zone' | null, serviceId?: string }>({ type: null });
+  modalSelector = signal<{ type: 'create-zone' | 'edit-zone' | 'delete-zone' | null, zoneId?: string }>({ type: null });
 
   constructor() {}
 
@@ -40,8 +41,8 @@ export class ZoneList {
     }, delay);
   }
 
-  openModal(action: 'create-zone' | 'edit-zone', serviceId?: string) {
-    this.modalSelector.set({ type: action, serviceId });
+  openModal(action: 'create-zone' | 'edit-zone' | 'delete-zone', zoneId?: string) {
+    this.modalSelector.set({ type: action, zoneId });
     this.modalStore.openModal();
   }
 

@@ -57,12 +57,18 @@ export class ZoneStore {
     private readonly _creating = signal<boolean>(false);
     private readonly _created = signal<boolean>(false);
 
+    private readonly _deleting = signal<boolean>(false);
+    private readonly _deleted = signal<boolean>(false);
+
     readonly zones = this._zones.asReadonly();
     readonly loading = this._loading.asReadonly();
     readonly error = this._error.asReadonly();
 
     readonly creating = this._creating.asReadonly();
     readonly created = this._created.asReadonly();
+
+    readonly deleting = this._deleting.asReadonly();
+    readonly deleted = this._deleted.asReadonly();
 
     constructor(private http: HttpClient) { }
 
@@ -153,9 +159,51 @@ export class ZoneStore {
         });
     }
 
+    deleteZone(zoneId: string) {
+        this.resetDelete();
+
+        const projectId = this.projectStore.selectedProjectId();
+        if (!projectId) {
+            this._error.set({
+                message: 'No project selected',
+                action: "delete"
+            });
+            return;
+        }
+
+        this._deleting.set(true);
+
+        this.http.delete(`${this.configService.environment()?.apiUrl}/project/${projectId}/zones/${zoneId}`, {
+            headers: {
+                'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
+            }
+        }).subscribe({
+            next: () => {
+                this._deleted.set(true);
+                this._zones.update(zones => zones ? zones.filter(zone => zone.metadata.name !== zoneId) : null);
+            },
+            error: (err) => {
+                this._error.set({
+                    message: err.error.error || err.error.message || 'Failed to delete zone',
+                    action: "delete"
+                });
+                this._deleting.set(false);
+            },
+            complete: () => {
+                this._deleting.set(false);
+            }
+        }); 
+    }
+
     resetCreate() {
         this._error.set(null);
         this._creating.set(false);
         this._created.set(false);
+    }
+
+    resetDelete() {
+        this._error.set(null);
+        this._deleting.set(false);
+        this._deleted.set(false);
     }
 }

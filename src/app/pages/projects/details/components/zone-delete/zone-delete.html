@@ -1,0 +1,30 @@
+<div class="card-title">
+    Delete Zone
+</div>
+
+<div>
+    @if (deleting()) {
+    <p class="text-green-600">
+        Deleting Zone...
+    </p>
+    }
+
+    @if (error() && error()!.action === 'delete') {
+    <p class="text-red-600">
+        Error deleting Zone: {{ error()!.message }}
+    </p>
+    }
+
+    @if (deleted()) {
+    <p class="text-green-600">
+        Zone deleted successfully! Closing modal...
+    </p>
+    }
+
+    @if (!deleting() && !deleted()) {
+    <p class="content-label py-3">Are you sure you want to delete the zone <span class="font-mono">{{ zoneId }}</span>?</p>
+    <div class="flex gap-4 mt-4">
+        <button class="btn-primary" (click)="onDelete()">Delete Zone</button>
+    </div>
+    }
+</div>

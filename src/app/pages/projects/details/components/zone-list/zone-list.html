@@ -57,6 +57,11 @@
                                 View Details
                             </a>
                         </div>
+                        <div class="flex justify-end">
+                            <a class="link-primary" (click)="openModal('delete-zone', item.metadata.name)">
+                                Delete
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 }
@@ -74,6 +79,11 @@
     @if (modalSelector().type == 'create-zone' && isOpen()) {
     <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
         <app-zone-create-form [projectId]="projectId" (onZoneCreated)="closeModalDelayed(3000)"></app-zone-create-form>
+    </app-modal>
+    }
+    @if (modalSelector().type == 'delete-zone' && isOpen()) {
+    <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
+        <app-zone-delete [zoneId]="modalSelector().zoneId!" (onZoneDeleted)="closeModalDelayed(3000)"></app-zone-delete>
     </app-modal>
     }
 </div>
