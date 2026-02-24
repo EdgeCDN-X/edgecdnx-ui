@@ -216,6 +216,152 @@
 }
 }
 
+@if (service()) {
+<div class="sub-card">
+	<div class="flex justify-between items-center mb-5">
+		<h2 class="sub-card-title">Service Status</h2>
+	</div>
+
+	@if (serviceStatusLoading()) {
+	<p class="content-label-value">Loading status...</p>
+	} @else if (!hasServiceStatus()) {
+	<p class="content-label-value">No status available.</p>
+	} @else {
+	<div class="grid gap-6 md:grid-cols-2">
+		<div>
+			<p class="content-label">Service ID</p>
+			<p class="content-label-value">{{ serviceStatus()!.serviceId || 'N/A' }}</p>
+		</div>
+		<div>
+			<p class="content-label">Resources Count</p>
+			<p class="content-label-value">{{ serviceStatus()!.applicationSetStatus?.resourcesCount ?? 'N/A' }}</p>
+		</div>
+	</div>
+
+	@if (serviceStatus()!.certificateStatus) {
+	<div class="mt-6">
+		<h3 class="content-label">Certificate</h3>
+		<div class="grid gap-6 md:grid-cols-2">
+			<div>
+				<p class="content-label">Revision</p>
+				<p class="content-label-value">{{ serviceStatus()!.certificateStatus?.revision ?? 'N/A' }}</p>
+			</div>
+			<div>
+				<p class="content-label">Failed Issuance Attempts</p>
+				<p class="content-label-value">{{ serviceStatus()!.certificateStatus?.failedIssuanceAttempts ?? 0 }}</p>
+			</div>
+			<div>
+				<p class="content-label">Valid From</p>
+				<p class="content-label-value">{{ serviceStatus()!.certificateStatus?.notBefore ? (serviceStatus()!.certificateStatus?.notBefore | date:'medium') : 'N/A' }}</p>
+			</div>
+			<div>
+				<p class="content-label">Valid Until</p>
+				<p class="content-label-value">{{ serviceStatus()!.certificateStatus?.notAfter ? (serviceStatus()!.certificateStatus?.notAfter | date:'medium') : 'N/A' }}</p>
+			</div>
+		</div>
+
+		@if (serviceStatus()!.certificateStatus?.conditions?.length) {
+		<div class="mt-4 max-w-full overflow-x-auto">
+			<table class="w-full table-auto">
+				<thead class="border-gray-100 border-y dark:border-white/[0.05]">
+					<tr>
+						<th scope="col" class="table-label">Type</th>
+						<th scope="col" class="table-label">Status</th>
+						<th scope="col" class="table-label">Reason</th>
+						<th scope="col" class="table-label">Message</th>
+					</tr>
+				</thead>
+				<tbody class="table-divider">
+					@for (condition of serviceStatus()!.certificateStatus!.conditions!; track $index) {
+					<tr>
+						<td class="base-text py-3">{{ condition.type || 'N/A' }}</td>
+						<td class="base-text py-3" [class]="statusTone(condition.status)">{{ condition.status || 'N/A' }}</td>
+						<td class="base-text py-3">{{ condition.reason || 'N/A' }}</td>
+						<td class="base-text py-3">{{ condition.message || 'N/A' }}</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+		}
+	</div>
+	}
+
+	@if (serviceStatus()!.applicationSetStatus?.applicationStatus?.length) {
+	<div class="mt-6">
+		<h3 class="content-label">Applications</h3>
+		<div class="max-w-full overflow-x-auto">
+			<table class="w-full table-auto">
+				<thead class="border-gray-100 border-y dark:border-white/[0.05]">
+					<tr>
+						<th scope="col" class="table-label">Application</th>
+						<th scope="col" class="table-label">Step</th>
+						<th scope="col" class="table-label">Status</th>
+						<th scope="col" class="table-label">Message</th>
+					</tr>
+				</thead>
+				<tbody class="table-divider">
+					@for (app of serviceStatus()!.applicationSetStatus!.applicationStatus!; track $index) {
+					<tr>
+						<td class="base-text py-3">{{ app.application }}</td>
+						<td class="base-text py-3">{{ app.step || 'N/A' }}</td>
+						<td class="base-text py-3" [class]="statusTone(app.status)">{{ app.status || 'N/A' }}</td>
+						<td class="base-text py-3">{{ app.message || 'N/A' }}</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	}
+
+	@if (serviceStatus()!.applicationSetStatus?.conditions?.length) {
+	<div class="mt-6">
+		<h3 class="content-label">ApplicationSet Conditions</h3>
+		<ul class="list-none">
+			@for (condition of serviceStatus()!.applicationSetStatus!.conditions!; track $index) {
+			<li class="content-label-value">
+				<span [class]="statusTone(condition.status)">{{ condition.type }} ({{ condition.status }})</span>
+				- {{ condition.reason }}: {{ condition.message }}
+			</li>
+			}
+		</ul>
+	</div>
+	}
+
+	@if (serviceStatus()!.applicationSetStatus?.resources?.length) {
+	<div class="mt-6">
+		<h3 class="content-label">Resources</h3>
+		<div class="max-w-full overflow-x-auto">
+			<table class="w-full table-auto">
+				<thead class="border-gray-100 border-y dark:border-white/[0.05]">
+					<tr>
+						<th scope="col" class="table-label">Kind</th>
+						<th scope="col" class="table-label">Name</th>
+						<th scope="col" class="table-label">Namespace</th>
+						<th scope="col" class="table-label">Status</th>
+						<th scope="col" class="table-label">Health</th>
+					</tr>
+				</thead>
+				<tbody class="table-divider">
+					@for (resource of serviceStatus()!.applicationSetStatus!.resources!; track $index) {
+					<tr>
+						<td class="base-text py-3">{{ resource.kind || 'N/A' }}</td>
+						<td class="base-text py-3">{{ resource.name || 'N/A' }}</td>
+						<td class="base-text py-3">{{ resource.namespace || 'N/A' }}</td>
+						<td class="base-text py-3" [class]="statusTone(resource.status)">{{ resource.status || 'N/A' }}</td>
+						<td class="base-text py-3" [class]="statusTone(resource.health?.status)">{{ resource.health?.status || 'N/A' }}</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	}
+	}
+</div>
+}
+
 
 <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
 	@if (modalSelector().type == 'key-add' && isOpen()) {

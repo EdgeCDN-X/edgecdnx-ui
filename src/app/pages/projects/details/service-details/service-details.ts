@@ -28,6 +28,11 @@ export class ServiceDetails {
   services = this.serviceStore.services;
   updated = this.serviceStore.updated;
 
+  serviceStatusLoading = this.serviceStore.serviceStatusLoading;
+  serviceStatus = this.serviceStore.serviceStatus;
+
+  readonly hasServiceStatus = computed(() => this.serviceStatus() !== null);
+
   projectId = toSignal(
     this.route.parent?.paramMap.pipe(map(params => params.get('name'))) ?? of(null)
   );
@@ -129,11 +134,31 @@ export class ServiceDetails {
     }, delay);
   }
 
+  statusTone(status?: string): string {
+    if (status === 'Healthy' || status === 'True' || status === 'Synced') {
+      return 'text-green-600 dark:text-green-400';
+    }
+
+    if (status === 'Progressing' || status === 'Unknown' || status === 'OutOfSync') {
+      return 'text-yellow-600 dark:text-yellow-400';
+    }
+
+    if (status === 'Degraded' || status === 'False' || status === 'Missing') {
+      return 'text-red-600 dark:text-red-400';
+    }
+
+    return 'text-gray-600 dark:text-gray-400';
+  }
+
   constructor() {
     effect(() => {
       // TODO rework this to OnUpdated event.
       if (this.updated()) {
         setTimeout(() => { this.closeModal() }, 3000);
+      }
+
+      if (this.service() !== undefined) {
+        this.serviceStore.getServiceStatus(this.service()!.metadata.name!);
       }
     });
   }

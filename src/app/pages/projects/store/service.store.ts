@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from "@angular/core";
-import { CreateServiceDto, Service, ServiceActionError, ServiceList } from "./service.types";
+import { CreateServiceDto, Service, ServiceActionError, ServiceList, ServiceStatusDTO } from "./service.types";
 import { HttpClient } from "@angular/common/http";
 import { OAuthService } from "angular-oauth2-oidc";
 import { ConfigService } from "../../../config/config.store";
@@ -26,6 +26,9 @@ export class ServiceStore {
     private readonly _updating = signal<boolean>(false);
     private readonly _updated = signal<boolean>(false);
 
+    private readonly _serviceStatus = signal<ServiceStatusDTO | null>(null);
+    private readonly _serviceStatusLoading = signal<boolean>(false);
+
     readonly services = this._services.asReadonly();
     readonly loading = this._loading.asReadonly();
     readonly error = this._error.asReadonly();
@@ -35,6 +38,9 @@ export class ServiceStore {
 
     readonly updating = this._updating.asReadonly();
     readonly updated = this._updated.asReadonly();
+
+    readonly serviceStatus = this._serviceStatus.asReadonly();
+    readonly serviceStatusLoading = this._serviceStatusLoading.asReadonly();
 
     constructor(private http: HttpClient) { }
 
@@ -164,7 +170,7 @@ export class ServiceStore {
 
         this.resetUpdate()
 
-        this.http.post<Service>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services/${serviceId}/host-alias`, {name: hostAlias}, {
+        this.http.post<Service>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services/${serviceId}/host-alias`, { name: hostAlias }, {
             headers: {
                 'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
             }
@@ -288,6 +294,41 @@ export class ServiceStore {
         });
     }
 
+    getServiceStatus(serviceId: string) {
+        const projectId = this.projectStore.selectedProjectId();
+        if (!projectId) {
+            this._error.set({
+                message: 'No project selected',
+                action: "status-fetch"
+            });
+            this._serviceStatusLoading.set(false);
+            return;
+        }
+
+        this.resetServiceStatus();
+        this._serviceStatusLoading.set(true);
+
+        this.http.get<ServiceStatusDTO>(`${this.configService.environment()?.apiUrl}/project/${projectId}/services/${serviceId}/status`, {
+            headers: {
+                'Authorization': `Bearer ${this.oauthService.getAccessToken()}`
+            }
+        }).subscribe({
+            next: (data) => {
+                this._serviceStatus.set(data);
+            },
+            error: (err) => {
+                this._error.set({
+                    message: err.error.error || err.error.message || 'Failed to fetch service status',
+                    action: "status-fetch"
+                });
+                this._serviceStatusLoading.set(false);
+            },
+            complete: () => {
+                this._serviceStatusLoading.set(false);
+            }
+        });
+    }
+
     resetUpdate() {
         this._error.set(null);
         this._updating.set(false);
@@ -298,5 +339,11 @@ export class ServiceStore {
         this._error.set(null);
         this._creating.set(false);
         this._created.set(false);
+    }
+
+    resetServiceStatus() {
+        this._error.set(null);
+        this._serviceStatusLoading.set(false);
+        this._serviceStatus.set(null);
     }
 }

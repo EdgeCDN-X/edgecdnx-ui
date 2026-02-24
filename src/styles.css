@@ -228,6 +228,9 @@ layer(base);
   .btn-primary {
     @apply rounded-lg transition px-4 py-3 text-sm bg-brand-700 text-white shadow-theme-xs hover:bg-brand-800 disabled:bg-brand-400 dark:disabled:bg-brand-400
   }
+  .btn-secondary {
+    @apply rounded-lg transition px-4 py-3 text-sm bg-gray-200 text-gray-800 shadow-theme-xs hover:bg-gray-300 disabled:bg-gray-400 dark:disabled:bg-gray-400
+  }
   .link-primary {
     @apply font-medium underline text-theme-sm text-brand-500
   }
