@@ -1,9 +1,9 @@
 
 import { Component, inject } from '@angular/core';
-import { ButtonComponent } from '../../ui/button/button.component';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AuthStore } from '../../../../auth/auth.store';
+import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
+import { AuthStore } from '../../auth.store';
 
 @Component({
   selector: 'app-signin-form',

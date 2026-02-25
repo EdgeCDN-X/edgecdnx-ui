@@ -1,0 +1,78 @@
+<div class="card-title">
+    Create Project
+</div>
+
+<div>
+    <form [formGroup]="createProjectForm">
+        <div class="pt-3">
+            <label for="name" class="form-label">Name:
+            </label>
+            <input id="name" type="text" [formControl]="createProjectForm.controls['name']" class="form-input-field"
+                placeholder="Enter project name" />
+
+            @if (createProjectForm.controls['name'].invalid && (createProjectForm.controls['name'].dirty ||
+            createProjectForm.controls['name'].touched)) {
+            @if (createProjectForm.controls['name'].errors?.['required']) {
+            <p class="mt-1.5 text-xs text-error-500">
+                Name is required.
+            </p>
+            }
+            @if (createProjectForm.controls['name'].errors?.['minlength']) {
+            <p class="mt-1.5 text-xs text-error-500">
+                Name must be at least 3 characters long.
+            </p>
+            }
+            @if (createProjectForm.controls['name'].errors?.['maxlength']) {
+            <p class="mt-1.5 text-xs text-error-500">
+                Name cannot be more than 63 characters long.
+            </p>
+            }
+            @if (createProjectForm.controls['name'].errors?.['invalidName']) {
+            <p class="mt-1.5 text-xs text-error-500">
+                {{ createProjectForm.controls['name'].errors?.['invalidName'] }}
+            </p>
+            }
+            }
+        </div>
+
+        <div class="pt-3">
+            <label for="description" class="form-label">Description: </label>
+            <input id="description" type="text" [formControl]="createProjectForm.controls['description']"
+                class="form-input-field" placeholder="Enter project description" />
+            @if (createProjectForm.controls['description'].invalid &&
+            (createProjectForm.controls['description'].dirty ||
+            createProjectForm.controls['description'].touched)) {
+            <p class="mt-1.5 text-xs text-error-500">
+                Description cannot be more than 255 characters long.
+            </p>
+            }
+        </div>
+
+        @if (!creating() && !created() && error() && error()!.action == 'create') {
+        <div class="pt-3">
+            <p class="text-red-600">
+                Error creating project: {{ error()!.message || 'Unknown error' }}
+            </p>
+        </div>
+        }
+
+        <div class="flex w-full justify-end mt-4">
+            <app-button (btnClick)="createProject()" [disabled]="!createProjectForm.valid || creating() || !!created()">
+                @if (creating()) {
+                <span>Creating...</span>
+                } @else if (created()) {
+                <span>Created!</span>
+                } @else {
+                <span>Create Project</span>
+                }
+            </app-button>
+        </div>
+
+
+        @if (created()) {
+        <p class="mt-2 text-sm text-success-500">
+            Project created successfully! Closing modal..
+        </p>
+        }
+    </form>
+</div>

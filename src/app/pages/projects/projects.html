@@ -1,15 +1,9 @@
+<app-page-breadcrumb pageTitle="Projects" />
 <div class="base-card">
-    <div class="flex justify-between gap-2 mb-4 sm:items-center">
-        <div>
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-                Projects
-            </h3>
-        </div>
-        <div class="flex items-center gap-3">
-            <button (click)="openModal()" class="btn-primary">
-                Create Project
-            </button>
-        </div>
+    <div class="flex justify-end mb-4">
+        <app-button (btnClick)="openModal()" [variant]="'outline'">
+            Create Project
+        </app-button>
     </div>
 
     <div class="max-w-full overflow-x-auto">
@@ -21,14 +15,11 @@
             Error loading projects: {{ error()!.message }}
         </p>
         } @else {
-
-
-
         <table class="w-full table-auto">
             <thead class="border-gray-100 border-y dark:border-white/[0.05]">
                 <tr>
                     <th scope="col" class="table-label">
-                        Project Name
+                        Name
                     </th>
                     <th scope="col" class="table-label hidden lg:table-cell">
                         Description
@@ -68,83 +59,6 @@
 </div>
 
 
-
 <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
-    <div class="card-title">
-        Create Project
-    </div>
-
-    <div>
-        <form [formGroup]="createProjectForm">
-            <div class="pt-3">
-                <label for="name" class="form-label">Name:
-                </label>
-                <input id="name" type="text" [formControl]="createProjectForm.controls['name']" class="form-input-field"
-                    placeholder="Enter project name" />
-
-                @if (createProjectForm.controls['name'].invalid && (createProjectForm.controls['name'].dirty ||
-                createProjectForm.controls['name'].touched)) {
-                <p class="mt-1.5 text-xs text-error-500"
-                    *ngIf="createProjectForm.controls['name'].errors?.['required']">
-                    Name is required.
-                </p>
-                <p class="mt-1.5 text-xs text-error-500"
-                    *ngIf="createProjectForm.controls['name'].errors?.['minlength']">
-                    Name must be at least 3 characters long.
-                </p>
-                <p class="mt-1.5 text-xs text-error-500"
-                    *ngIf="createProjectForm.controls['name'].errors?.['maxlength']">
-                    Name cannot be more than 63 characters long.
-                </p>
-                <p class="mt-1.5 text-xs text-error-500"
-                    *ngIf="createProjectForm.controls['name'].errors?.['invalidName']">
-                    {{ createProjectForm.controls['name'].errors?.['invalidName'] }}
-                </p>
-                }
-            </div>
-
-            <div class="pt-3">
-                <label for="description" class="form-label">Description: </label>
-                <input id="description" type="text" [formControl]="createProjectForm.controls['description']"
-                    class="form-input-field" placeholder="Enter project description" />
-                @if (createProjectForm.controls['description'].invalid &&
-                (createProjectForm.controls['description'].dirty ||
-                createProjectForm.controls['description'].touched)) {
-                <p class="mt-1.5 text-xs text-error-500"
-                    *ngIf="createProjectForm.controls['description'].errors?.['maxlength']">
-                    Description cannot be more than 255 characters long.
-                </p>
-                }
-            </div>
-
-            @if (!creating() && !created() && error() && error()!.action == 'create') {
-            <div class="pt-3">
-                <p class="text-red-600">
-                    Error creating project: {{ error()!.message || 'Unknown error' }}
-                </p>
-            </div>
-            }
-
-            <div class="flex w-full justify-end">
-                <button type="submit" [disabled]="!createProjectForm.valid || creating() || created()"
-                    class="btn-primary my-4" (click)="createProject()">
-                    @if (creating()) {
-                    <span>Creating...</span>
-                    } @else if (created()) {
-                    <span>Created!</span>
-                    } @else {
-                    <span>Create Project</span>
-                    }
-                </button>
-            </div>
-
-
-            @if (created()) {
-            <p class="mt-1.5 text-s text-success-500">
-                Project created successfully! Closing modal..
-            </p>
-            }
-        </form>
-    </div>
-
+    <app-create-project (onProjectCreated)="onCreated()"></app-create-project>
 </app-modal>
