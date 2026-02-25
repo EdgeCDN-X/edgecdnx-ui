@@ -233,26 +233,26 @@
 
 
 
-	@if (serviceStatus()!.certificateStatus?.revision) {
+	@if (serviceStatus()?.certificateStatus?.revision) {
 	<div class="mt-6">
 		<h3 class="sub-card-title mb-5">Certificate</h3>
 		<div class="grid gap-6 md:grid-cols-2">
 			<div>
 				<p class="content-label">Revision</p>
-				<p class="content-label-value">{{ serviceStatus()!.certificateStatus?.revision ?? 'N/A' }}</p>
+				<p class="content-label-value">{{ serviceStatus()?.certificateStatus?.revision ?? 'N/A' }}</p>
 			</div>
-			@if (serviceStatus()!.certificateStatus?.failedIssuanceAttempts! >0 ) {
+			@if (serviceStatus()?.certificateStatus?.failedIssuanceAttempts! >0 ) {
 			<div>
 				<p class="content-label">Failed Issuance Attempts</p>
-				<p class="content-label-value">{{ serviceStatus()!.certificateStatus?.failedIssuanceAttempts ?? 0 }}</p>
+				<p class="content-label-value">{{ serviceStatus()?.certificateStatus?.failedIssuanceAttempts ?? 0 }}</p>
 			</div>
 			}
 			<div>
 				<p class="content-label">Validity</p>
-				<p class="content-label-value">{{ serviceStatus()!.certificateStatus?.notBefore ?
-					(serviceStatus()!.certificateStatus?.notBefore | date:'short') : 'N/A' }} - {{
-					serviceStatus()!.certificateStatus?.notAfter ?
-					(serviceStatus()!.certificateStatus?.notAfter | date:'short') : 'N/A' }}</p>
+				<p class="content-label-value">{{ serviceStatus()?.certificateStatus?.notBefore ?
+					(serviceStatus()?.certificateStatus?.notBefore | date:'short') : 'N/A' }} - {{
+					serviceStatus()?.certificateStatus?.notAfter ?
+					(serviceStatus()?.certificateStatus?.notAfter | date:'short') : 'N/A' }}</p>
 			</div>
 		</div>
 

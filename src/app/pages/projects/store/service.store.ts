@@ -348,6 +348,7 @@ export class ServiceStore {
 
     stopPollingServiceStatus(serviceId: string) {
         this._isPolling.delete(serviceId);
+        this._serviceStatus.set(null);
     }
 
     resetUpdate() {
@@ -365,6 +366,5 @@ export class ServiceStore {
     resetServiceStatus() {
         this._error.set(null);
         this._serviceStatusLoading.set(false);
-        this._serviceStatus.set(null);
     }
 }

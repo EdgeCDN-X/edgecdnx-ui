@@ -57,13 +57,10 @@
                 name.</p>
             }
         </div>
-
         }
 
-        {{ newHostAliasForm.get('domain')?.errors | json }}
-
         <div class="py-3">
-            <label for="name" class="form-label">Host Alias Domain</label>
+            <label for="name" class="form-label">Host Alias Domain (Optional)</label>
             <div class="flex w-full gap-1">
                 <input formControlName="domain" placeholder="Enter host alias domain" class="form-input-field flex-1" />
                 @if (newHostAliasForm.get('type')!.value == "ZONE") {
@@ -73,7 +70,7 @@
             </div>
 
             @if(newHostAliasForm.get('domain')?.invalid && newHostAliasForm.get('domain')?.touched) {
-            <p class="text-red-600 text-xs pt-1">Host alias domain is required and must be a valid domain name.</p>
+            <p class="text-red-600 text-xs pt-1">Host alias domain must be a valid domain name.</p>
             }
         </div>
 
