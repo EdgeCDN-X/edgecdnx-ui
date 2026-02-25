@@ -1,0 +1,77 @@
+<div class="sub-card">
+    <div class="flex justify-between pb-4 items-center">
+        <h2 class="sub-card-title">Zones</h2>
+        <app-button (btnClick)="openModal('create-zone')" [size]="'sm'">
+            New Zone
+        </app-button>
+    </div>
+
+    <div class="max-w-full">
+        @if (loading()) {
+        <app-placeholder></app-placeholder>
+        } @else {
+        @if (error() && error()!.action == 'list') {
+        <p class="text-red-600">
+            Error loading services: {{ error()!.message }}
+        </p>
+        } @else {
+
+        @if (zones()!.length > 0) {
+        <table class="w-full table-auto">
+            <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+                <tr>
+                    <th scope="col" class="table-label">
+                        Zone
+                    </th>
+                    <th scope="col" class="table-label hidden lg:table-cell">
+                        Email
+                    </th>
+                    <th scope="col" class="table-label hidden md:table-cell">
+                        Status
+                    </th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody class="table-divider">
+                @for (item of zones(); track $index) {
+                <tr>
+                    <td class="base-text py-3">
+                        {{item.spec.zone}}
+                    </td>
+                    <td class="base-text hidden lg:table-cell">
+                        {{item.spec.email}}
+                    </td>
+                    <td class="base-text hidden md:table-cell">
+                        {{item.status!.status}}
+                    </td>
+                    <td class="base-text">
+                        <div class="flex justify-end">
+                            <a class="link-primary" (click)="openModal('delete-zone', item.metadata.name)">
+                                Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        } @else {
+        <p class="text-gray-500">
+            No zones found. Click "New Zone" to add your first zone.
+        </p>
+        }
+        }
+        }
+    </div>
+
+    @if (modalSelector().type == 'create-zone' && isOpen()) {
+    <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
+        <app-zone-create-form [projectId]="projectId" (onZoneCreated)="closeModalDelayed(3000)"></app-zone-create-form>
+    </app-modal>
+    }
+    @if (modalSelector().type == 'delete-zone' && isOpen()) {
+    <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
+        <app-zone-delete [zoneId]="modalSelector().zoneId!" (onZoneDeleted)="closeModalDelayed(3000)"></app-zone-delete>
+    </app-modal>
+    }
+</div>

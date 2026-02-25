@@ -1,53 +1,58 @@
-<app-page-breadcrumb pageTitle="Projects" />
-<div class="base-card">
-    <div class="flex justify-between mb-4 items-center">
-        <h1 class="card-title">
-            Projects
-        </h1>
-        <app-button (btnClick)="openModal()" [size]="'sm'">
-            Create Project
+<div class="sub-card">
+    <div class="flex justify-between pb-4 items-center">
+        <h2 class="sub-card-title">Services</h2>
+        <app-button (btnClick)="openModal('create-service')" [size]="'sm'">
+            New Service
         </app-button>
     </div>
 
-    <div class="max-w-full overflow-x-auto">
+    <div class="max-w-full">
         @if (loading()) {
         <app-placeholder></app-placeholder>
         } @else {
         @if (error() && error()!.action == 'list') {
         <p class="text-red-600">
-            Error loading projects: {{ error()!.message }}
+            Error loading services: {{ error()!.message }}
         </p>
         } @else {
+
+        @if (services()!.length > 0) {
         <table class="w-full table-auto">
             <thead class="border-gray-100 border-y dark:border-white/[0.05]">
                 <tr>
                     <th scope="col" class="table-label">
-                        Name
+                        Service Name
                     </th>
                     <th scope="col" class="table-label hidden lg:table-cell">
-                        Description
+                        Origin Type
+                    </th>
+                    <th scope="col" class="table-label hidden lg:table-cell">
+                        WAF Enabled
                     </th>
                     <th scope="col" class="table-label hidden md:table-cell">
-                        Created At
+                        Status
                     </th>
                     <th scope="col"></th>
                 </tr>
             </thead>
             <tbody class="table-divider">
-                @for (item of projects(); track $index) {
+                @for (item of services(); track $index) {
                 <tr>
                     <td class="base-text py-3">
                         {{item.spec.name}}
                     </td>
                     <td class="base-text hidden lg:table-cell">
-                        {{item.spec.description}}
+                        {{item.spec.originType}}
+                    </td>
+                    <td class="base-text hidden lg:table-cell">
+                        {{item.spec.waf.enabled ? 'Yes' : 'No'}}
                     </td>
                     <td class="base-text hidden md:table-cell">
-                        {{item.metadata.creationTimestamp | date:'short'}}
+                        {{item.status!.status}}
                     </td>
                     <td class="base-text">
                         <div class="flex justify-end">
-                            <a [routerLink]="['/projects', item.metadata.name]" class="link-primary">
+                            <a class="link-primary" [routerLink]="[routerLinkRoot, 'service', item.spec.name]">
                                 View Details
                             </a>
                         </div>
@@ -56,12 +61,19 @@
                 }
             </tbody>
         </table>
+        } @else {
+        <p class="text-gray-500">
+            No services found. Click "New Service" to add your first service.
+        </p>
+        }
+
         }
         }
     </div>
+
+    @if (modalSelector().type == 'create-service' && isOpen()) {
+    <app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
+        <app-service-create-form [projectId]="projectId" />
+    </app-modal>
+    }
 </div>
-
-
-<app-modal [isOpen]="isOpen()" (close)="closeModal()" className="max-w-[700px] p-6 lg:p-10">
-    <app-create-project (onProjectCreated)="onCreated()"></app-create-project>
-</app-modal>

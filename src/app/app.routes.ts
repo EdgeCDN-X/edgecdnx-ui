@@ -26,7 +26,7 @@ export const routes: Routes = [
       {
         path: 'projects/:name',
         loadComponent: () =>
-          import('./pages/projects/details/details').then(
+          import('./pages/project-details/project-details').then(
             (m) => m.ProjectDetails
           ),
         children: [
@@ -34,7 +34,7 @@ export const routes: Routes = [
             path: '',
             pathMatch: 'full',
             loadComponent: () =>
-              import('./pages/projects/details/overview/overview').then(
+              import('./pages/project-details/overview/overview').then(
                 (m) => m.Overview
               ),
             title: 'Overview',
@@ -42,7 +42,7 @@ export const routes: Routes = [
           {
             path: 'services',
             loadComponent: () =>
-              import('./pages/projects/details/services/services').then(
+              import('./pages/project-details/services/services').then(
                 (m) => m.Services
               ),
             title: 'Services',
@@ -50,7 +50,7 @@ export const routes: Routes = [
           {
             path: 'service/:serviceName',
             loadComponent: () =>
-              import('./pages/projects/details/service-details/service-details').then(
+              import('./pages/project-details/service-details/service-details').then(
                 (m) => m.ServiceDetails
               ),
             title: 'Service Details',
@@ -58,7 +58,7 @@ export const routes: Routes = [
           {
             path: 'zones',
             loadComponent: () =>
-              import('./pages/projects/details/zones/zones').then(
+              import('./pages/project-details/zones/zones').then(
                 (m) => m.Zones
               ),
             title: 'Zones',

@@ -1,0 +1,44 @@
+<div class="sub-card">
+    <div class="flex justify-between pb-4 items-center">
+        <h2 class="sub-card-title">Members</h2>
+    </div>
+
+    <table class="w-full table-fixed">
+        <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+            <tr>
+                <th scope="col" class="table-label">
+                    Group
+                </th>
+                <th scope="col" class="table-label">
+                    Username
+                </th>
+            </tr>
+        </thead>
+        <tbody class="table-divider">
+            @for (item of groups(); track $index) {
+            @for (user of item.users; track $index) {
+            <tr>
+                <td class="py-3">
+                    <div class="flex items-center gap-[18px]">
+                        <div>
+                            <p class="base-text">
+                                {{item.groupName}}
+                            </p>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3">
+                    <div class="flex items-center w-full gap-5">
+                        <div class="truncate">
+                            <p class="mb-0.5 truncate base-text">
+                                {{user}}
+                            </p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            }
+            }
+        </tbody>
+    </table>
+</div>
