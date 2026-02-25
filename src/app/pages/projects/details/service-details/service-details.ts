@@ -1,5 +1,5 @@
 import { CommonModule, LowerCasePipe } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map, of } from 'rxjs';
@@ -12,14 +12,17 @@ import { ModalComponent } from '../../../../shared/components/ui/modal/modal.com
 import { KeyDelete } from '../components/key-delete/key-delete';
 import { ServiceCreateForm } from '../components/service-create-form/service-create-form';
 import { HostAliasAdd } from '../components/host-alias-add/host-alias-add';
+import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
+
+type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light' | 'dark';
 
 @Component({
   selector: 'app-service-details',
-  imports: [CommonModule, Placeholder, KeyAdd, ModalComponent, KeyDelete, ServiceCreateForm, LowerCasePipe, HostAliasAdd],
+  imports: [CommonModule, Placeholder, KeyAdd, ModalComponent, KeyDelete, ServiceCreateForm, LowerCasePipe, HostAliasAdd, BadgeComponent],
   templateUrl: './service-details.html',
   styleUrl: './service-details.css',
 })
-export class ServiceDetails {
+export class ServiceDetails implements OnDestroy {
   private route = inject(ActivatedRoute);
   private serviceStore = inject(ServiceStore);
 
@@ -32,6 +35,8 @@ export class ServiceDetails {
   serviceStatus = this.serviceStore.serviceStatus;
 
   readonly hasServiceStatus = computed(() => this.serviceStatus() !== null);
+
+  urlClipBoardClicked = signal(false);
 
   projectId = toSignal(
     this.route.parent?.paramMap.pipe(map(params => params.get('name'))) ?? of(null)
@@ -75,6 +80,17 @@ export class ServiceDetails {
     this.visibleKeyIndexes.set(next);
   }
 
+  copyToClipBoard(value?: string | null): void {
+    if (!value) {
+      return;
+    }
+    navigator.clipboard?.writeText(value);
+    this.urlClipBoardClicked.set(true);
+    setTimeout(() => {
+      this.urlClipBoardClicked.set(false);
+    }, 2000);
+  }
+
   copyKeyValue(index: number, value?: string | null): void {
     if (!value) {
       return;
@@ -111,15 +127,14 @@ export class ServiceDetails {
   }
 
   onEdit(): void {
-      this.modalSelector.set({ type: 'edit' });
-      this.modalStore.openModal();
+    this.modalSelector.set({ type: 'edit' });
+    this.modalStore.openModal();
   }
 
   handleKeyAdded(event: { name: string | undefined }): void {
     if (!this.service() || !event.name) {
       return;
     }
-    // this.serviceStore.createSecureKey(this.service()!.metadata.name, event.name);
     this.closeModal();
   }
 
@@ -134,20 +149,53 @@ export class ServiceDetails {
     }, delay);
   }
 
-  statusTone(status?: string): string {
+  statusTone(status?: string): BadgeColor {
     if (status === 'Healthy' || status === 'True' || status === 'Synced') {
-      return 'text-green-600 dark:text-green-400';
+      return 'success';
     }
 
     if (status === 'Progressing' || status === 'Unknown' || status === 'OutOfSync') {
-      return 'text-yellow-600 dark:text-yellow-400';
+      return 'warning';
     }
 
     if (status === 'Degraded' || status === 'False' || status === 'Missing') {
-      return 'text-red-600 dark:text-red-400';
+      return 'error';
     }
 
-    return 'text-gray-600 dark:text-gray-400';
+    return 'info';
+  }
+
+  extractLocationFromArgoApp(argoAppName: string): string {
+    const reg = new RegExp(`^service-${this.service()?.metadata.name}-at-(.*)$`);
+
+    console.log('Extracting location from Argo App Name:', argoAppName, 'using regex:', reg);
+
+    const match = argoAppName.match(reg);
+    if (match && match[1]) {
+      return match[1];
+    }
+    return 'N/A';
+  }
+
+  formatMessage(message: string): string {
+    return message.replace(/\\n/g, '<br>');
+  }
+
+  ngOnDestroy(): void {
+    this.serviceStore.stopPollingServiceStatus(this.service()?.metadata.name!);
+  }
+
+  translateConditionType(type: string, condition: string): { message: string, badgeTone: BadgeColor } {
+    if (type === 'Ready') {
+      if (condition === 'True') {
+        return { message: 'Certificate is Valid', badgeTone: 'success' };
+      } else if (condition === 'False') {
+        return { message: 'Certificate is Invalid', badgeTone: 'error' };
+      } else if (condition === 'Unknown') {
+        return { message: 'Unknown Certificate Status', badgeTone: 'warning' };
+      }
+    }
+    return { message: 'N/A', badgeTone: 'info' };
   }
 
   constructor() {
@@ -158,7 +206,7 @@ export class ServiceDetails {
       }
 
       if (this.service() !== undefined) {
-        this.serviceStore.getServiceStatus(this.service()!.metadata.name!);
+        this.serviceStore.startPollingServiceStatus(this.service()!.metadata.name!);
       }
     });
   }

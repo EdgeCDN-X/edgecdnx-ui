@@ -29,6 +29,8 @@ export class ServiceStore {
     private readonly _serviceStatus = signal<ServiceStatusDTO | null>(null);
     private readonly _serviceStatusLoading = signal<boolean>(false);
 
+    private readonly _isPolling = new Map<string, true>();
+
     readonly services = this._services.asReadonly();
     readonly loading = this._loading.asReadonly();
     readonly error = this._error.asReadonly();
@@ -327,6 +329,25 @@ export class ServiceStore {
                 this._serviceStatusLoading.set(false);
             }
         });
+    }
+
+    startPollingServiceStatus(serviceId: string, interval: number = 10000) { 
+        if (this._isPolling.has(serviceId)) {
+            return;
+        }
+        this._isPolling.set(serviceId, true);
+        const poll = () => {
+            if (!this._isPolling.has(serviceId)) {
+                return;
+            }
+            this.getServiceStatus(serviceId);
+            setTimeout(poll, interval);
+        }
+        poll();
+    }
+
+    stopPollingServiceStatus(serviceId: string) {
+        this._isPolling.delete(serviceId);
     }
 
     resetUpdate() {

@@ -202,13 +202,13 @@ layer(base);
     @apply p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 my-4
   }
   .sub-card-title {
-    @apply text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6
+    @apply text-xl font-semibold text-gray-800 dark:text-white/90
   }
   .base-text {
-    @apply text-sm text-gray-500 dark:text-gray-400 sm:text-base
+    @apply text-base text-gray-500 dark:text-gray-400 sm:text-base
   }
   .content-label-value {
-    @apply mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400
+    @apply mb-2 text-sm leading-normal text-gray-500 dark:text-gray-400
   }
   .content-label {
     @apply text-sm font-medium text-gray-800 dark:text-white/90
@@ -233,6 +233,9 @@ layer(base);
   }
   .link-primary {
     @apply font-medium underline text-theme-sm text-brand-500
+  }
+  .divider {
+    @apply my-12 h-0.5 border-t-0 bg-neutral-200 dark:bg-white/10
   }
 }
 
