@@ -195,6 +195,15 @@ export class ServiceDetails implements OnDestroy {
         return { message: 'Unknown Certificate Status', badgeTone: 'warning' };
       }
     }
+    if (type == "Issuing") {
+      if (condition === 'True') {
+        return { message: 'Issuing', badgeTone: 'warning' };
+      } else if (condition === 'False') {
+        return { message: 'Not Issuing', badgeTone: 'info' };
+      } else if (condition === 'Unknown') {
+        return { message: 'Unknown Issuing Status', badgeTone: 'warning' };
+      }
+    }
     return { message: 'N/A', badgeTone: 'info' };
   }
 
