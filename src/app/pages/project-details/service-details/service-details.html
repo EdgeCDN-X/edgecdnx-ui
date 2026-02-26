@@ -233,7 +233,7 @@
 
 
 
-	@if (serviceStatus()?.certificateStatus?.revision) {
+	@if (serviceStatus() && serviceStatus()!.certificateStatus) {
 	<div class="mt-6">
 		<h3 class="sub-card-title mb-5">Certificate</h3>
 		<div class="grid gap-6 md:grid-cols-2">
@@ -282,7 +282,7 @@
 	</div>
 	}
 
-	@if (serviceStatus()!.applicationSetStatus?.resources?.length) {
+	@if (serviceStatus() && serviceStatus()!.applicationSetStatus) {
 	<div class="mt-6">
 		<h3 class="sub-card-title mb-5">Service Sync Details</h3>
 		<div class="max-w-full overflow-x-auto">

@@ -167,9 +167,6 @@ export class ServiceDetails implements OnDestroy {
 
   extractLocationFromArgoApp(argoAppName: string): string {
     const reg = new RegExp(`^service-${this.service()?.metadata.name}-at-(.*)$`);
-
-    console.log('Extracting location from Argo App Name:', argoAppName, 'using regex:', reg);
-
     const match = argoAppName.match(reg);
     if (match && match[1]) {
       return match[1];

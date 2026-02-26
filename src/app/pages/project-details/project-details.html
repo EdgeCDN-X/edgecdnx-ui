@@ -1,4 +1,4 @@
-<app-page-breadcrumb pageTitle="Project {{ project()!.spec.name }}" [links]="[{ label: 'Projects', link: '/projects' }]" />
+<app-page-breadcrumb pageTitle="Project {{ project()?.spec?.name }}" [links]="[{ label: 'Projects', link: '/projects' }]" />
 <div class="base-card">
     @if (loading()) {
     <app-placeholder></app-placeholder>
