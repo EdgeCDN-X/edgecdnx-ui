@@ -96,6 +96,13 @@ export class AuthStore {
         return this.oauthService.initCodeFlow(targetUrl || '/dashboard');
     }
 
+    public async register(targetUrl?: string): Promise<void> {
+        return this.oauthService.initCodeFlow(targetUrl || '/dashboard',
+            {
+                prompt: "create"
+            });
+    }
+
     public logout(): void {
         this.oauthService.logOut();
     }

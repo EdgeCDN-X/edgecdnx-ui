@@ -11,7 +11,8 @@ export interface Environment {
             scope: string;
             requireHttps: boolean;
             redirectUri: string;
-        }
+        },
+        allowSignup: boolean;
     }
 }
 

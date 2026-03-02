@@ -3,12 +3,13 @@
     "apiUrl": "http://localhost:5555",
     "auth": {
         "oidc": {
-            "issuer": "https://dex.demo.edgecdnx.com/dex",
-            "token": "https://dex.demo.edgecdnx.com/dex/token_endpoint",
+            "issuer": "https://auth.demo.edgecdnx.com/realms/edgecdnx",
+            "token": "https://auth.demo.edgecdnx.com/realms/edgecdnx/protocol/openid-connect/token",
             "clientId": "edgecdnx",
             "scope": "openid profile email",
             "requireHttps": true,
-            "redirectUris": "http://localhost:4200"
-        }
+            "redirectUris": "http://localhost:4200/callback"
+        },
+        "allowSignup": true
     }
 }

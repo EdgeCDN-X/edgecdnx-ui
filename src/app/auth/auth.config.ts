@@ -45,4 +45,6 @@ export const authConfig: AuthConfig = {
 
   // Skip issuer check (set to false in production)
   skipIssuerCheck: true,
+
+  strictDiscoveryDocumentValidation: false,
 };
