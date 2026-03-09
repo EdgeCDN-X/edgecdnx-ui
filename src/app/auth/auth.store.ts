@@ -89,6 +89,8 @@ export class AuthStore {
             }
         }
 
+        this.oauthService.setupAutomaticSilentRefresh();
+
         this._isLoaded.set(true);
     }
 

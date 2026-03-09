@@ -8,7 +8,7 @@
             "clientId": "edgecdnx",
             "scope": "openid profile email",
             "requireHttps": true,
-            "redirectUris": "http://localhost:4200/callback"
+            "redirectUri": "http://localhost:4200/callback"
         },
         "allowSignup": true
     }
