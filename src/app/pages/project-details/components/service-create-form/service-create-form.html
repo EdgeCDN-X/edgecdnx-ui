@@ -298,6 +298,35 @@
                     [placeholder]="'Type and tab to add a query parameter'"></app-tag-input>
             </div>
         </div>
+
+        <div formGroupName="path" class="pt-3">
+            <div class="pt-3">
+                <label for="paths" class="form-label">Paths</label>
+                <p class="form-label text-xs pb-1">Add paths to be cached and forwarded to upstream.</p>
+                <div formArrayName="paths">
+                    @for (pathControl of paths.controls; track $index; let path = $index) {
+                    <div class="flex gap-2 pt-1">
+                        <input type="text" [formControlName]="path" class="form-input-field flex-1"
+                            placeholder="e.g., /   /wp-content    /frontend(/|$)(.*)" />
+                        <button type="button" class="btn-secondary px-3" (click)="removePath($index)">Remove</button>
+                    </div>
+                    @if (pathControl.invalid && pathControl.touched) {
+                        <p class="text-red-600 text-xs pt-1">Must be a valid prefix</p>
+                    }
+                    }
+
+                    @if (paths!.hasError('required')) {
+                    <p class="text-red-600 text-xs pt-1">At least one valid path is required.</p>
+                    }
+                </div>
+                <button type="button" class="btn-secondary text-sm mt-2" (click)="addPath()">+ Add Path</button>
+            </div>
+
+            <div class="pt-3">
+                <label for="rewrite" class="form-label">Path Rewrite (optional)</label>
+                <input type="text" formControlName="rewrite" class="form-input-field" placeholder="e.g., /$2" />
+            </div>
+        </div>
         }
 
         @if (step() === 4) {
@@ -305,7 +334,7 @@
 
         @if (!isEditMode) {
         <div class="pt-3">
-            <p class="text-xs pb-1">If checked, content will be accessible only with signed URLs or with a Secure
+            <p class="form-label text-xs pb-1">If checked, content will be accessible only with signed URLs or with a Secure
                 Session Cookie.
                 <app-switch [label]="'Private Endpoint'" formControlName="signedUrlsEnabled"></app-switch>
         </div>

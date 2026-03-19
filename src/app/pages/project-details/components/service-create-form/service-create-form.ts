@@ -1,10 +1,11 @@
 import { Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output, signal } from '@angular/core';
-import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder, FormArray } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder, FormArray, AbstractControl, isFormArray } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { SwitchComponent } from '../../../../shared/components/form/input/switch.component';
 import { TagInputComponent } from '../../../../shared/components/form/input/tag-input.component';
 import { ServiceStore } from '../../../projects/store/service.store';
 import { OriginType, CreateServiceDto } from '../../../projects/store/service.types';
+
 
 @Component({
   selector: 'app-service-create-form',
@@ -95,6 +96,13 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
     signedUrlsEnabled: new FormControl(false, { nonNullable: true }),
     wafEnabled: new FormControl(false, { nonNullable: true }),
 
+    path: new FormGroup({
+      paths: new FormArray<FormControl<string>>([
+        new FormControl("/", { nonNullable: true, validators: [Validators.required] })
+      ], { validators: [Validators.required, Validators.minLength(1)], }),
+      rewrite: new FormControl<string | null>(null, { nonNullable: false }),
+    }),
+
     cacheKey: new FormGroup({
       queryParams: new FormControl<string[]>([]),
       headers: new FormArray<FormControl<string>>([]),
@@ -117,8 +125,17 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
           cacheKey: {
             queryParams: service.spec.cacheKey?.queryParams || [],
             headers: service.spec.cacheKey?.headers || [],
-          }
+          },
         }, { emitEvent: true });
+
+
+        this.serviceCreateForm.setControl('path', new FormGroup({
+          paths: new FormArray<FormControl<string>>(
+            service.spec.path?.paths.map(p => new FormControl(p, { nonNullable: true, validators: [Validators.required] })) || [],
+            { validators: [Validators.required, Validators.minLength(1)], }
+          ),
+          rewrite: new FormControl(service.spec.path?.rewrite || null, { nonNullable: false }),
+        }));
 
         // These fields are editable elsewehere or not allowed.
         this.serviceCreateForm.get('name')?.disable();
@@ -180,6 +197,20 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.OriginChanges?.unsubscribe();
+  }
+
+  get paths() {
+    return (this.serviceCreateForm.get('path')?.get('paths') as FormArray<FormControl<string>>);
+  }
+
+  addPath(defaultPath: string = "/") {
+    const paths = this.serviceCreateForm.get('path')?.get('paths') as FormArray<FormControl<string>>;
+    paths.push(new FormControl(defaultPath, { nonNullable: true, validators: [Validators.required] }));
+  }
+
+  removePath(index: number) {
+    const paths = this.serviceCreateForm.get('path')?.get('paths') as FormArray<FormControl<string>>;
+    paths.removeAt(index);
   }
 
   onSubmit() {

@@ -6,6 +6,11 @@ export enum OriginType {
     Static = 'static',
 }
 
+export interface PathDto {
+    Paths: string[];
+    Rewrite?: string;
+}
+
 export interface CreateServiceDto {
     name: string;
     originType: OriginType;
@@ -13,6 +18,7 @@ export interface CreateServiceDto {
     s3OriginSpec?: S3OriginSpec;
     cache: string;
     hostAliases?: HostAlias[];
+    path?: PathDto;
 
     signedUrlsEnabled: boolean;
     wafEnabled: boolean;
@@ -52,6 +58,9 @@ export interface ServiceSpec {
     /** Host Aliases for the service (max 10) */
     hostAliases?: HostAlias[];
 
+    /** Path configuration for the service */
+    path?: PathSpec;
+
     /** Service Name. Use full domain name for the service */
     name?: string;
 
@@ -70,6 +79,19 @@ export interface ServiceSpec {
     /** WAF configuration */
     waf: WafSpec;
 }
+
+/* =========================
+ * Path
+ * =========================
+ */
+export interface PathSpec {
+    /** List of paths for the service */
+    paths: string[];
+
+    /** Optional rewrite target for the paths */
+    rewrite?: string;
+}
+
 
 /* =========================
  * Cache Key
