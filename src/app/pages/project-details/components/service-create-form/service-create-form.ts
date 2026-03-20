@@ -128,14 +128,23 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
           },
         }, { emitEvent: true });
 
+        if (service.spec.path?.paths && service.spec.path.paths.length > 0) {
+          this.serviceCreateForm.setControl('path', new FormGroup({
+            paths: new FormArray<FormControl<string>>(
+              service.spec.path?.paths?.map(p => new FormControl(p, { nonNullable: true, validators: [Validators.required] })) || [],
+              { validators: [Validators.required, Validators.minLength(1)], }
+            ),
+            rewrite: new FormControl(service.spec.path?.rewrite || null, { nonNullable: false }),
+          }));
+        } else {
+          this.serviceCreateForm.setControl('path', new FormGroup({
+            paths: new FormArray<FormControl<string>>([
+              new FormControl("/", { nonNullable: true, validators: [Validators.required] })
+            ], { validators: [Validators.required, Validators.minLength(1)], }),
+            rewrite: new FormControl<string | null>(null, { nonNullable: false }),
+          }));
+        }
 
-        this.serviceCreateForm.setControl('path', new FormGroup({
-          paths: new FormArray<FormControl<string>>(
-            service.spec.path?.paths.map(p => new FormControl(p, { nonNullable: true, validators: [Validators.required] })) || [],
-            { validators: [Validators.required, Validators.minLength(1)], }
-          ),
-          rewrite: new FormControl(service.spec.path?.rewrite || null, { nonNullable: false }),
-        }));
 
         // These fields are editable elsewehere or not allowed.
         this.serviceCreateForm.get('name')?.disable();
