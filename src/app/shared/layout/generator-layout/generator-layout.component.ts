@@ -1,9 +1,9 @@
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-generator-layout',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './generator-layout.component.html',
   styles: ``,
 })

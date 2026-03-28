@@ -1,12 +1,12 @@
 import { Component, effect, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { ServiceStore } from '../../../projects/store/service.store';
 import { ZoneStore } from '../../../projects/store/zone.store';
 
 @Component({
   selector: 'app-host-alias-add',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule],
   standalone: true,
   templateUrl: './host-alias-add.html',
   styleUrl: './host-alias-add.css',

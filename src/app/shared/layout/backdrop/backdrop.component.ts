@@ -1,12 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { SidebarStore } from '../../store/sidebar.store';
 
 @Component({
   selector: 'app-backdrop',
-  imports: [
-    CommonModule,
-  ],
+  imports: [],
   templateUrl: './backdrop.component.html',
 })
 

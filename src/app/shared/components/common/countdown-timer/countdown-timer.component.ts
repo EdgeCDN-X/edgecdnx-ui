@@ -1,11 +1,9 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-countdown-timer',
-  imports: [
-    CommonModule,
-  ],
+  imports: [],
   templateUrl: './countdown-timer.component.html',
   styles: ``
 })

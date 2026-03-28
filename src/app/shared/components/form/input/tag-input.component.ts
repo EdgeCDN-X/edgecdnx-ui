@@ -17,24 +17,24 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     <div
       class="flex flex-wrap gap-2 rounded-md border border-gray-300 p-2
              focus-within:ring-2 focus-within:ring-blue-500"
-    >
+      >
       <!-- Chips -->
-      <ng-container *ngFor="let tag of tags; let i = index">
+      @for (tag of tags; track tag; let i = $index) {
         <span
           class="flex items-center gap-1 rounded-full bg-blue-100
                  px-3 py-1 text-sm text-blue-800"
-        >
+          >
           {{ tag }}
           <button
             type="button"
             class="text-blue-600 hover:text-blue-900"
             (click)="removeTag(i)"
-          >
+            >
             ×
           </button>
         </span>
-      </ng-container>
-
+      }
+    
       <!-- Input -->
       <input
         class="form-input-field flex-1 min-w-[120px] border-none p-1 focus:outline-none"
@@ -42,12 +42,12 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
         [value]="input"
         (input)="input = $event.target.value"
         (keydown)="handleKeydown($event)"
-      />
+        />
     </div>
-
+    
     <!-- Optional: native form submission -->
     <input type="hidden" name="tags" [value]="tags | json" />
-  `
+    `
 })
 export class TagInputComponent implements ControlValueAccessor {
   @Input()

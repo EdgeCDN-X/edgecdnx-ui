@@ -1,5 +1,5 @@
 import { Component, effect, inject, Input, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 import { ServiceCreateForm } from '../service-create-form/service-create-form';
 import { RouterModule } from '@angular/router';
@@ -11,7 +11,7 @@ import { ButtonComponent } from '../../../../shared/components/ui/button/button.
 
 @Component({
   selector: 'app-service-list',
-  imports: [CommonModule, Placeholder, ModalComponent, ServiceCreateForm, RouterModule, ButtonComponent],
+  imports: [Placeholder, ModalComponent, ServiceCreateForm, RouterModule, ButtonComponent],
   templateUrl: './service-list.html',
   styleUrl: './service-list.css',
 })
