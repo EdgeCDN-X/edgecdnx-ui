@@ -1,4 +1,4 @@
-import { effect, inject, Injectable, signal } from "@angular/core";
+import { computed, effect, inject, Injectable, signal } from "@angular/core";
 import { Router } from "@angular/router";
 import { OAuthErrorEvent, OAuthService } from "angular-oauth2-oidc";
 import { filter } from "rxjs";
@@ -21,6 +21,23 @@ export class AuthStore {
     readonly isAuthenticated = this._isAuthenticated.asReadonly();
     readonly isLoaded = this._isLoaded.asReadonly();
     readonly userInfo = this._userInfo.asReadonly();
+    readonly isAdmin = computed<boolean>(() => {
+        const claims = this.userInfo();
+        const groupsClaim = claims['groups'] ?? claims['group'];
+
+        const groups = Array.isArray(groupsClaim)
+            ? groupsClaim.filter((group): group is string => typeof group === 'string')
+            : typeof groupsClaim === 'string'
+                ? [groupsClaim]
+                : [];
+
+        return groups.some((group) =>
+            group
+                .split('/')
+                .map((segment) => segment.trim().toLowerCase())
+                .includes(this.config.environment()?.auth.adminGroups.map(g => g.toLowerCase()).join(',') || 'admin')
+        );
+    });
 
     constructor() {
         effect(() => {

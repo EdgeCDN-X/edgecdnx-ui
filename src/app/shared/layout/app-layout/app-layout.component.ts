@@ -5,7 +5,6 @@ import { RouterModule } from '@angular/router';
 import { AppHeaderComponent } from '../app-header/app-header.component';
 import { SidebarStore } from '../../store/sidebar.store';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
-import { AuthStore } from '../../../auth/auth.store';
 
 @Component({
   selector: 'app-layout',
@@ -22,9 +21,6 @@ import { AuthStore } from '../../../auth/auth.store';
 export class AppLayoutComponent implements OnInit {
 
   sidebarStore = inject(SidebarStore);
-  authStore = inject(AuthStore);
-
-  isAuthenticated = this.authStore.isAuthenticated;
 
   readonly isExpanded = this.sidebarStore.isExpanded;
   readonly isHovered = this.sidebarStore.isHovered;

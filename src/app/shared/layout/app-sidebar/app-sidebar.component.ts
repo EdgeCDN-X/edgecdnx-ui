@@ -7,6 +7,7 @@ import { SidebarStore } from '../../store/sidebar.store';
 import { ServiceStore } from '../../../pages/projects/store/service.store';
 import { ZoneStore } from '../../../pages/projects/store/zone.store';
 import { ProjectsStore } from '../../../pages/projects/store/projects.store';
+import { AuthStore } from '../../../auth/auth.store';
 
 type NavItem = {
   name: string;
@@ -29,6 +30,9 @@ type NavItem = {
 export class AppSidebarComponent {
   projectStore = inject(ProjectsStore);
   sidebarStore = inject(SidebarStore);
+  authStore = inject(AuthStore);
+
+  readonly isAdmin = this.authStore.isAdmin;
 
   navItems = signal<NavItem[]>([
     {
@@ -44,6 +48,27 @@ export class AppSidebarComponent {
       visible: true,
     }
   ])
+
+  adminNavItems = computed<NavItem[]>(() => [
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75C8.27208 2.75 5.25 5.77208 5.25 9.5C5.25 14.3609 9.59361 18.3527 11.4471 20.1312C11.7612 20.4325 12.2388 20.4325 12.5529 20.1312C14.4064 18.3527 18.75 14.3609 18.75 9.5C18.75 5.77208 15.7279 2.75 12 2.75ZM6.75 9.5C6.75 6.6005 9.1005 4.25 12 4.25C14.8995 4.25 17.25 6.6005 17.25 9.5C17.25 13.6907 13.4626 17.2813 12 18.7015C10.5374 17.2813 6.75 13.6907 6.75 9.5ZM12 7.25C10.7574 7.25 9.75 8.25736 9.75 9.5C9.75 10.7426 10.7574 11.75 12 11.75C13.2426 11.75 14.25 10.7426 14.25 9.5C14.25 8.25736 13.2426 7.25 12 7.25ZM11.25 9.5C11.25 9.08579 11.5858 8.75 12 8.75C12.4142 8.75 12.75 9.08579 12.75 9.5C12.75 9.91421 12.4142 10.25 12 10.25C11.5858 10.25 11.25 9.91421 11.25 9.5Z"/></svg>`,
+      name: "Locations",
+      path: "/admin/locations",
+      visible: this.isAdmin(),
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 5.5C3.25 4.25736 4.25736 3.25 5.5 3.25H18.5C19.7426 3.25 20.75 4.25736 20.75 5.5V8.5C20.75 9.74264 19.7426 10.75 18.5 10.75H5.5C4.25736 10.75 3.25 9.74264 3.25 8.5V5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H18.5C18.9142 4.75 19.25 5.08579 19.25 5.5V8.5C19.25 8.91421 18.9142 9.25 18.5 9.25H5.5C5.08579 9.25 4.75 8.91421 4.75 8.5V5.5ZM3.25 15.5C3.25 14.2574 4.25736 13.25 5.5 13.25H18.5C19.7426 13.25 20.75 14.2574 20.75 15.5V18.5C20.75 19.7426 19.7426 20.75 18.5 20.75H5.5C4.25736 20.75 3.25 19.7426 3.25 18.5V15.5ZM4.75 15.5C4.75 15.0858 5.08579 14.75 5.5 14.75H18.5C18.9142 14.75 19.25 15.0858 19.25 15.5V18.5C19.25 18.9142 18.9142 19.25 18.5 19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5V15.5Z"/></svg>`,
+      name: "Prefix Lists",
+      path: "/admin/prefixlists",
+      visible: this.isAdmin(),
+    },
+    {
+      icon: `<svg fill="none" width="1em" height="1em" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:none;}</style></defs><rect x="20" y="20" width="10" height="2" fill="currentColor"/><rect x="20" y="24" width="6" height="2" fill="currentColor"/><path d="M30,17V16A13.9871,13.9871,0,1,0,19.23,29.625l-.46-1.9463A12.0419,12.0419,0,0,1,16,28c-.19,0-.375-.0186-.563-.0273A20.3044,20.3044,0,0,1,12.0259,17Zm-2.0415-2H21.9751A24.2838,24.2838,0,0,0,19.2014,4.4414,12.0228,12.0228,0,0,1,27.9585,15ZM16.563,4.0273A20.3044,20.3044,0,0,1,19.9741,15H12.0259A20.3044,20.3044,0,0,1,15.437,4.0273C15.625,4.0186,15.81,4,16,4S16.375,4.0186,16.563,4.0273Zm-3.7644.4141A24.2838,24.2838,0,0,0,10.0249,15H4.0415A12.0228,12.0228,0,0,1,12.7986,4.4414Zm0,23.1172A12.0228,12.0228,0,0,1,4.0415,17h5.9834A24.2838,24.2838,0,0,0,12.7986,27.5586Z" transform="translate(0 0)" fill="currentColor"/><rect class="cls-1" width="32" height="32" fill="currentColor"/></svg>`,
+      name: "Zones",
+      path: "/admin/zones",
+      visible: this.isAdmin(),
+    }
+  ]);
 
   projectNavItems = computed<NavItem[]>(() => [
     {
@@ -72,10 +97,16 @@ export class AppSidebarComponent {
     }
   ])
 
-  navGroups = computed(() => [
-    { name: 'Main', items: this.navItems() },
-    { name: 'Project', items: this.projectNavItems() },
-  ])
+  navGroups = computed(() => {
+    let navItems = [
+      { name: 'Main', items: this.navItems() },
+      { name: 'Project', items: this.projectNavItems() },
+    ]
+    if (this.isAdmin()) {
+      navItems.push({ name: 'Admin', items: this.adminNavItems() });
+    }
+    return navItems;
+  });
 
   openSubmenu: string | null | number = null;
   subMenuHeights: { [key: string]: number } = {};

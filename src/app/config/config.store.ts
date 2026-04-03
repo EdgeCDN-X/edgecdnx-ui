@@ -13,6 +13,7 @@ export interface Environment {
             redirectUri: string;
         },
         allowSignup: boolean;
+        adminGroups: string[];
     }
 }
 

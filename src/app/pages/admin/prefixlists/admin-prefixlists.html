@@ -1,0 +1,137 @@
+<section class="base-card space-y-4" aria-labelledby="prefixlists-heading">
+  <header class="flex items-start justify-between gap-3">
+    <div>
+      <h2 id="prefixlists-heading" class="card-title">Prefix Lists</h2>
+      <p class="base-text">Source-controlled route prefixes mapped to destination locations.</p>
+    </div>
+
+    <div class="inline-flex items-center gap-2">
+      <button
+        type="button"
+        class="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        (click)="refreshPrefixlists()"
+      >
+        Refresh
+      </button>
+
+      @if (state().loading) {
+        <div class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600">
+          <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-brand-600"></span>
+          Refreshing
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (state().loading && prefixlists().length === 0) {
+    <app-placeholder></app-placeholder>
+  } @else if (prefixlists().length === 0 && state().error) {
+    <p class="text-error-700 font-medium" role="alert">{{ state().error }}</p>
+  } @else if (prefixlists().length === 0) {
+    <p class="base-text">No prefix lists found.</p>
+  } @else {
+    @if (state().error) {
+      <p class="text-error-700 font-medium" role="alert">{{ state().error }}</p>
+    }
+
+    <div class="flex flex-wrap items-center gap-2" aria-label="Prefix list source filters">
+      <button type="button" [class]="filterButtonClass('all')" (click)="setFilterMode('all')">
+        All
+      </button>
+      <button
+        type="button"
+        [class]="filterButtonClass('controller-only')"
+        (click)="setFilterMode('controller-only')"
+      >
+        Controller only
+      </button>
+      <button
+        type="button"
+        [class]="filterButtonClass('exclude-controller')"
+        (click)="setFilterMode('exclude-controller')"
+      >
+        Exclude Controller
+      </button>
+      <p class="ml-auto text-xs text-gray-500">Showing {{ filteredPrefixlists().length }} of {{ prefixlists().length }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Prefix list summary metrics">
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
+        <p class="m-0 text-xs tracking-wide text-gray-600">Total Lists</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ prefixlists().length }}</p>
+      </article>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
+        <p class="m-0 text-xs tracking-wide text-gray-600">Static Source</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ staticCount() }}</p>
+      </article>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
+        <p class="m-0 text-xs tracking-wide text-gray-600">BGP Source</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ bgpCount() }}</p>
+      </article>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
+        <p class="m-0 text-xs tracking-wide text-gray-600">Controller Source</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ controllerCount() }}</p>
+      </article>
+    </div>
+
+    @if (filteredPrefixlists().length === 0) {
+      <p class="base-text">No prefix lists match the selected filter.</p>
+    } @else {
+      <div class="grid gap-3">
+        @for (prefixList of filteredPrefixlists(); track prefixList.metadata?.uid ?? prefixList.metadata?.name ?? $index) {
+          <article class="rounded-2xl border border-gray-200 bg-white p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3 class="m-0 text-base font-bold text-gray-900">{{ prefixListName(prefixList) }}</h3>
+                <p class="mt-1 text-sm text-gray-500">Destination: {{ prefixList.spec?.destination || 'Unspecified' }}</p>
+              </div>
+              <span [class]="statusBadgeClass(prefixList.status?.status)">
+                {{ prefixList.status?.status || 'Unknown' }}
+              </span>
+            </div>
+
+            <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
+                <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Source</p>
+                <p class="mt-1.5 text-sm text-gray-700">{{ prefixList.spec?.source || 'Unknown' }}</p>
+                <p class="mt-1.5 text-sm text-gray-700">Consolidation: {{ prefixList.status?.consolidationStatus || 'N/A' }}</p>
+              </div>
+
+              <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
+                <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Prefix Counts</p>
+                <p class="mt-1.5 text-sm text-gray-700">IPv4 Prefixes: {{ prefixList.spec?.prefix?.v4?.length ?? 0 }}</p>
+                <p class="mt-1.5 text-sm text-gray-700">IPv6 Prefixes: {{ prefixList.spec?.prefix?.v6?.length ?? 0 }}</p>
+              </div>
+
+              <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
+                <p class="m-0 text-xs uppercase tracking-wider text-gray-500">IPv4</p>
+                @if (prefixList.spec?.prefix?.v4?.length) {
+                  <div class="mt-2 flex flex-wrap gap-1.5">
+                    @for (v4 of prefixList.spec?.prefix?.v4 ?? []; track v4.address + '/' + v4.size) {
+                      <span class="rounded-full border border-blue-light-200 bg-blue-light-50 px-2 py-0.5 text-xs text-blue-light-800">{{ v4.address }}/{{ v4.size }}</span>
+                    }
+                  </div>
+                } @else {
+                  <p class="mt-1.5 text-sm text-gray-700">No IPv4 entries.</p>
+                }
+              </div>
+
+              <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
+                <p class="m-0 text-xs uppercase tracking-wider text-gray-500">IPv6</p>
+                @if (prefixList.spec?.prefix?.v6?.length) {
+                  <div class="mt-2 flex flex-wrap gap-1.5">
+                    @for (v6 of prefixList.spec?.prefix?.v6 ?? []; track v6.address + '/' + v6.size) {
+                      <span class="rounded-full border border-blue-light-200 bg-blue-light-50 px-2 py-0.5 text-xs text-blue-light-800">{{ v6.address }}/{{ v6.size }}</span>
+                    }
+                  </div>
+                } @else {
+                  <p class="mt-1.5 text-sm text-gray-700">No IPv6 entries.</p>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>

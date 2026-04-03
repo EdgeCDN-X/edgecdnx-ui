@@ -10,6 +10,7 @@
             "requireHttps": true,
             "redirectUri": "http://localhost:4200/callback"
         },
-        "allowSignup": true
+        "allowSignup": true,
+        "adminGroups": ["admin"]
     }
 }
