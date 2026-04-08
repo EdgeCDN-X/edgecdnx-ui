@@ -113,6 +113,58 @@ export type Location = KubernetesTypeMeta & {
   status?: LocationStatus;
 };
 
+export type LocationHealthNode = {
+  location?: string;
+  source?: string;
+  nodeName?: string;
+  nodeGroupName?: string;
+  nodeGroupFlavor?: string;
+  ip?: string;
+  instance: string;
+  role?: string;
+  healthy: boolean;
+  value: string;
+  timestamp: number;
+  matched: boolean;
+  matchField?: string;
+  labels: Record<string, string>;
+};
+
+export type LocationHealthSource = {
+  source: string;
+  totalNodes: number;
+  healthyNodes: number;
+  unhealthyNodes: number;
+  unknownNodes: number;
+  nodes: LocationHealthNode[];
+};
+
+export type LocationHealthItem = {
+  name: string;
+  status?: HealthStatus | string;
+  maintenanceMode?: boolean;
+  sources: LocationHealthSource[];
+};
+
+export type LocationHealthApiResponse = {
+  status: string;
+  data?: {
+    resultType?: string;
+    sources?: string[];
+    locations?: LocationHealthItem[];
+    unmatchedMetrics?: LocationHealthNode[];
+  };
+};
+
+export type LocationHealthState = {
+  items: LocationHealthItem[];
+  sources: string[];
+  unmatchedMetrics: LocationHealthNode[];
+  loading: boolean;
+  loaded: boolean;
+  error: string | null;
+};
+
 export type V4Prefix = {
   address: string;
   size: number;
