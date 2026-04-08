@@ -174,11 +174,10 @@
 
             <div class="my-3 border-t border-dashed border-gray-200"></div>
 
-            <section class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4" aria-label="Endpoint health details">
+            <section class="bg-gradient-to-br from-white to-blue-light-25" aria-label="Endpoint health details">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Endpoint Health</p>
-                  <h4 class="mt-1 text-base font-semibold text-gray-900">Blackbox probe results grouped by source</h4>
                 </div>
                 <span [class]="locationHealthStatusBadgeClass(location)">
                   {{ locationHealthStatusText(location) }}
@@ -207,7 +206,7 @@
               @if (visibleLocationHealthSources(location).length === 0) {
                 <p class="mt-3 text-sm text-gray-600">No endpoint health data matches the current filters for this location.</p>
               } @else {
-                <div class="mt-3 grid gap-3 xl:grid-cols-2">
+                <div class="my-3 grid gap-3 xl:grid-cols-2">
                   @for (sourceHealth of visibleLocationHealthSources(location); track sourceHealth.source) {
                     <article [class]="sourceCardClass(sourceHealth)">
                       <div class="flex flex-wrap items-start justify-between gap-3">
@@ -266,7 +265,7 @@
             </section>
 
             <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
-              <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
+              <div class="rounded-xl border-gray-200 bg-gray-25 p-3">
                 <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Routing</p>
                 <p class="mt-1.5 text-sm text-gray-700">GeoLookup Global Weight: {{ location.spec?.geoLookup?.weight ?? 0 }}</p>
                 <p class="mt-1.5 text-sm text-gray-700">
@@ -295,7 +294,7 @@
                 }
               </div>
 
-              <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
+              <div class="rounded-xl border-gray-200 bg-gray-25 p-3">
                 <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Nodes</p>
                 <p class="mt-1.5 text-sm text-gray-700">Standalone: {{ location.spec?.nodes?.length ?? 0 }}</p>
                 <p class="mt-1.5 text-sm text-gray-700">Node Groups: {{ location.spec?.nodeGroups?.length ?? 0 }}</p>
@@ -303,7 +302,7 @@
                 <p class="mt-1.5 text-sm text-gray-700">Maintenance Nodes: {{ locationMaintenanceNodesCount(location) }}</p>
               </div>
 
-              <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
+              <div class="rounded-xl border-gray-200 bg-gray-25 p-3">
                 <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Node Group Flavors</p>
                 @if (location.spec?.nodeGroups?.length) {
                   <div class="mt-2 flex flex-wrap gap-1.5">
@@ -323,7 +322,7 @@
               (toggle)="onGeoDetailsToggle(location, $event)"
             >
               <summary class="cursor-pointer list-none text-sm font-semibold text-gray-800">
-                GeoLookup Attribute Details
+                GeoLookup Config
               </summary>
               @if (geoAttributeEntries(location).length === 0) {
                 <p class="mt-2 text-sm text-gray-600">No GeoLookup attributes configured.</p>
@@ -366,7 +365,7 @@
               (toggle)="onNodeGroupDetailsToggle(location, $event)"
             >
               <summary class="cursor-pointer list-none text-sm font-semibold text-gray-800">
-                Node Group Details
+                Node Groups
               </summary>
               @if (nodeGroups(location).length === 0) {
                 <p class="mt-2 text-sm text-gray-600">No node groups declared for this location.</p>
@@ -383,7 +382,7 @@
                       </summary>
 
                       <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                        <div class="rounded-lg border border-gray-200 bg-gray-25 p-3">
+                        <div class="rounded-lg border-gray-200 bg-gray-25 p-3">
                           <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Cache Config</p>
                           <p class="mt-1.5 text-sm text-gray-700">Node Group: {{ nodeGroupDisplayName(group) }}</p>
                           <p class="mt-1.5 text-sm text-gray-700">Name: {{ group.cacheConfig.name || 'N/A' }}</p>
@@ -393,7 +392,7 @@
                           <p class="mt-1.5 text-sm text-gray-700">Max Size: {{ group.cacheConfig.maxSize }}</p>
                         </div>
 
-                        <div class="rounded-lg border border-gray-200 bg-gray-25 p-3">
+                        <div class="rounded-lg border-gray-200 bg-gray-25 p-3">
                           <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Node Selector</p>
                           @if (nodeSelectorEntries(group).length) {
                             <div class="mt-2 flex flex-wrap gap-1.5">
@@ -409,7 +408,7 @@
                         </div>
                       </div>
 
-                      <div class="mt-3 rounded-lg border border-gray-200 bg-gray-25 p-3">
+                      <div class="mt-3 rounded-lg border-gray-200 bg-gray-25 p-3">
                         <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Nodes</p>
                         @if (nodeGroupNodes(group).length) {
                           <div class="mt-2 grid gap-2">

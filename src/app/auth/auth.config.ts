@@ -13,7 +13,7 @@ export const authConfig: AuthConfig = {
   responseType: 'code',
 
   // Scopes to request
-  scope: 'openid profile email',
+  scope: 'openid profile email offline_access',
 
   // Use PKCE for security
   requireHttps: false,
@@ -47,4 +47,6 @@ export const authConfig: AuthConfig = {
   skipIssuerCheck: true,
 
   strictDiscoveryDocumentValidation: false,
+
+  silentRefreshRedirectUri: window.location.origin + '/silent-refresh.html',
 };
