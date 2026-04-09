@@ -48,10 +48,10 @@ export class AdminPrefixlists implements OnInit, OnDestroy {
     const isActive = this.filterMode() === mode;
 
     if (isActive) {
-      return 'rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-800 shadow-theme-xs';
+      return 'rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-800 shadow-theme-xs dark:border-brand-500/30 dark:bg-brand-500/15 dark:text-brand-300';
     }
 
-    return 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50';
+    return 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]';
   }
 
   prefixListName(prefixList: PrefixList): string {
@@ -60,16 +60,16 @@ export class AdminPrefixlists implements OnInit, OnDestroy {
 
   statusBadgeClass(status?: string): string {
     if (status === 'Healthy') {
-      return 'inline-flex items-center rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-semibold text-success-800';
+      return 'inline-flex items-center rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-semibold text-success-800 dark:border-success-500/30 dark:bg-success-500/15 dark:text-success-300';
     }
     if (status === 'Progressing') {
-      return 'inline-flex items-center rounded-full border border-warning-200 bg-warning-50 px-2.5 py-1 text-xs font-semibold text-warning-900';
+      return 'inline-flex items-center rounded-full border border-warning-200 bg-warning-50 px-2.5 py-1 text-xs font-semibold text-warning-900 dark:border-warning-500/30 dark:bg-warning-500/15 dark:text-warning-300';
     }
     if (status === 'Degraded') {
-      return 'inline-flex items-center rounded-full border border-error-200 bg-error-50 px-2.5 py-1 text-xs font-semibold text-error-800';
+      return 'inline-flex items-center rounded-full border border-error-200 bg-error-50 px-2.5 py-1 text-xs font-semibold text-error-800 dark:border-error-500/30 dark:bg-error-500/15 dark:text-error-300';
     }
 
-    return 'inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700';
+    return 'inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:border-gray-700 dark:bg-white/[0.06] dark:text-gray-300';
   }
 
   ngOnInit() {

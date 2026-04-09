@@ -1,4 +1,4 @@
-<section class="base-card space-y-4" aria-labelledby="locations-heading">
+<section class="space-y-4" aria-labelledby="locations-heading">
   <header class="flex items-start justify-between gap-3">
     <div>
       <h2 id="locations-heading" class="card-title">Locations</h2>
@@ -8,15 +8,15 @@
     <div class="inline-flex items-center gap-2">
       <button
         type="button"
-        class="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        class="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]"
         (click)="refreshLocations()"
       >
         Refresh
       </button>
 
       @if (isRefreshing()) {
-        <div class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600">
-          <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-brand-600"></span>
+        <div class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-400">
+          <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-brand-600 dark:border-gray-700 dark:border-t-brand-400"></span>
           Refreshing
         </div>
       }
@@ -44,7 +44,7 @@
         id="location-name-filter"
         type="text"
         class="form-input-field h-10 max-w-sm"
-        placeholder="Filter locations by name (supports fuzzy search)"
+        placeholder="Filter"
         [value]="nameFilter()"
         (input)="setNameFilter($event)"
       />
@@ -54,7 +54,7 @@
       <button type="button" [class]="unhealthyNodesFilterButtonClass()" (click)="toggleShowUnhealthyNodesOnly()">
         {{ showUnhealthyNodesOnly() ? 'Showing unhealthy targets only' : 'Show unhealthy targets only' }}
       </button>
-      <p class="ml-auto text-xs text-gray-500">Showing {{ filteredLocations().length }} of {{ locations().length }}</p>
+      <p class="ml-auto text-xs text-gray-500 dark:text-gray-400">Showing {{ filteredLocations().length }} of {{ locations().length }}</p>
     </div>
 
     @if (availableSources().length) {
@@ -70,45 +70,41 @@
       </div>
     }
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6" aria-label="Location summary metrics">
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Total Locations</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ locations().length }}</p>
+    <div class="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6" aria-label="Location summary metrics">
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Total Locations</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ locations().length }}</p>
       </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Node Groups</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ totalNodeGroups() }}</p>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Node Groups</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ totalNodeGroups() }}</p>
       </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Standalone Nodes</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ totalNodes() }}</p>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Maintenance Locations</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ maintenanceCount() }}</p>
       </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Maintenance Locations</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ maintenanceCount() }}</p>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Locations With Issues</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ locationsWithHealthIssuesCount() }}</p>
       </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Health Sources</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ availableSources().length }}</p>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Unhealthy Targets</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ unhealthyNodeCount() }}</p>
       </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Locations With Issues</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ locationsWithHealthIssuesCount() }}</p>
-      </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Unhealthy Targets</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ unhealthyNodeCount() }}</p>
+      <article class="rounded-2xl border border-error-200 bg-gradient-to-br from-white to-error-50 p-4 dark:border-error-500/30 dark:from-white/[0.03] dark:to-error-500/10">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Firing Location Alerts</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ firingLocationAlertCount() }}</p>
       </article>
     </div>
 
     @if (visibleUnmatchedMetrics().length) {
-      <section class="rounded-2xl border border-warning-200 bg-warning-50 p-4" aria-labelledby="unmatched-health-heading">
+      <section class="rounded-2xl border border-warning-200 bg-warning-50 p-4 dark:border-warning-500/30 dark:bg-warning-500/12" aria-labelledby="unmatched-health-heading">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 id="unmatched-health-heading" class="m-0 text-sm font-semibold text-warning-900">Unmatched Health Targets</h3>
-            <p class="mt-1 text-sm text-warning-900">Targets returned by Prometheus that do not map to a known location label.</p>
+            <h3 id="unmatched-health-heading" class="m-0 text-sm font-semibold text-warning-900 dark:text-warning-300">Unmatched Health Targets</h3>
+            <p class="mt-1 text-sm text-warning-900 dark:text-warning-300">Targets returned by Prometheus that do not map to a known location label.</p>
           </div>
-          <span class="rounded-full border border-warning-300 bg-white px-2.5 py-1 text-xs font-semibold text-warning-900">
+          <span class="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-warning-900 shadow-sm dark:bg-white/[0.08] dark:text-warning-300">
             {{ unmatchedMetricsCount() }} unmatched
           </span>
         </div>
@@ -122,7 +118,7 @@
                   <p class="mt-1 text-xs text-gray-600">{{ metric.instance }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs font-medium text-gray-700">{{ metric.source || 'unknown' }}</span>
+                  <span class="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-gray-700">{{ metric.source || 'unknown' }}</span>
                   <span [class]="nodeHealthBadgeClass(metric)">{{ nodeHealthText(metric) }}</span>
                 </div>
               </div>
@@ -135,10 +131,10 @@
     @if (filteredLocations().length === 0) {
       <p class="base-text">No locations match the selected filters.</p>
     } @else {
-      <div class="divide-y divide-gray-200">
+      <div class="space-y-4">
         @for (location of filteredLocations(); track location.metadata?.uid ?? location.metadata?.name ?? $index) {
           <details
-            class="rounded-2xl border border-gray-200 bg-white p-4 mt-3 first:mt-0"
+            class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
             [open]="isLocationOpen(location)"
             (toggle)="onLocationToggle(location, $event)"
           >
@@ -146,19 +142,24 @@
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="m-0 text-base font-bold text-gray-900">{{ locationName(location) }}</h3>
+                    <h3 class="m-0 text-base font-bold text-gray-900 dark:text-white/90">{{ locationName(location) }}</h3>
                     @if (isLocationInMaintenance(location)) {
-                      <span class="rounded-full border border-error-200 bg-error-50 px-2 py-0.5 text-xs font-semibold text-error-800">
+                      <span class="rounded-full border border-error-200 bg-error-100 px-2 py-0.5 text-xs font-semibold text-error-900">
                         Maintenance Mode
                       </span>
                     }
+                    @if (hasLocationAlerts(location)) {
+                      <span class="rounded-full border border-error-200 bg-error-100 px-2 py-0.5 text-xs font-semibold text-error-900">
+                        {{ locationAlerts(location).length }} firing {{ locationAlerts(location).length === 1 ? 'alert' : 'alerts' }}
+                      </span>
+                    }
                   </div>
-                  <p class="mt-1 text-sm text-gray-500">Parent: {{ location.spec?.parent || 'None' }}</p>
+                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Parent: {{ location.spec?.parent || 'None' }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                   @if (showCollapsedHealthWarning(location)) {
                     <span
-                      class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-error-300 bg-error-50 text-sm font-bold text-error-800"
+                      class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-error-200 bg-error-100 text-sm font-bold text-error-900"
                       aria-label="One or more node probes are failing"
                       title="One or more node probes are failing"
                     >
@@ -172,12 +173,12 @@
               </div>
             </summary>
 
-            <div class="my-3 border-t border-dashed border-gray-200"></div>
+	      		<div class="my-4 h-px bg-gray-100 dark:bg-white/[0.05]"></div>
 
-            <section class="bg-gradient-to-br from-white to-blue-light-25" aria-label="Endpoint health details">
+	      		<section class="my-4 rounded-xl border border-gray-200 bg-gray-25 p-4 dark:border-gray-800 dark:bg-white/[0.02]" aria-label="Endpoint health details">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Endpoint Health</p>
+                  <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Endpoint Health</p>
                 </div>
                 <span [class]="locationHealthStatusBadgeClass(location)">
                   {{ locationHealthStatusText(location) }}
@@ -185,43 +186,86 @@
               </div>
 
               <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
-                <article class="rounded-xl border border-gray-200 bg-white p-3">
-                  <p class="m-0 text-xs tracking-wide text-gray-600">Sources</p>
-                  <p class="mt-1.5 text-xl font-bold text-gray-900">{{ visibleLocationHealthSources(location).length }}</p>
+                <article class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]">
+                  <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Sources</p>
+                  <p class="mt-1.5 text-xl font-bold text-gray-900 dark:text-white/90">{{ visibleLocationHealthSources(location).length }}</p>
                 </article>
-                <article class="rounded-xl border border-gray-200 bg-white p-3">
-                  <p class="m-0 text-xs tracking-wide text-gray-600">Healthy Targets</p>
-                  <p class="mt-1.5 text-xl font-bold text-gray-900">{{ locationHealthHealthyNodes(location) }}</p>
+                <article class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]">
+                  <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Healthy Targets</p>
+                  <p class="mt-1.5 text-xl font-bold text-gray-900 dark:text-white/90">{{ locationHealthHealthyNodes(location) }}</p>
                 </article>
-                <article class="rounded-xl border border-gray-200 bg-white p-3">
-                  <p class="m-0 text-xs tracking-wide text-gray-600">Unhealthy Targets</p>
-                  <p class="mt-1.5 text-xl font-bold text-gray-900">{{ locationHealthUnhealthyNodes(location) }}</p>
+                <article class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]">
+                  <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Unhealthy Targets</p>
+                  <p class="mt-1.5 text-xl font-bold text-gray-900 dark:text-white/90">{{ locationHealthUnhealthyNodes(location) }}</p>
                 </article>
-                <article class="rounded-xl border border-gray-200 bg-white p-3">
-                  <p class="m-0 text-xs tracking-wide text-gray-600">Unmatched Targets</p>
-                  <p class="mt-1.5 text-xl font-bold text-gray-900">{{ locationHealthUnknownNodes(location) }}</p>
+                <article class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]">
+                  <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Unmatched Targets</p>
+                  <p class="mt-1.5 text-xl font-bold text-gray-900 dark:text-white/90">{{ locationHealthUnknownNodes(location) }}</p>
                 </article>
               </div>
 
+              @if (configuredLocationAlerts(location).length) {
+                <section [class]="locationAlertSectionClass(location)" [attr.aria-label]="locationName(location) + ' configured alerts'">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p [class]="locationAlertSectionEyebrowClass(location)">Location Alerts</p>
+                    </div>
+                    <span [class]="locationAlertSectionCountClass(location)">
+                      {{ locationAlerts(location).length }}/{{ configuredLocationAlerts(location).length }} firing
+                    </span>
+                  </div>
+
+                  <div class="mt-3 grid gap-2">
+                    @for (alert of configuredLocationAlerts(location); track alert.key) {
+                      <article [class]="alertDisplayCardClass(alert)">
+                        <div class="flex flex-wrap items-start justify-between gap-2">
+                          <div>
+                            <p class="m-0 text-sm font-semibold text-gray-900 dark:text-white/90">{{ alert.alertName }}</p>
+                            @if (alertTimestampText(alert); as timestampText) {
+                              <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Observed {{ timestampText }}</p>
+                            }
+                          </div>
+                          @if (alert.isFiring) {
+                            <span [class]="alertDisplayBadgeClass(alert)">
+                              {{ alertDisplayStatusText(alert) }}
+                            </span>
+                          }
+                        </div>
+
+                        @if (alert.labels.length) {
+                          <div class="mt-2 flex flex-wrap gap-1.5">
+                            @for (entry of alert.labels; track entry.key) {
+                              <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-white/[0.08] dark:text-gray-300">
+                                {{ entry.key }}={{ entry.value }}
+                              </span>
+                            }
+                          </div>
+                        }
+                      </article>
+                    }
+                  </div>
+                </section>
+              }
+
               @if (visibleLocationHealthSources(location).length === 0) {
-                <p class="mt-3 text-sm text-gray-600">No endpoint health data matches the current filters for this location.</p>
+                <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">No endpoint health data matches the current filters for this location.</p>
               } @else {
                 <div class="my-3 grid gap-3 xl:grid-cols-2">
                   @for (sourceHealth of visibleLocationHealthSources(location); track sourceHealth.source) {
                     <article [class]="sourceCardClass(sourceHealth)">
                       <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Source</p>
-                          <h5 class="mt-1 text-sm font-semibold text-gray-900">{{ sourceHealth.source }}</h5>
+                          <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Source</p>
+                          <h5 class="mt-1 text-sm font-semibold text-gray-900 dark:text-white/90">{{ sourceHealth.source }}</h5>
                         </div>
                         <div class="flex flex-wrap gap-1.5">
-                          <span class="rounded-full border border-success-200 bg-success-50 px-2 py-0.5 text-xs font-medium text-success-800">
+                          <span class="rounded-full bg-success-100 px-2 py-0.5 text-xs font-medium text-success-900 dark:bg-success-500/15 dark:text-success-300">
                             Healthy {{ sourceHealth.healthyNodes }}
                           </span>
-                          <span class="rounded-full border border-error-200 bg-error-50 px-2 py-0.5 text-xs font-medium text-error-800">
+                          <span class="rounded-full bg-error-100 px-2 py-0.5 text-xs font-medium text-error-900 dark:bg-error-500/15 dark:text-error-300">
                             Unhealthy {{ sourceHealth.unhealthyNodes }}
                           </span>
-                          <span class="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs font-medium text-gray-700">
+                          <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-white/[0.08] dark:text-gray-300">
                             Unmatched {{ sourceHealth.unknownNodes }}
                           </span>
                         </div>
@@ -233,28 +277,82 @@
                             <div class="flex flex-wrap items-start justify-between gap-2">
                               <div>
                                 <div class="flex flex-wrap items-center gap-2">
-                                  <p class="m-0 text-sm font-semibold text-gray-900">{{ nodeHealthIdentity(nodeHealth) }}</p>
+                                  <p class="m-0 text-sm font-semibold text-gray-900 dark:text-white/90">{{ nodeHealthIdentity(nodeHealth) }}</p>
                                   @if (!nodeHealth.matched) {
-                                    <span class="rounded-full border border-warning-300 bg-white px-2 py-0.5 text-xs font-medium text-warning-900">
+                                    <span class="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-warning-900 dark:bg-white/[0.08] dark:text-warning-300">
                                       Unmatched
                                     </span>
                                   }
+                                  @if (nodeHealth.alertScope === 'location') {
+                                    <span class="rounded-full bg-error-100 px-2 py-0.5 text-xs font-medium text-error-900 dark:bg-error-500/15 dark:text-error-300">
+                                      Location Alert
+                                    </span>
+                                  }
+                                  @if (nodeHealth.alertScope === 'node') {
+                                    <span class="rounded-full bg-error-100 px-2 py-0.5 text-xs font-medium text-error-900 dark:bg-error-500/15 dark:text-error-300">
+                                      Node Alert
+                                    </span>
+                                  }
+                                  @if (hasNodeAlerts(nodeHealth)) {
+                                    <span class="rounded-full bg-error-100 px-2 py-0.5 text-xs font-medium text-error-900 dark:bg-error-500/15 dark:text-error-300">
+                                      {{ nodeAlerts(nodeHealth).length }} alert{{ nodeAlerts(nodeHealth).length === 1 ? '' : 's' }}
+                                    </span>
+                                  }
                                   @if (nodeGroupLabel(nodeHealth); as groupLabel) {
-                                    <span class="rounded-full border border-blue-light-200 bg-blue-light-50 px-2 py-0.5 text-xs font-medium text-blue-light-900">
+                                    <span class="rounded-full bg-blue-light-100 px-2 py-0.5 text-xs font-medium text-blue-light-900 dark:bg-brand-500/15 dark:text-brand-300">
                                       {{ groupLabel }}
                                     </span>
                                   }
                                 </div>
-                                <p class="mt-1 text-xs text-gray-600">{{ nodeHealth.instance }}</p>
+                                <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">{{ nodeHealth.instance }}</p>
                               </div>
                               <span [class]="nodeHealthBadgeClass(nodeHealth)">{{ nodeHealthText(nodeHealth) }}</span>
                             </div>
 
-                            <div class="mt-3 grid grid-cols-1 gap-2 text-sm text-gray-700 sm:grid-cols-3">
+                            <div class="mt-3 grid grid-cols-1 gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-3">
                               <p class="m-0">IP: {{ nodeHealth.ip || 'N/A' }}</p>
                               <p class="m-0">Role: {{ nodeHealth.role || 'N/A' }}</p>
                               <p class="m-0">Match: {{ nodeHealth.matchField || 'none' }}</p>
                             </div>
+
+                            @if (hasNodeAlerts(nodeHealth)) {
+                              <div class="mt-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+                                <div class="flex flex-wrap items-start justify-between gap-2">
+                                  <p class="m-0 text-xs uppercase tracking-wider text-error-700 dark:text-error-300">Firing Alerts</p>
+                                  <span class="rounded-full bg-error-100 px-2 py-0.5 text-xs font-semibold text-error-900 dark:bg-error-500/15 dark:text-error-300">
+                                    {{ nodeAlerts(nodeHealth).length }} firing
+                                  </span>
+                                </div>
+
+                                <div class="mt-2 grid gap-2">
+                                  @for (alert of nodeAlerts(nodeHealth); track alert.alertName + '-' + $index) {
+                                    <article class="rounded-xl bg-gray-50 p-2.5 dark:bg-white/[0.02]">
+                                      <div class="flex flex-wrap items-start justify-between gap-2">
+                                        <div>
+                                          <p class="m-0 text-sm font-semibold text-gray-900 dark:text-white/90">{{ alert.alertName }}</p>
+                                          @if (alertTimestampText(alert); as timestampText) {
+                                            <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Observed {{ timestampText }}</p>
+                                          }
+                                        </div>
+                                        <span class="rounded-full bg-error-100 px-2 py-0.5 text-xs font-semibold text-error-900 dark:bg-error-500/15 dark:text-error-300">
+                                          Firing
+                                        </span>
+                                      </div>
+
+                                      @if (nodeAlertLabelEntries(location, nodeHealth, alert).length) {
+                                        <div class="mt-2 flex flex-wrap gap-1.5">
+                                          @for (entry of nodeAlertLabelEntries(location, nodeHealth, alert); track entry.key) {
+                                            <span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-700 dark:bg-white/[0.08] dark:text-gray-300">
+                                              {{ entry.key }}={{ entry.value }}
+                                            </span>
+                                          }
+                                        </div>
+                                      }
+                                    </article>
+                                  }
+                                </div>
+                              </div>
+                            }
                           </div>
                         }
                       </div>
@@ -265,22 +363,22 @@
             </section>
 
             <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
-              <div class="rounded-xl border-gray-200 bg-gray-25 p-3">
-                <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Routing</p>
-                <p class="mt-1.5 text-sm text-gray-700">GeoLookup Global Weight: {{ location.spec?.geoLookup?.weight ?? 0 }}</p>
-                <p class="mt-1.5 text-sm text-gray-700">
+              <div class="rounded-xl border border-gray-200 bg-gray-25 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+                <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Routing</p>
+                <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">GeoLookup Global Weight: {{ location.spec?.geoLookup?.weight ?? 0 }}</p>
+                <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">
                   Weighted Load Balancing:
                   @if ((location.spec?.geoLookup?.weight ?? 0) > 0) {
-                    <span class="rounded-full border border-success-200 bg-success-50 px-2 py-0.5 text-xs font-medium text-success-800">Enabled</span>
+                    <span class="rounded-full bg-success-100 px-2 py-0.5 text-xs font-medium text-success-900 dark:bg-success-500/15 dark:text-success-300">Enabled</span>
                   } @else {
-                    <span class="rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">Disabled</span>
+                    <span class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-white/[0.08] dark:text-gray-300">Disabled</span>
                   }
                 </p>
-                <p class="mt-1.5 text-sm text-gray-700">Fallback Targets: {{ location.spec?.fallbackLocations?.length ?? 0 }}</p>
+                <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">Fallback Targets: {{ location.spec?.fallbackLocations?.length ?? 0 }}</p>
                 @if (location.spec?.parent) {
-                  <p class="mt-1.5 text-sm text-gray-700">
+                  <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">
                     Default Fallback:
-                    <span class="rounded-full border border-blue-light-200 bg-blue-light-50 px-2 py-0.5 text-xs font-medium text-blue-light-900">
+                    <span class="rounded-full bg-blue-light-100 px-2 py-0.5 text-xs font-medium text-blue-light-900 dark:bg-brand-500/15 dark:text-brand-300">
                       Parent ({{ location.spec?.parent }})
                     </span>
                   </p>
@@ -288,52 +386,52 @@
                 @if (location.spec?.fallbackLocations?.length) {
                   <div class="mt-2 flex flex-wrap gap-1.5">
                     @for (fallback of location.spec?.fallbackLocations ?? []; track fallback) {
-                      <span class="rounded-full border border-blue-light-200 bg-blue-light-50 px-2 py-0.5 text-xs text-blue-light-800">{{ fallback }}</span>
+                      <span class="rounded-full bg-blue-light-100 px-2 py-0.5 text-xs text-blue-light-800 dark:bg-brand-500/15 dark:text-brand-300">{{ fallback }}</span>
                     }
                   </div>
                 }
               </div>
 
-              <div class="rounded-xl border-gray-200 bg-gray-25 p-3">
-                <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Nodes</p>
-                <p class="mt-1.5 text-sm text-gray-700">Standalone: {{ location.spec?.nodes?.length ?? 0 }}</p>
-                <p class="mt-1.5 text-sm text-gray-700">Node Groups: {{ location.spec?.nodeGroups?.length ?? 0 }}</p>
-                <p class="mt-1.5 text-sm text-gray-700">Node Alerts: {{ location.spec?.alerts?.length ?? 0 }}</p>
-                <p class="mt-1.5 text-sm text-gray-700">Maintenance Nodes: {{ locationMaintenanceNodesCount(location) }}</p>
+              <div class="rounded-xl border border-gray-200 bg-gray-25 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+                <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Nodes</p>
+                <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">Node Groups: {{ location.spec?.nodeGroups?.length ?? 0 }}</p>
+                <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">Configured Location Alerts: {{ configuredLocationAlertCount(location) }}</p>
+                <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">Configured Node Alerts: {{ configuredNodeAlertCount(location) }}</p>
+                <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">Maintenance Nodes: {{ locationMaintenanceNodesCount(location) }}</p>
               </div>
 
-              <div class="rounded-xl border-gray-200 bg-gray-25 p-3">
-                <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Node Group Flavors</p>
+              <div class="rounded-xl border border-gray-200 bg-gray-25 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+                <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Node Group Flavors</p>
                 @if (location.spec?.nodeGroups?.length) {
                   <div class="mt-2 flex flex-wrap gap-1.5">
                     @for (group of location.spec?.nodeGroups ?? []; track group.name + '-' + group.flavor + '-' + $index) {
-                      <span class="rounded-full border border-blue-light-200 bg-blue-light-50 px-2 py-0.5 text-xs text-blue-light-900">{{ nodeGroupDisplayName(group) }}</span>
+                      <span class="rounded-full bg-blue-light-100 px-2 py-0.5 text-xs text-blue-light-900 dark:bg-brand-500/15 dark:text-brand-300">{{ nodeGroupDisplayName(group) }}</span>
                     }
                   </div>
                 } @else {
-                  <p class="mt-1.5 text-sm text-gray-700">No node groups declared.</p>
+                  <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">No node groups declared.</p>
                 }
               </div>
             </div>
 
             <details
-              class="mt-3 rounded-xl border border-gray-200 bg-gray-25 p-3"
+              class="mt-4 rounded-xl border border-gray-200 bg-gray-25 p-4 dark:border-gray-800 dark:bg-white/[0.02]"
               [open]="isGeoDetailsOpen(location)"
               (toggle)="onGeoDetailsToggle(location, $event)"
             >
-              <summary class="cursor-pointer list-none text-sm font-semibold text-gray-800">
+              <summary class="cursor-pointer list-none text-sm font-semibold text-gray-800 dark:text-white/90">
                 GeoLookup Config
               </summary>
               @if (geoAttributeEntries(location).length === 0) {
-                <p class="mt-2 text-sm text-gray-600">No GeoLookup attributes configured.</p>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">No GeoLookup attributes configured.</p>
               } @else {
                 <div class="mt-3 grid gap-2">
                   @for (entry of geoAttributeEntries(location); track entry.key) {
-                    <div class="rounded-lg border border-gray-200 bg-white p-3">
+                    <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]">
                       <div class="flex flex-wrap items-center gap-2">
-                        <p class="m-0 text-sm font-semibold text-gray-900">{{ entry.key }}</p>
+                        <p class="m-0 text-sm font-semibold text-gray-900 dark:text-white/90">{{ entry.key }}</p>
                         @if (entry.attribute.weight !== undefined) {
-                          <span class="rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+                          <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-white/[0.08] dark:text-gray-300">
                             Attribute Weight: {{ entry.attribute.weight }}
                           </span>
                         }
@@ -342,7 +440,7 @@
                       @if (entry.attribute.values?.length) {
                         <div class="mt-2 flex flex-wrap gap-1.5">
                           @for (value of entry.attribute.values ?? []; track value.value + '-' + $index) {
-                            <span class="rounded-full border border-blue-light-200 bg-blue-light-50 px-2 py-0.5 text-xs text-blue-light-900">
+                            <span class="rounded-full bg-blue-light-100 px-2 py-0.5 text-xs text-blue-light-900 dark:bg-brand-500/15 dark:text-brand-300">
                               {{ value.value || 'N/A' }}
                               @if (value.weight !== undefined) {
                                 (w: {{ value.weight }})
@@ -351,7 +449,7 @@
                           }
                         </div>
                       } @else {
-                        <p class="mt-2 text-sm text-gray-600">No values configured for this attribute.</p>
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">No values configured for this attribute.</p>
                       }
                     </div>
                   }
@@ -360,76 +458,108 @@
             </details>
 
             <details
-              class="mt-3 rounded-xl border border-gray-200 bg-gray-25 p-3"
+              class="mt-3 rounded-xl border border-gray-200 bg-gray-25 p-3 dark:border-gray-800 dark:bg-white/[0.02]"
               [open]="isNodeGroupDetailsOpen(location)"
               (toggle)="onNodeGroupDetailsToggle(location, $event)"
             >
-              <summary class="cursor-pointer list-none text-sm font-semibold text-gray-800">
+              <summary class="cursor-pointer list-none text-sm font-semibold text-gray-800 dark:text-white/90">
                 Node Groups
               </summary>
               @if (nodeGroups(location).length === 0) {
-                <p class="mt-2 text-sm text-gray-600">No node groups declared for this location.</p>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">No node groups declared for this location.</p>
               } @else {
                 <div class="mt-3 grid gap-3">
                   @for (group of nodeGroups(location); track group.name + '-' + group.flavor + '-' + $index) {
                     <details
-                      class="rounded-lg border border-gray-200 bg-white p-3"
+                      class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]"
                       [open]="isNodeGroupItemOpen(location, group, $index)"
                       (toggle)="onNodeGroupItemToggle(location, group, $index, $event)"
                     >
-                      <summary class="cursor-pointer list-none text-sm font-semibold text-gray-900">
+                      <summary class="cursor-pointer list-none text-sm font-semibold text-gray-900 dark:text-white/90">
                         {{ nodeGroupDisplayName(group) }}
                       </summary>
 
-                      <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                        <div class="rounded-lg border-gray-200 bg-gray-25 p-3">
-                          <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Cache Config</p>
-                          <p class="mt-1.5 text-sm text-gray-700">Node Group: {{ nodeGroupDisplayName(group) }}</p>
-                          <p class="mt-1.5 text-sm text-gray-700">Name: {{ group.cacheConfig.name || 'N/A' }}</p>
-                          <p class="mt-1.5 text-sm text-gray-700">Path: {{ group.cacheConfig.path }}</p>
-                          <p class="mt-1.5 text-sm text-gray-700">Keys Zone: {{ group.cacheConfig.keysZone }}</p>
-                          <p class="mt-1.5 text-sm text-gray-700">Inactive: {{ group.cacheConfig.inactive }}</p>
-                          <p class="mt-1.5 text-sm text-gray-700">Max Size: {{ group.cacheConfig.maxSize }}</p>
-                        </div>
-
-                        <div class="rounded-lg border-gray-200 bg-gray-25 p-3">
-                          <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Node Selector</p>
+                      <div class="mt-3 p-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Cache and Scheduling</p>
+                          </div>
                           @if (nodeSelectorEntries(group).length) {
-                            <div class="mt-2 flex flex-wrap gap-1.5">
+                            <div class="flex flex-wrap justify-end gap-1.5">
                               @for (selector of nodeSelectorEntries(group); track selector.key) {
-                                <span class="rounded-full border border-blue-light-200 bg-blue-light-50 px-2 py-0.5 text-xs text-blue-light-900">
+                                <span class="rounded-full bg-blue-light-100 px-2 py-0.5 text-xs text-blue-light-900 dark:bg-brand-500/15 dark:text-brand-300">
                                   {{ selector.key }}={{ selector.value }}
                                 </span>
                               }
                             </div>
-                          } @else {
-                            <p class="mt-1.5 text-sm text-gray-700">No node selector configured.</p>
                           }
                         </div>
-                      </div>
 
-                      <div class="mt-3 rounded-lg border-gray-200 bg-gray-25 p-3">
-                        <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Nodes</p>
+                        <div class="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2 xl:grid-cols-3">
+                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Cache name:</span> {{ group.cacheConfig.name || 'N/A' }}</p>
+                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Path:</span> {{ group.cacheConfig.path }}</p>
+                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Keys zone:</span> {{ group.cacheConfig.keysZone }}</p>
+                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Inactive:</span> {{ group.cacheConfig.inactive }}</p>
+                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Max size:</span> {{ group.cacheConfig.maxSize }}</p>
+                        </div>
+
+                        <div class="mt-4">
+                          <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Nodes</p>
                         @if (nodeGroupNodes(group).length) {
-                          <div class="mt-2 grid gap-2">
+                          <div class="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
                             @for (node of nodeGroupNodes(group); track node.name + '-' + $index) {
-                              <div class="rounded-lg border border-gray-200 bg-white p-3">
+                              <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]">
                                 <div class="flex flex-wrap items-center gap-2">
-                                  <p class="m-0 text-sm font-semibold text-gray-900">{{ node.name }}</p>
+                                  <p class="m-0 text-sm font-semibold text-gray-900 dark:text-white/90">{{ node.name }}</p>
                                   @if (isNodeInMaintenance(node)) {
                                     <span class="rounded-full border border-error-200 bg-error-50 px-2 py-0.5 text-xs font-semibold text-error-800">
                                       Maintenance Mode
                                     </span>
                                   }
                                 </div>
-                                <p class="mt-1 text-sm text-gray-700">IPv4: {{ node.ipv4 || 'N/A' }}</p>
-                                <p class="mt-1 text-sm text-gray-700">IPv6: {{ node.ipv6 || 'N/A' }}</p>
+                                <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">IPv4: {{ node.ipv4 || 'N/A' }}</p>
+                                <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">IPv6: {{ node.ipv6 || 'N/A' }}</p>
+                                @if (configuredNodeAlerts(location, node, group).length) {
+                                  <div class="mt-3 border-t border-gray-100 pt-3 dark:border-white/[0.05]">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                      <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Alerts</p>
+                                      <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-white/[0.08] dark:text-gray-300">
+                                        {{ configuredNodeAlerts(location, node, group).length }} defined
+                                      </span>
+                                    </div>
+
+                                    <div class="mt-2 grid gap-2">
+                                      @for (alert of configuredNodeAlerts(location, node, group); track alert.key) {
+                                        <div class="flex flex-wrap items-start justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 dark:bg-white/[0.02]">
+                                          <div>
+                                            <p class="m-0 text-sm font-medium text-gray-900 dark:text-white/90">{{ alert.alertName }}</p>
+                                            @if (alert.labels.length) {
+                                              <div class="mt-1 flex flex-wrap gap-1.5">
+                                                @for (entry of alert.labels; track entry.key) {
+                                                  <span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-700 dark:bg-white/[0.08] dark:text-gray-300">
+                                                    {{ entry.key }}={{ entry.value }}
+                                                  </span>
+                                                }
+                                              </div>
+                                            }
+                                          </div>
+                                          @if (alert.isFiring) {
+                                            <span [class]="alertDisplayBadgeClass(alert)">
+                                              {{ alertDisplayStatusText(alert) }}
+                                            </span>
+                                          }
+                                        </div>
+                                      }
+                                    </div>
+                                  </div>
+                                }
                               </div>
                             }
                           </div>
                         } @else {
-                          <p class="mt-1.5 text-sm text-gray-700">No nodes configured for this node group.</p>
+                          <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">No nodes configured for this node group.</p>
                         }
+                        </div>
                       </div>
                     </details>
                   }
@@ -437,33 +567,6 @@
               }
             </details>
 
-            @if (locationNodes(location).length) {
-              <details
-                class="mt-3 rounded-xl border border-gray-200 bg-gray-25 p-3"
-                [open]="isStandaloneNodesOpen(location)"
-                (toggle)="onStandaloneNodesToggle(location, $event)"
-              >
-                <summary class="cursor-pointer list-none text-sm font-semibold text-gray-800">
-                  Standalone Nodes
-                </summary>
-                <div class="mt-2 grid gap-2">
-                  @for (node of locationNodes(location); track node.name + '-' + $index) {
-                    <div class="rounded-lg border border-gray-200 bg-white p-3">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <p class="m-0 text-sm font-semibold text-gray-900">{{ node.name }}</p>
-                        @if (isNodeInMaintenance(node)) {
-                          <span class="rounded-full border border-error-200 bg-error-50 px-2 py-0.5 text-xs font-semibold text-error-800">
-                            Maintenance Mode
-                          </span>
-                        }
-                      </div>
-                      <p class="mt-1 text-sm text-gray-700">IPv4: {{ node.ipv4 || 'N/A' }}</p>
-                      <p class="mt-1 text-sm text-gray-700">IPv6: {{ node.ipv6 || 'N/A' }}</p>
-                    </div>
-                  }
-                </div>
-              </details>
-            }
           </details>
         }
       </div>

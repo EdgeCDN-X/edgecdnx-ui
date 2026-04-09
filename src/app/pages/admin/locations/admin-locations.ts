@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Placeholder } from '../../../shared/components/common/placeholder/placeholder';
 import { AdminStore } from '../store/admin.store';
-import { GeoLookupAttribute, Location, LocationHealthItem, LocationHealthNode, LocationHealthSource, Node, NodeGroup } from '../store/admin.types';
+import { GeoLookupAttribute, Location, LocationHealthAlert, LocationHealthItem, LocationHealthNode, LocationHealthSource, Node, NodeGroup, PrometheusAlertMatcher } from '../store/admin.types';
 
 type GeoAttributeEntry = {
   key: string;
@@ -12,6 +12,16 @@ type KeyValueEntry = {
   key: string;
   value: string;
 };
+
+type AlertDisplayEntry = {
+  key: string;
+  alertName: string;
+  labels: KeyValueEntry[];
+  isFiring: boolean;
+  timestamp?: number;
+};
+
+const PROMETHEUS_ALERTS_SOURCE = 'prometheus-alerts';
 
 @Component({
   selector: 'app-admin-locations',
@@ -36,7 +46,16 @@ export class AdminLocations implements OnInit, OnDestroy {
   readonly state = this.adminStore.locationsState;
   readonly healthState = this.adminStore.locationHealthsState;
   readonly locations = computed(() => this.state().items as Location[]);
-  readonly availableSources = computed(() => this.healthState().sources);
+  readonly availableSources = computed(() => {
+    const sources = new Set<string>();
+    for (const location of this.locations()) {
+      for (const source of this.displayLocationHealthSources(location)) {
+        sources.add(source.source);
+      }
+    }
+
+    return Array.from(sources).sort((left, right) => left.localeCompare(right));
+  });
   readonly isRefreshing = computed(() => this.state().loading || this.healthState().loading);
   readonly locationHealthByName = computed(() => {
     const index = new Map<string, LocationHealthItem>();
@@ -75,8 +94,11 @@ export class AdminLocations implements OnInit, OnDestroy {
   );
   readonly unhealthyNodeCount = computed(() => {
     return this.filteredLocations().reduce((sum, location) => {
-      return sum + this.visibleLocationHealthSources(location).reduce((sourceSum, source) => sourceSum + source.unhealthyNodes, 0);
+      return sum + this.displayLocationHealthSources(location).reduce((sourceSum, source) => sourceSum + source.unhealthyNodes, 0);
     }, 0);
+  });
+  readonly firingLocationAlertCount = computed(() => {
+    return this.filteredLocations().reduce((sum, location) => sum + this.locationAlerts(location).length, 0);
   });
   readonly locationsWithHealthIssuesCount = computed(() => {
     return this.filteredLocations().filter((location) => this.locationHasUnhealthyNodes(location)).length;
@@ -172,26 +194,26 @@ export class AdminLocations implements OnInit, OnDestroy {
 
   sublocationFilterButtonClass(): string {
     if (this.showSublocationsOnly()) {
-      return 'rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-800 shadow-theme-xs';
+      return 'rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-900 dark:border-brand-500/30 dark:bg-brand-500/15 dark:text-brand-300';
     }
 
-    return 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50';
+    return 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]';
   }
 
   sourceFilterButtonClass(source: string): string {
     if (this.selectedSource() === source) {
-      return 'rounded-lg border border-blue-light-300 bg-blue-light-50 px-3 py-2 text-xs font-semibold text-blue-light-900 shadow-theme-xs';
+      return 'rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-900 dark:border-brand-500/30 dark:bg-brand-500/15 dark:text-brand-300';
     }
 
-    return 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50';
+    return 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]';
   }
 
   unhealthyNodesFilterButtonClass(): string {
     if (this.showUnhealthyNodesOnly()) {
-      return 'rounded-lg border border-error-300 bg-error-50 px-3 py-2 text-xs font-semibold text-error-800 shadow-theme-xs';
+      return 'rounded-lg border border-error-300 bg-error-50 px-3 py-2 text-xs font-semibold text-error-900 dark:border-error-500/30 dark:bg-error-500/15 dark:text-error-300';
     }
 
-    return 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50';
+    return 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]';
   }
 
   private matchesNameFilter(name: string, filter: string): boolean {
@@ -249,16 +271,36 @@ export class AdminLocations implements OnInit, OnDestroy {
     return this.locationHealthByName().get(this.locationName(location));
   }
 
+  allLocationHealthSources(location: Location): LocationHealthSource[] {
+    return this.locationHealth(location)?.sources ?? [];
+  }
+
+  displayLocationHealthSources(location: Location): LocationHealthSource[] {
+    return this.allLocationHealthSources(location).filter((source) => !this.isRedundantLocationAlertSource(source));
+  }
+
+  locationAlerts(location: Location): LocationHealthAlert[] {
+    return this.locationHealth(location)?.alerts ?? [];
+  }
+
+  hasLocationAlerts(location: Location): boolean {
+    return this.locationAlerts(location).length > 0;
+  }
+
+  configuredLocationAlerts(location: Location): AlertDisplayEntry[] {
+    return this.buildAlertDisplayEntries(location.spec?.alerts ?? [], this.locationAlerts(location));
+  }
+
   visibleLocationHealthSources(location: Location): LocationHealthSource[] {
-    const health = this.locationHealth(location);
-    if (!health) {
+    const sources = this.displayLocationHealthSources(location);
+    if (sources.length === 0) {
       return [];
     }
 
     const selectedSource = this.selectedSource();
     const unhealthyOnly = this.showUnhealthyNodesOnly();
 
-    return health.sources
+    return sources
       .filter((source) => selectedSource === 'all' || source.source === selectedSource)
       .map((source) => this.filterHealthSource(source, unhealthyOnly))
       .filter((source) => source.nodes.length > 0);
@@ -281,7 +323,7 @@ export class AdminLocations implements OnInit, OnDestroy {
   }
 
   locationHasUnhealthyNodes(location: Location): boolean {
-    return this.visibleLocationHealthSources(location).some((source) => source.unhealthyNodes > 0);
+    return this.hasLocationAlerts(location) || this.displayLocationHealthSources(location).some((source) => source.unhealthyNodes > 0);
   }
 
   showCollapsedHealthWarning(location: Location): boolean {
@@ -289,9 +331,13 @@ export class AdminLocations implements OnInit, OnDestroy {
   }
 
   locationHealthStatusText(location: Location): string {
-    const sources = this.visibleLocationHealthSources(location);
-    if (sources.length === 0) {
+    const sources = this.displayLocationHealthSources(location);
+    const alertCount = this.locationAlerts(location).length;
+    if (sources.length === 0 && alertCount === 0) {
       return 'No health data';
+    }
+    if (alertCount > 0) {
+      return alertCount === 1 ? 'Location alert firing' : `${alertCount} location alerts firing`;
     }
     if (sources.some((source) => source.unhealthyNodes > 0)) {
       return 'Issues detected';
@@ -301,46 +347,136 @@ export class AdminLocations implements OnInit, OnDestroy {
   }
 
   locationHealthStatusBadgeClass(location: Location): string {
-    const sources = this.visibleLocationHealthSources(location);
-    if (sources.length === 0) {
-      return 'inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700';
-    }
-    if (sources.some((source) => source.unhealthyNodes > 0)) {
-      return 'inline-flex items-center rounded-full border border-error-200 bg-error-50 px-2.5 py-1 text-xs font-semibold text-error-800';
+    const sources = this.displayLocationHealthSources(location);
+    if (sources.length === 0 && !this.hasLocationAlerts(location)) {
+      return 'inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:border-gray-700 dark:bg-white/[0.06] dark:text-gray-300';
     }
 
-    return 'inline-flex items-center rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-semibold text-success-800';
+    if (this.hasLocationAlerts(location) || sources.some((source) => source.unhealthyNodes > 0)) {
+      return 'inline-flex items-center rounded-full border border-error-200 bg-error-100 px-2.5 py-1 text-xs font-semibold text-error-900 dark:border-error-500/30 dark:bg-error-500/15 dark:text-error-300';
+    }
+
+    return 'inline-flex items-center rounded-full border border-success-200 bg-success-100 px-2.5 py-1 text-xs font-semibold text-success-900 dark:border-success-500/30 dark:bg-success-500/15 dark:text-success-300';
   }
 
   sourceCardClass(source: LocationHealthSource): string {
     if (source.unhealthyNodes > 0) {
-      return 'rounded-xl border border-error-200 bg-gradient-to-br from-white to-error-50 p-3';
+      return 'rounded-2xl border border-error-200 bg-white p-4 shadow-sm dark:border-error-500/30 dark:bg-white/[0.03] dark:ring-1 dark:ring-error-500/20';
     }
 
-    return 'rounded-xl border border-success-200 bg-gradient-to-br from-white to-success-50 p-3';
+    return 'rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]';
   }
 
   nodeHealthCardClass(node: LocationHealthNode): string {
     if (!node.matched) {
-      return 'rounded-lg border border-warning-200 bg-warning-50 p-3';
+      return 'rounded-xl border border-warning-200 bg-warning-50 p-3 dark:border-warning-500/30 dark:bg-warning-500/12';
     }
     if (!node.healthy) {
-      return 'rounded-lg border border-error-200 bg-error-50 p-3';
+      return 'rounded-xl border border-error-200 bg-error-50 p-3 dark:border-error-500/30 dark:bg-error-500/12';
     }
 
-    return 'rounded-lg border border-gray-200 bg-white p-3';
+    return 'rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-white/[0.02]';
   }
 
   nodeHealthBadgeClass(node: LocationHealthNode): string {
     if (!node.healthy) {
-      return 'rounded-full border border-error-200 bg-error-50 px-2 py-0.5 text-xs font-semibold text-error-800';
+      return 'rounded-full border border-error-200 bg-error-100 px-2 py-0.5 text-xs font-semibold text-error-900 dark:border-error-500/30 dark:bg-error-500/15 dark:text-error-300';
     }
 
-    return 'rounded-full border border-success-200 bg-success-50 px-2 py-0.5 text-xs font-semibold text-success-800';
+    return 'rounded-full border border-success-200 bg-success-100 px-2 py-0.5 text-xs font-semibold text-success-900 dark:border-success-500/30 dark:bg-success-500/15 dark:text-success-300';
   }
 
   nodeHealthText(node: LocationHealthNode): string {
     return node.healthy ? 'Healthy' : 'Unhealthy';
+  }
+
+  nodeAlerts(node: LocationHealthNode): LocationHealthAlert[] {
+    return node.alerts ?? [];
+  }
+
+  hasNodeAlerts(node: LocationHealthNode): boolean {
+    return this.nodeAlerts(node).length > 0;
+  }
+
+  configuredNodeAlerts(location: Location, node: Node, nodeGroup?: NodeGroup): AlertDisplayEntry[] {
+    return this.buildAlertDisplayEntries(node.alerts ?? [], this.nodeFiringAlerts(location, node, nodeGroup));
+  }
+
+  alertDisplayCardClass(alert: AlertDisplayEntry): string {
+    if (alert.isFiring) {
+      return 'rounded-xl border border-error-100 bg-white p-3 dark:border-error-500/20 dark:bg-white/[0.03]';
+    }
+
+    return 'rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]';
+  }
+
+  alertDisplayBadgeClass(alert: AlertDisplayEntry): string {
+    if (alert.isFiring) {
+      return 'rounded-full bg-error-100 px-2 py-0.5 text-xs font-semibold text-error-900 dark:bg-error-500/15 dark:text-error-300';
+    }
+
+    return 'rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700 dark:bg-white/[0.08] dark:text-gray-300';
+  }
+
+  alertDisplayStatusText(alert: AlertDisplayEntry): string {
+    return alert.isFiring ? 'Firing' : 'Configured';
+  }
+
+  locationAlertSectionClass(location: Location): string {
+    if (this.hasLocationAlerts(location)) {
+      return 'mt-3 rounded-xl border border-error-200 bg-error-50 p-4 dark:border-error-500/30 dark:bg-error-500/12';
+    }
+
+    return 'mt-3 rounded-xl border border-gray-200 bg-gray-25 p-4 dark:border-gray-800 dark:bg-white/[0.02]';
+  }
+
+  locationAlertSectionEyebrowClass(location: Location): string {
+    if (this.hasLocationAlerts(location)) {
+      return 'm-0 text-xs uppercase tracking-wider text-error-700 dark:text-error-300';
+    }
+
+    return 'm-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400';
+  }
+
+  locationAlertSectionDescriptionClass(location: Location): string {
+    if (this.hasLocationAlerts(location)) {
+      return 'mt-1 text-sm text-error-900 dark:text-error-300';
+    }
+
+    return 'mt-1 text-sm text-gray-700 dark:text-gray-300';
+  }
+
+  locationAlertSectionCountClass(location: Location): string {
+    if (this.hasLocationAlerts(location)) {
+      return 'rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-error-900 shadow-sm dark:bg-white/[0.08] dark:text-error-300';
+    }
+
+    return 'rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 shadow-sm dark:bg-white/[0.08] dark:text-gray-300';
+  }
+
+  locationAlertLabelEntries(location: Location, alert: LocationHealthAlert): KeyValueEntry[] {
+    const matcher = this.resolveAlertMatcher(location.spec?.alerts ?? [], alert);
+    return this.matcherLabelEntries(matcher);
+  }
+
+  nodeAlertLabelEntries(location: Location, nodeHealth: LocationHealthNode, alert: LocationHealthAlert): KeyValueEntry[] {
+    if (nodeHealth.alertScope === 'location') {
+      return this.locationAlertLabelEntries(location, alert);
+    }
+
+    const matcher = this.resolveAlertMatcher(this.nodeAlertMatchers(location, nodeHealth), alert);
+    return this.matcherLabelEntries(matcher);
+  }
+
+  alertTimestampText(alert: { timestamp?: number }): string | null {
+    if (!alert.timestamp) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(alert.timestamp * 1000));
   }
 
   nodeHealthIdentity(node: LocationHealthNode): string {
@@ -406,18 +542,31 @@ export class AdminLocations implements OnInit, OnDestroy {
     return flavor ? `${nodeGroup.name}/${flavor}` : nodeGroup.name;
   }
 
+  configuredLocationAlertCount(location: Location): number {
+    return location.spec?.alerts?.length ?? 0;
+  }
+
+  configuredNodeAlertCount(location: Location): number {
+    const standaloneCount = this.locationNodes(location).reduce((sum, node) => sum + (node.alerts?.length ?? 0), 0);
+    const groupedCount = this.nodeGroups(location)
+      .flatMap((group) => this.nodeGroupNodes(group))
+      .reduce((sum, node) => sum + (node.alerts?.length ?? 0), 0);
+
+    return standaloneCount + groupedCount;
+  }
+
   statusBadgeClass(status?: string): string {
     if (status === 'Healthy') {
-      return 'inline-flex items-center rounded-full border border-success-200 bg-success-50 px-2.5 py-1 text-xs font-semibold text-success-800';
+      return 'inline-flex items-center rounded-full border border-success-200 bg-success-100 px-2.5 py-1 text-xs font-semibold text-success-900 dark:border-success-500/30 dark:bg-success-500/15 dark:text-success-300';
     }
     if (status === 'Progressing') {
-      return 'inline-flex items-center rounded-full border border-warning-200 bg-warning-50 px-2.5 py-1 text-xs font-semibold text-warning-900';
+      return 'inline-flex items-center rounded-full border border-warning-200 bg-warning-100 px-2.5 py-1 text-xs font-semibold text-warning-900 dark:border-warning-500/30 dark:bg-warning-500/15 dark:text-warning-300';
     }
     if (status === 'Degraded') {
-      return 'inline-flex items-center rounded-full border border-error-200 bg-error-50 px-2.5 py-1 text-xs font-semibold text-error-800';
+      return 'inline-flex items-center rounded-full border border-error-200 bg-error-100 px-2.5 py-1 text-xs font-semibold text-error-900 dark:border-error-500/30 dark:bg-error-500/15 dark:text-error-300';
     }
 
-    return 'inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700';
+    return 'inline-flex items-center rounded-full border border-gray-200 bg-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:border-gray-700 dark:bg-white/[0.06] dark:text-gray-300';
   }
 
   ngOnInit() {
@@ -461,9 +610,9 @@ export class AdminLocations implements OnInit, OnDestroy {
   }
 
   private matchesHealthFilters(location: Location, selectedSource: string, unhealthyOnly: boolean): boolean {
-    const health = this.locationHealthByName().get(this.locationName(location));
+    const sources = this.displayLocationHealthSources(location);
     if (selectedSource !== 'all') {
-      if (!health || !health.sources.some((source) => source.source === selectedSource)) {
+      if (!sources.some((source) => source.source === selectedSource)) {
         return false;
       }
     }
@@ -472,11 +621,11 @@ export class AdminLocations implements OnInit, OnDestroy {
       return true;
     }
 
-    if (!health) {
-      return false;
+    if (selectedSource === 'all' && this.hasLocationAlerts(location)) {
+      return true;
     }
 
-    return health.sources
+    return sources
       .filter((source) => selectedSource === 'all' || source.source === selectedSource)
       .some((source) => source.nodes.some((node) => !node.healthy));
   }
@@ -495,5 +644,141 @@ export class AdminLocations implements OnInit, OnDestroy {
       unhealthyNodes,
       unknownNodes,
     };
+  }
+
+  private isRedundantLocationAlertSource(source: LocationHealthSource): boolean {
+    if (source.source !== PROMETHEUS_ALERTS_SOURCE) {
+      return false;
+    }
+
+    return source.nodes.length > 0 && source.nodes.every((node) => node.alertScope === 'location');
+  }
+
+  private matcherLabelEntries(matcher?: PrometheusAlertMatcher): KeyValueEntry[] {
+    const labels = matcher?.labels;
+    if (!labels) {
+      return [];
+    }
+
+    return Object.entries(labels)
+      .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+      .map(([key, value]) => ({ key, value }));
+  }
+
+  private resolveAlertMatcher(matchers: PrometheusAlertMatcher[], alert: LocationHealthAlert): PrometheusAlertMatcher | undefined {
+    const matching = matchers
+      .filter((matcher) => matcher.alertName === alert.alertName)
+      .filter((matcher) => this.matcherLabelsMatchAlert(matcher, alert))
+      .sort((left, right) => this.matcherLabelCount(right) - this.matcherLabelCount(left));
+
+    return matching[0];
+  }
+
+  private matcherLabelsMatchAlert(matcher: PrometheusAlertMatcher, alert: LocationHealthAlert): boolean {
+    const matcherLabels = matcher.labels;
+    if (!matcherLabels) {
+      return true;
+    }
+
+    const alertLabels = alert.labels ?? {};
+    return Object.entries(matcherLabels).every(([key, value]) => alertLabels[key] === value);
+  }
+
+  private matcherLabelCount(matcher: PrometheusAlertMatcher): number {
+    return Object.keys(matcher.labels ?? {}).length;
+  }
+
+  private buildAlertDisplayEntries(
+    matchers: PrometheusAlertMatcher[],
+    firingAlerts: LocationHealthAlert[]
+  ): AlertDisplayEntry[] {
+    const entries = matchers.map((matcher, index) => {
+      const matchedAlert = firingAlerts.find((alert) => this.alertMatchesMatcher(alert, matcher));
+      const labels = this.matcherLabelEntries(matcher);
+      const labelKey = labels.map((entry) => `${entry.key}=${entry.value}`).join('|');
+
+      return {
+        key: `${matcher.alertName}-${labelKey}-${index}`,
+        alertName: matcher.alertName,
+        labels,
+        isFiring: !!matchedAlert,
+        timestamp: matchedAlert?.timestamp,
+      };
+    });
+
+    const unmatchedFiringEntries = firingAlerts
+      .filter((alert) => !matchers.some((matcher) => this.alertMatchesMatcher(alert, matcher)))
+      .map((alert, index) => ({
+        key: `${alert.alertName}-firing-${index}`,
+        alertName: alert.alertName,
+        labels: Object.entries(alert.labels ?? {})
+          .filter(([key]) => key !== 'alertname' && key !== 'alertstate')
+          .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+          .map(([key, value]) => ({ key, value })),
+        isFiring: true,
+        timestamp: alert.timestamp,
+      }));
+
+    return [...entries, ...unmatchedFiringEntries];
+  }
+
+  private alertMatchesMatcher(alert: LocationHealthAlert, matcher: PrometheusAlertMatcher): boolean {
+    if (alert.alertName !== matcher.alertName) {
+      return false;
+    }
+
+    return this.matcherLabelsMatchAlert(matcher, alert);
+  }
+
+  private nodeFiringAlerts(location: Location, node: Node, nodeGroup?: NodeGroup): LocationHealthAlert[] {
+    const firingAlerts = this.allLocationHealthSources(location)
+      .flatMap((source) => source.nodes)
+      .filter((nodeHealth) => nodeHealth.nodeName === node.name)
+      .filter((nodeHealth) => {
+        if (!nodeGroup) {
+          return !nodeHealth.nodeGroupName;
+        }
+
+        return nodeHealth.nodeGroupName === nodeGroup.name && (nodeHealth.nodeGroupFlavor ?? '') === (nodeGroup.flavor ?? '');
+      })
+      .flatMap((nodeHealth) => nodeHealth.alerts ?? []);
+
+    return this.deduplicateAlerts(firingAlerts);
+  }
+
+  private deduplicateAlerts(alerts: LocationHealthAlert[]): LocationHealthAlert[] {
+    const seen = new Set<string>();
+
+    return alerts.filter((alert) => {
+      const key = `${alert.alertName}:${JSON.stringify(alert.labels ?? {})}`;
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  }
+
+  private nodeAlertMatchers(location: Location, nodeHealth: LocationHealthNode): PrometheusAlertMatcher[] {
+    const node = this.findNodeForHealth(location, nodeHealth);
+    return node?.alerts ?? [];
+  }
+
+  private findNodeForHealth(location: Location, nodeHealth: LocationHealthNode): Node | undefined {
+    const nodeName = nodeHealth.nodeName?.trim();
+    if (!nodeName) {
+      return undefined;
+    }
+
+    const nodeGroupName = nodeHealth.nodeGroupName?.trim();
+    if (nodeGroupName) {
+      const nodeGroupFlavor = nodeHealth.nodeGroupFlavor?.trim() ?? '';
+      return this.nodeGroups(location)
+        .find((group) => group.name === nodeGroupName && (group.flavor?.trim() ?? '') === nodeGroupFlavor)
+        ?.nodes?.find((node) => node.name === nodeName);
+    }
+
+    return this.locationNodes(location).find((node) => node.name === nodeName);
   }
 }

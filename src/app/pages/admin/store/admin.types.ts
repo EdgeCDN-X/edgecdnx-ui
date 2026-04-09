@@ -127,7 +127,15 @@ export type LocationHealthNode = {
   timestamp: number;
   matched: boolean;
   matchField?: string;
+  alertScope?: 'location' | 'node' | string;
+  alerts?: LocationHealthAlert[];
   labels: Record<string, string>;
+};
+
+export type LocationHealthAlert = {
+  alertName: string;
+  labels?: Record<string, string>;
+  timestamp?: number;
 };
 
 export type LocationHealthSource = {
@@ -143,6 +151,7 @@ export type LocationHealthItem = {
   name: string;
   status?: HealthStatus | string;
   maintenanceMode?: boolean;
+  alerts?: LocationHealthAlert[];
   sources: LocationHealthSource[];
 };
 

@@ -1,4 +1,4 @@
-<section class="base-card space-y-4" aria-labelledby="zones-heading">
+<section class="space-y-4" aria-labelledby="zones-heading">
   <header class="flex items-start justify-between gap-3">
     <div>
       <h2 id="zones-heading" class="card-title">Zones</h2>
@@ -8,15 +8,15 @@
     <div class="inline-flex items-center gap-2">
       <button
         type="button"
-        class="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        class="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]"
         (click)="refreshZones()"
       >
         Refresh
       </button>
 
       @if (state().loading) {
-        <div class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600">
-          <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-brand-600"></span>
+        <div class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-600 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-400">
+          <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-brand-600 dark:border-gray-700 dark:border-t-brand-400"></span>
           Refreshing
         </div>
       }
@@ -35,33 +35,33 @@
     }
 
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Zone summary metrics">
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Total Zones</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ zones().length }}</p>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Total Zones</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ zones().length }}</p>
       </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Healthy</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ healthyCount() }}</p>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Healthy</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ healthyCount() }}</p>
       </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Progressing</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ progressingCount() }}</p>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Progressing</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ progressingCount() }}</p>
       </article>
-      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4">
-        <p class="m-0 text-xs tracking-wide text-gray-600">Degraded</p>
-        <p class="mt-1.5 text-2xl font-bold text-gray-900">{{ degradedCount() }}</p>
+      <article class="rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-blue-light-25 p-4 dark:border-gray-800 dark:from-white/[0.03] dark:to-brand-500/[0.08]">
+        <p class="m-0 text-xs tracking-wide text-gray-600 dark:text-gray-400">Degraded</p>
+        <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white/90">{{ degradedCount() }}</p>
       </article>
     </div>
 
     <div class="grid gap-3">
       @for (zone of zones(); track zone.metadata?.uid ?? zone.metadata?.name ?? $index) {
-        <article class="rounded-2xl border border-gray-200 bg-white p-4">
+        <article class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <h3 class="m-0 text-base font-bold text-gray-900">{{ zoneName(zone) }}</h3>
-              <p class="mt-1 text-sm text-gray-500">FQDN Zone: {{ zone.spec?.zone || 'Unspecified' }}</p>
+              <h3 class="m-0 text-base font-bold text-gray-900 dark:text-white/90">{{ zoneName(zone) }}</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">FQDN Zone: {{ zone.spec?.zone || 'Unspecified' }}</p>
               @if (zone.metadata?.labels?.['project']) {
-                <p class="mt-2 inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-800">
+                <p class="mt-2 inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-800 dark:border-brand-500/30 dark:bg-brand-500/15 dark:text-brand-300">
                   Project: {{ zone.metadata?.labels?.['project'] }}
                 </p>
               }
@@ -72,15 +72,15 @@
           </div>
 
           <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-            <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
-              <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Contact</p>
-              <p class="mt-1.5 text-sm text-gray-700">{{ zone.spec?.email || 'No contact email' }}</p>
+            <div class="rounded-xl border border-gray-200 bg-gray-25 p-3 dark:border-gray-800 dark:bg-white/[0.02]">
+              <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Contact</p>
+              <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">{{ zone.spec?.email || 'No contact email' }}</p>
             </div>
 
-            <div class="rounded-xl border border-gray-200 bg-gray-25 p-3">
-              <p class="m-0 text-xs uppercase tracking-wider text-gray-500">Metadata</p>
-              <p class="mt-1.5 text-sm text-gray-700">Namespace: {{ zone.metadata?.namespace || 'default' }}</p>
-              <p class="mt-1.5 text-sm text-gray-700">Generation: {{ zone.metadata?.generation ?? 0 }}</p>
+            <div class="rounded-xl border border-gray-200 bg-gray-25 p-3 dark:border-gray-800 dark:bg-white/[0.02]">
+              <p class="m-0 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Metadata</p>
+              <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">Namespace: {{ zone.metadata?.namespace || 'default' }}</p>
+              <p class="mt-1.5 text-sm text-gray-700 dark:text-gray-300">Generation: {{ zone.metadata?.generation ?? 0 }}</p>
             </div>
           </div>
         </article>
