@@ -24,6 +24,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Do NOT use `ngClass`, use `class` bindings instead
 - Do NOT use `ngStyle`, use `style` bindings instead
 - When using external templates/styles, use paths relative to the component TS file.
+- Do NOT create component-local CSS files; place reusable component styles in `src/styles.css`.
 ## State Management
 - Use signals for local component state
 - Use `computed()` for derived state

@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { SwitchComponent } from '../../../../shared/components/form/input/switch.component';
 import { TagInputComponent } from '../../../../shared/components/form/input/tag-input.component';
 import { ServiceStore } from '../../../projects/store/service.store';
-import { OriginType, CreateServiceDto } from '../../../projects/store/service.types';
+import { OriginType, CreateServiceDto, CorsDto } from '../../../projects/store/service.types';
 
 
 @Component({
@@ -30,7 +30,11 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
   error = this.serviceStore.error;
 
   step = signal(1);
-  submitStep = 4;
+  submitStep = 5;
+
+  private readonly defaultCorsMethods = ['GET', 'HEAD', 'OPTIONS'];
+  private readonly defaultCorsOrigins = ['*'];
+  readonly corsMethodOptions = ['GET', 'HEAD', 'OPTIONS'];
 
   /**
    * Step by step validation to ensure users fill in the required fields before proceeding to the next step.
@@ -57,6 +61,13 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
       return this.serviceCreateForm.get('cache')?.valid;
     }
 
+    if (this.step() === 4) {
+      if (!this.serviceCreateForm.get('corsEnabled')?.value) {
+        return true;
+      }
+      return this.serviceCreateForm.get('cors')?.valid;
+    }
+
     return true;
   }
 
@@ -69,6 +80,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
   }
 
   OriginChanges: Subscription | undefined = null as any;
+  corsEnabledChanges: Subscription | undefined = null as any;
 
   originTypes: OriginType[] = Object.values(OriginType) as OriginType[];
   awsSigsVersions: (2 | 4)[] = [2, 4];
@@ -95,6 +107,7 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
     hostAliases: new FormArray<FormControl<string>>([]),
     signedUrlsEnabled: new FormControl(false, { nonNullable: true }),
     wafEnabled: new FormControl(false, { nonNullable: true }),
+    corsEnabled: new FormControl(true, { nonNullable: true }),
 
     path: new FormGroup({
       paths: new FormArray<FormControl<string>>([
@@ -106,7 +119,9 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
     cacheKey: new FormGroup({
       queryParams: new FormControl<string[]>([]),
       headers: new FormArray<FormControl<string>>([]),
-    })
+    }),
+
+    cors: this.createCorsGroup()
   })
 
   ngOnInit(): void {
@@ -116,17 +131,31 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
     if (this.isEditMode && this.serviceId) {
       const service = this.serviceStore.services()?.find(s => s.metadata.name === this.serviceId);
       if (service) {
+        const allowedMethods = this.normalizeTags(service.spec.cors?.allowedMethods, true);
+        const allowedOrigins = this.normalizeTags(service.spec.cors?.allowedOrigins);
+
         this.serviceCreateForm.patchValue({
           name: service.spec.name,
           originType: service.spec.originType,
           cache: service.spec.cache,
           signedUrlsEnabled: service.spec.secureKeys && service.spec.secureKeys.length > 0,
           wafEnabled: service.spec.waf.enabled,
+          corsEnabled: !!service.spec.cors,
           cacheKey: {
             queryParams: service.spec.cacheKey?.queryParams || [],
             headers: service.spec.cacheKey?.headers || [],
           },
         }, { emitEvent: true });
+
+        if (service.spec.cors) {
+          this.serviceCreateForm.setControl('cors', this.createCorsGroup({
+            allowedMethods: allowedMethods.length > 0 ? allowedMethods : [...this.defaultCorsMethods],
+            allowedOrigins: allowedOrigins.length > 0 ? allowedOrigins : [...this.defaultCorsOrigins],
+            allowCredentials: service.spec.cors?.allowCredentials ?? true,
+          }));
+        } else {
+          (this.serviceCreateForm as any).removeControl('cors');
+        }
 
         if (service.spec.path?.paths && service.spec.path.paths.length > 0) {
           this.serviceCreateForm.setControl('path', new FormGroup({
@@ -202,10 +231,15 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
         }));
       }
     });
+
+    this.corsEnabledChanges = this.serviceCreateForm.get('corsEnabled')?.valueChanges.subscribe(enabled => {
+      this.toggleCorsGroup(enabled);
+    });
   }
 
   ngOnDestroy(): void {
     this.OriginChanges?.unsubscribe();
+    this.corsEnabledChanges?.unsubscribe();
   }
 
   get paths() {
@@ -225,12 +259,60 @@ export class ServiceCreateForm implements OnInit, OnDestroy {
   onSubmit() {
     if (this.serviceCreateForm.valid) {
       const createService = this.serviceCreateForm.value as CreateServiceDto;
+      createService.cors = this.serviceCreateForm.get('corsEnabled')?.value ? this.normalizedCors() : null;
 
       if (this.isEditMode) {
         this.serviceStore.updateService(this.serviceId!, createService);
       } else {
         this.serviceStore.createService(createService);
       }
+    }
+  }
+
+  private createCorsGroup(initial?: Partial<CorsDto>): FormGroup {
+    return new FormGroup({
+      allowedMethods: new FormControl<string[]>(initial?.allowedMethods || [...this.defaultCorsMethods], {
+        nonNullable: true,
+        validators: [Validators.required, Validators.minLength(1)],
+      }),
+      allowedOrigins: new FormControl<string[]>(initial?.allowedOrigins || [...this.defaultCorsOrigins], {
+        nonNullable: true,
+        validators: [Validators.required, Validators.minLength(1)],
+      }),
+      allowCredentials: new FormControl(initial?.allowCredentials ?? true, { nonNullable: true }),
+    });
+  }
+
+  private normalizeTags(values?: string[], uppercase: boolean = false): string[] {
+    const normalized = (values || [])
+      .map(item => item.trim())
+      .filter(item => item.length > 0)
+      .map(item => uppercase ? item.toUpperCase() : item);
+
+    return [...new Set(normalized)];
+  }
+
+  private normalizedCors(): CorsDto {
+    const corsValue = this.serviceCreateForm.get('cors')?.value as CorsDto | undefined;
+    const methods = this.normalizeTags(corsValue?.allowedMethods, true);
+    const origins = this.normalizeTags(corsValue?.allowedOrigins);
+
+    return {
+      allowedMethods: methods.length > 0 ? methods : [...this.defaultCorsMethods],
+      allowedOrigins: origins.length > 0 ? origins : [...this.defaultCorsOrigins],
+      allowCredentials: corsValue?.allowCredentials ?? true,
+    };
+  }
+
+  private toggleCorsGroup(enabled: boolean): void {
+    const hasCorsGroup = !!this.serviceCreateForm.get('cors');
+
+    if (enabled && !hasCorsGroup) {
+      this.serviceCreateForm.setControl('cors', this.createCorsGroup());
+    }
+
+    if (!enabled && hasCorsGroup) {
+      (this.serviceCreateForm as any).removeControl('cors');
     }
   }
 }

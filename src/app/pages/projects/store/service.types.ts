@@ -11,6 +11,12 @@ export interface PathDto {
     Rewrite?: string;
 }
 
+export interface CorsDto {
+    allowedOrigins?: string[];
+    allowedMethods?: string[];
+    allowCredentials?: boolean;
+}
+
 export interface CreateServiceDto {
     name: string;
     originType: OriginType;
@@ -19,6 +25,7 @@ export interface CreateServiceDto {
     cache: string;
     hostAliases?: HostAlias[];
     path?: PathDto;
+    cors?: CorsDto | null;
 
     signedUrlsEnabled: boolean;
     wafEnabled: boolean;
@@ -61,6 +68,9 @@ export interface ServiceSpec {
     /** Path configuration for the service */
     path?: PathSpec;
 
+    /** CORS configuration for browser-origin requests */
+    cors?: CorsSpec;
+
     /** Service Name. Use full domain name for the service */
     name?: string;
 
@@ -90,6 +100,22 @@ export interface PathSpec {
 
     /** Optional rewrite target for the paths */
     rewrite?: string;
+}
+
+/* =========================
+ * CORS
+ * =========================
+ */
+
+export interface CorsSpec {
+    /** Allowed origins for cross-origin requests */
+    allowedOrigins?: string[];
+
+    /** Allowed HTTP methods for cross-origin requests */
+    allowedMethods?: string[];
+
+    /** Whether credentials are allowed in cross-origin requests */
+    allowCredentials?: boolean;
 }
 
 

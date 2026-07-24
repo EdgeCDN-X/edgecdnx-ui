@@ -178,6 +178,77 @@ export class ServiceDetails implements OnDestroy {
     return message.replace(/\\n/g, '<br>');
   }
 
+  hasCorsConfig(): boolean {
+    const cors = this.service()?.spec?.cors as Record<string, unknown> | undefined;
+    if (!cors) {
+      return false;
+    }
+
+    const hasAllowMethods = this.parseCorsList(cors['allowMethods']).length > 0;
+    const hasAllowedMethods = this.parseCorsList(cors['allowedMethods']).length > 0;
+    const hasAllowOrigin = this.parseCorsList(cors['allowOrigin']).length > 0;
+    const hasAllowedOrigins = this.parseCorsList(cors['allowedOrigins']).length > 0;
+    const hasAllowCredentials = typeof cors['allowCredentials'] === 'boolean';
+
+    return hasAllowMethods || hasAllowedMethods || hasAllowOrigin || hasAllowedOrigins || hasAllowCredentials;
+  }
+
+  corsMethodsDisplay(): string {
+    const cors = this.service()?.spec?.cors as Record<string, unknown> | undefined;
+    if (!cors) {
+      return 'N/A';
+    }
+
+    const fromAllowMethods = this.parseCorsList(cors['allowMethods']);
+    if (fromAllowMethods.length > 0) {
+      return fromAllowMethods.join(', ');
+    }
+
+    const fromAllowedMethods = this.parseCorsList(cors['allowedMethods']);
+    return fromAllowedMethods.length > 0 ? fromAllowedMethods.join(', ') : 'N/A';
+  }
+
+  corsOriginsDisplay(): string {
+    const cors = this.service()?.spec?.cors as Record<string, unknown> | undefined;
+    if (!cors) {
+      return 'N/A';
+    }
+
+    const fromAllowOrigin = this.parseCorsList(cors['allowOrigin']);
+    if (fromAllowOrigin.length > 0) {
+      return fromAllowOrigin.join(', ');
+    }
+
+    const fromAllowedOrigins = this.parseCorsList(cors['allowedOrigins']);
+    return fromAllowedOrigins.length > 0 ? fromAllowedOrigins.join(', ') : 'N/A';
+  }
+
+  corsCredentialsDisplay(): string {
+    const cors = this.service()?.spec?.cors as Record<string, unknown> | undefined;
+    if (!cors || typeof cors['allowCredentials'] !== 'boolean') {
+      return 'N/A';
+    }
+    return cors['allowCredentials'] ? 'Enabled' : 'Disabled';
+  }
+
+  private parseCorsList(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item): item is string => typeof item === 'string')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+    }
+
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+    }
+
+    return [];
+  }
+
   ngOnDestroy(): void {
     this.serviceStore.stopPollingServiceStatus(this.service()?.metadata.name!);
   }

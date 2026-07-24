@@ -330,6 +330,54 @@
         }
 
         @if (step() === 4) {
+        <p class="base-text">CORS Settings</p>
+
+        <div class="pt-3">
+            <p class="form-label text-xs mb-2 pb-2">Enable CORS configuration for this service.</p>
+            <app-switch [label]="'CORS Enabled'" formControlName="corsEnabled"></app-switch>
+        </div>
+
+        @if (serviceCreateForm.get('corsEnabled')!.value && serviceCreateForm.get('cors')) {
+        <div formGroupName="cors" class="pt-3">
+            <div class="pt-3">
+                <label for="allowedMethods" class="form-label">Allowed Methods</label>
+                <p class="form-label text-xs pb-1">Defaults: GET, HEAD, OPTIONS. Use Cmd/Ctrl + click for multiple.</p>
+                <select id="allowedMethods" formControlName="allowedMethods"
+                    class="form-input-field h-auto min-h-44 py-3 text-base leading-6 [&>option]:rounded-md [&>option]:px-3 [&>option]:py-2 [&>option]:text-gray-800 dark:[&>option]:text-white/90 [&>option:checked]:bg-brand-100 [&>option:checked]:text-brand-900 [&>option:checked]:font-semibold dark:[&>option:checked]:bg-brand-700/55 dark:[&>option:checked]:text-brand-50"
+                    multiple size="3" aria-label="Allowed CORS Methods">
+                    @for (method of corsMethodOptions; track method) {
+                    <option [value]="method">{{ method }}</option>
+                    }
+                </select>
+                @if (serviceCreateForm.get('cors')!.get('allowedMethods')!.invalid &&
+                serviceCreateForm.get('cors')!.get('allowedMethods')!.touched) {
+                <p class="text-red-600 text-xs pt-1">At least one allowed method is required.</p>
+                }
+            </div>
+
+            <div class="pt-3">
+                <label for="allowedOrigins" class="form-label">Allowed Origins</label>
+                <p class="form-label text-xs pb-1">Use * to allow all origins.</p>
+                <app-tag-input formControlName="allowedOrigins"
+                    [placeholder]="'Type and tab to add an origin'"></app-tag-input>
+                @if (serviceCreateForm.get('cors')!.get('allowedOrigins')!.invalid &&
+                serviceCreateForm.get('cors')!.get('allowedOrigins')!.touched) {
+                <p class="text-red-600 text-xs pt-1">At least one allowed origin is required.</p>
+                }
+            </div>
+
+            <div class="pt-3">
+                <p class="form-label text-xs mb-2 pb-2">Allow browser credentials (cookies/authorization headers) for
+                    cross-origin requests.</p>
+                <app-switch [label]="'Allow Credentials'" formControlName="allowCredentials"></app-switch>
+            </div>
+        </div>
+        } @else {
+        <p class="content-label-value pt-3">CORS is disabled for this service.</p>
+        }
+        }
+
+        @if (step() === 5) {
         <p class="base-text">Security and Privacy</p>
 
         @if (!isEditMode) {

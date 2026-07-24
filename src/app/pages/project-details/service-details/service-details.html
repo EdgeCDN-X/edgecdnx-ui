@@ -134,6 +134,27 @@
 
 	<hr class="divider" />
 
+	<div class="flex justify-between pb-5">
+		<h2 class="sub-card-title">CORS</h2>
+	</div>
+
+	@if (hasCorsConfig()) {
+	<div class="grid gap-4 md:grid-cols-2">
+		<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+			<p class="content-label">Allowed Methods</p>
+			<p class="content-label-value">{{ corsMethodsDisplay() }}</p>
+			<p class="content-label">Allowed Origins</p>
+			<p class="content-label-value">{{ corsOriginsDisplay() }}</p>
+			<p class="content-label">Allow Credentials</p>
+			<p class="content-label-value">{{ corsCredentialsDisplay() }}</p>
+		</div>
+	</div>
+	} @else {
+	<p class="content-label-value">No CORS Configured</p>
+	}
+
+	<hr class="divider" />
+
 	<div class="flex justify-between">
 		<h2 class="sub-card-title">Security</h2>
 	</div>
