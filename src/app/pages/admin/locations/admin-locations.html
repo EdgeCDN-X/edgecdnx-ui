@@ -496,11 +496,13 @@
                         </div>
 
                         <div class="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2 xl:grid-cols-3">
-                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Cache name:</span> {{ group.cacheConfig.name || 'N/A' }}</p>
-                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Path:</span> {{ group.cacheConfig.path }}</p>
-                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Keys zone:</span> {{ group.cacheConfig.keysZone }}</p>
-                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Inactive:</span> {{ group.cacheConfig.inactive }}</p>
-                          <p class="m-0"><span class="text-gray-500 dark:text-gray-400">Max size:</span> {{ group.cacheConfig.maxSize }}</p>
+                          @if (cacheMetadataEntries(group).length) {
+                            @for (entry of cacheMetadataEntries(group); track entry.key) {
+                              <p class="m-0"><span class="text-gray-500 dark:text-gray-400">{{ entry.key }}:</span> {{ entry.value }}</p>
+                            }
+                          } @else {
+                            <p class="m-0 text-sm text-gray-600 dark:text-gray-400">No cache configuration declared.</p>
+                          }
                         </div>
 
                         <div class="mt-4">

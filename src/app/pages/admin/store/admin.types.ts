@@ -46,6 +46,7 @@ export type GeoLookup = {
   attributes?: Record<string, GeoLookupAttribute>;
 };
 
+/** @deprecated use NodeGroup.metadata instead. */
 export type CacheConfig = {
   name?: string;
   path: string;
@@ -67,7 +68,9 @@ export type NodeGroup = {
   name: string;
   flavor?: string;
   nodes?: Node[];
-  cacheConfig: CacheConfig;
+  /** @deprecated use metadata instead. */
+  cacheConfig?: CacheConfig;
+  metadata?: Record<string, string>;
   nodeSelector?: Record<string, string>;
 };
 

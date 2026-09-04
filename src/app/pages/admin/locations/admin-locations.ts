@@ -259,6 +259,28 @@ export class AdminLocations implements OnInit, OnDestroy {
     return Object.entries(selector).map(([key, value]) => ({ key, value }));
   }
 
+  cacheMetadataEntries(nodeGroup: NodeGroup): KeyValueEntry[] {
+    if (nodeGroup.metadata && Object.keys(nodeGroup.metadata).length) {
+      return Object.entries(nodeGroup.metadata).map(([key, value]) => ({ key, value }));
+    }
+
+    // Fall back to the deprecated fixed cacheConfig fields until locations are migrated.
+    const legacy = nodeGroup.cacheConfig;
+    if (!legacy) {
+      return [];
+    }
+
+    return Object.entries({
+      name: legacy.name,
+      path: legacy.path,
+      keysZone: legacy.keysZone,
+      inactive: legacy.inactive,
+      maxSize: legacy.maxSize,
+    })
+      .filter((entry): entry is [string, string] => !!entry[1])
+      .map(([key, value]) => ({ key, value }));
+  }
+
   nodeGroupNodes(nodeGroup: NodeGroup): Node[] {
     return nodeGroup.nodes ?? [];
   }
