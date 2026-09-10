@@ -36,7 +36,9 @@
                 @for (item of zones(); track $index) {
                 <tr>
                     <td class="base-text py-3">
-                        {{item.spec.zone}}
+                        <a class="link-primary font-mono" [routerLink]="['/projects', projectId, 'zones', item.metadata.name]">
+                            {{item.spec.zone}}
+                        </a>
                     </td>
                     <td class="base-text hidden lg:table-cell">
                         {{item.spec.email}}

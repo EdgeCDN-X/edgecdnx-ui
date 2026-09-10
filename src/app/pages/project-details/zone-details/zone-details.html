@@ -1,0 +1,135 @@
+<section aria-labelledby="zone-heading">
+  <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="min-w-0">
+      <a [routerLink]="['/projects', projectId(), 'zones']" class="link-primary inline-flex items-center gap-1">
+        <span aria-hidden="true">&larr;</span>
+        Zones
+      </a>
+      <h2 id="zone-heading" class="mt-2 truncate text-2xl font-semibold text-gray-900 dark:text-white">
+        {{ zoneName() }}
+      </h2>
+      <p class="base-text mt-1">DNS records for this authoritative zone.</p>
+    </div>
+    <app-button size="sm" (btnClick)="openCreate()">Create record</app-button>
+  </div>
+
+  @if (error()?.action === 'list') {
+    <div class="rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700" role="alert">
+      {{ error()!.message }}
+    </div>
+  }
+
+  @if (loading()) {
+    <app-placeholder />
+  } @else if (!error() || error()?.action !== 'list') {
+    <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
+      @if (dnsEndpoints().length > 0) {
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[520px] table-fixed md:min-w-[900px]">
+            <thead class="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.02]">
+              <tr>
+                <th scope="col" class="table-label w-[22%] px-4">Name</th>
+                <th scope="col" class="table-label w-20 px-4">Type</th>
+                <th scope="col" class="table-label hidden w-20 px-4 md:table-cell">TTL</th>
+                <th scope="col" class="table-label hidden w-[30%] px-4 md:table-cell">Routing</th>
+                <th scope="col" class="table-label w-[22%] px-4">Values</th>
+                <th scope="col" class="w-28 px-4"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody class="table-divider">
+              @for (dnsEndpoint of dnsEndpoints(); track dnsEndpoint.metadata.uid ?? dnsEndpoint.metadata.name) {
+                <tr>
+                  <td class="px-4 py-4 align-top font-mono text-sm text-gray-800 dark:text-gray-200">
+                    {{ displayHost(dnsEndpoint.spec.dnsName) }}
+                  </td>
+                  <td class="px-4 py-4 align-top">
+                    <span class="inline-flex rounded-md bg-blue-light-50 px-2 py-1 text-xs font-semibold text-blue-light-700 dark:bg-blue-light-500/10 dark:text-blue-light-300">
+                      {{ dnsEndpoint.spec.recordType }}
+                    </span>
+                  </td>
+                  <td class="base-text hidden px-4 py-4 align-top md:table-cell">{{ dnsEndpoint.spec.recordTTL }}</td>
+                  <td class="hidden px-4 py-4 align-top md:table-cell">
+                    <span class="inline-flex rounded-md bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-700 dark:bg-white/[0.06] dark:text-gray-300">
+                      {{ dnsEndpoint.spec.routingPolicy }}
+                    </span>
+                    @if (routeSelectorEntries(dnsEndpoint.spec.routeSelector).length > 0) {
+                      <ul class="m-0 mt-2 space-y-1 p-0" aria-label="Route selector">
+                        @for (entry of routeSelectorEntries(dnsEndpoint.spec.routeSelector); track $index) {
+                          <li class="break-all font-mono text-xs text-gray-500 dark:text-gray-400">{{ entry }}</li>
+                        }
+                      </ul>
+                    }
+                  </td>
+                  <td class="px-4 py-4 align-top">
+                    <ul class="m-0 space-y-1 p-0" [attr.aria-label]="dnsEndpoint.spec.recordType + ' record values'">
+                      @for (target of dnsEndpoint.spec.targets; track $index) {
+                        <li class="break-all font-mono text-sm text-gray-700 dark:text-gray-300">
+                          @if (serviceLinkId(target); as serviceId) {
+                            <a class="link-primary" [routerLink]="serviceRouterLink(serviceId)">{{ serviceId }}</a>
+                          } @else {
+                            {{ target }}
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </td>
+                  <td class="px-4 py-4 align-top">
+                    <div class="flex justify-end gap-3">
+                      @if (isManaged(dnsEndpoint)) {
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Managed</span>
+                      } @else {
+                        <button type="button" class="link-primary" (click)="openEdit(dnsEndpoint)" [attr.aria-label]="'Edit ' + displayHost(dnsEndpoint.spec.dnsName)">Edit</button>
+                        <button type="button" class="text-sm font-medium text-error-600 hover:text-error-700" (click)="openDelete(dnsEndpoint)" [attr.aria-label]="'Delete ' + displayHost(dnsEndpoint.spec.dnsName)">Delete</button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="px-6 py-12 text-center">
+          <p class="font-medium text-gray-800 dark:text-gray-200">No DNS records</p>
+          <p class="base-text mt-1">Create the first record for this zone.</p>
+          <button type="button" class="link-primary mt-4" (click)="openCreate()">Create record</button>
+        </div>
+      }
+    </div>
+  }
+
+  @if ((dialogMode() === 'create' || dialogMode() === 'edit') && projectId() && zoneName()) {
+    <app-modal [isOpen]="dialogOpen()" (close)="closeDialog()" className="max-w-[700px] p-6 lg:p-8">
+      <app-dns-endpoint-form
+        [projectId]="projectId()!"
+        [zoneName]="zoneName()!"
+        [dnsEndpoint]="selected()"
+        (saved)="closeDialog()"
+        (canceled)="closeDialog()"
+      />
+    </app-modal>
+  }
+
+  @if (dialogMode() === 'delete' && selected()) {
+    <app-modal [isOpen]="dialogOpen()" (close)="closeDialog()" className="max-w-[520px] p-6 lg:p-8">
+      <header class="pr-10">
+        <h2 class="card-title">Delete DNS record</h2>
+        <p class="base-text mt-2">
+          Delete <span class="font-mono text-gray-800 dark:text-gray-200">{{ displayHost(selected()!.spec.dnsName) }}</span>
+          and all of its values?
+        </p>
+      </header>
+      @if (error()?.action === 'delete') {
+        <div class="mt-4 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700" role="alert">
+          {{ error()!.message }}
+        </div>
+      }
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" class="btn-secondary" (click)="closeDialog()" [disabled]="deleting()">Cancel</button>
+        <button type="button" class="rounded-lg bg-error-600 px-4 py-3 text-sm text-white hover:bg-error-700 disabled:opacity-50" (click)="deleteSelected()" [disabled]="deleting()">
+          {{ deleting() ? 'Deleting...' : 'Delete record' }}
+        </button>
+      </div>
+    </app-modal>
+  }
+</section>

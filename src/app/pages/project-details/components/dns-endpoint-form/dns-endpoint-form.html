@@ -1,0 +1,74 @@
+<header class="pr-10">
+  <h2 class="card-title">{{ dnsEndpoint() ? 'Edit DNS record' : 'Create DNS record' }}</h2>
+  <p class="base-text">Routing policy is currently limited to Simple.</p>
+</header>
+
+@if (error() && (error()!.action === 'create' || error()!.action === 'update')) {
+  <div class="mt-4 rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700" role="alert">
+    {{ error()!.message }}
+  </div>
+}
+
+<form class="mt-5 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+  <div>
+    <label for="dns-host" class="form-label">Host</label>
+    <div class="flex rounded-lg border border-gray-300 bg-white focus-within:border-brand-500 focus-within:ring-3 focus-within:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900">
+      <input
+        id="dns-host"
+        type="text"
+        class="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 font-mono text-sm text-gray-800 outline-none placeholder:text-gray-400 dark:text-white"
+        formControlName="host"
+        autocomplete="off"
+        placeholder="@"
+        aria-describedby="dns-host-zone dns-host-help"
+      />
+      <span id="dns-host-zone" class="flex shrink-0 items-center border-l border-gray-300 px-3 font-mono text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        .{{ zoneName() }}
+      </span>
+    </div>
+    <p id="dns-host-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave blank to create a record at @.</p>
+    @if (form.controls.host.invalid && form.controls.host.touched) {
+      <p class="mt-1 text-xs text-error-600">Enter a valid host name.</p>
+    }
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="record-type" class="form-label">Record type</label>
+      <select id="record-type" class="form-input-field" formControlName="recordType">
+        @for (recordType of recordTypes; track recordType) {
+          <option [value]="recordType">{{ recordType }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label for="record-ttl" class="form-label">TTL in seconds</label>
+      <input id="record-ttl" type="number" min="1" class="form-input-field" formControlName="recordTTL" />
+      @if (form.controls.recordTTL.invalid && form.controls.recordTTL.touched) {
+        <p class="mt-1 text-xs text-error-600">TTL must be at least one second.</p>
+      }
+    </div>
+  </div>
+
+  <div>
+    <label for="record-targets" class="form-label">Values</label>
+    <textarea
+      id="record-targets"
+      rows="5"
+      class="form-input-field h-auto min-h-32 resize-y font-mono"
+      formControlName="targets"
+      placeholder="One value per line"
+    ></textarea>
+    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Enter one record value per line.</p>
+    @if (form.controls.targets.invalid && form.controls.targets.touched) {
+      <p class="mt-1 text-xs text-error-600">At least one value is required.</p>
+    }
+  </div>
+
+  <div class="flex justify-end gap-3 pt-2">
+    <button type="button" class="btn-secondary" (click)="canceled.emit()" [disabled]="saving()">Cancel</button>
+    <button type="submit" class="btn-primary" [disabled]="saving()">
+      {{ saving() ? 'Saving...' : dnsEndpoint() ? 'Save changes' : 'Create record' }}
+    </button>
+  </div>
+</form>
