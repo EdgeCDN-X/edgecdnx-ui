@@ -7,7 +7,7 @@ import { ModalComponent } from '../../../shared/components/ui/modal/modal.compon
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { DNSEndpointForm } from '../components/dns-endpoint-form/dns-endpoint-form';
 import { DNSEndpointStore } from '../../projects/store/dns-endpoint.store';
-import { DNSEndpoint, LabelSelector } from '../../projects/store/dns-endpoint.types';
+import { DNSEndpoint, DNSRecordType, LabelSelector } from '../../projects/store/dns-endpoint.types';
 import { hostFromDnsName } from './dns-name';
 
 @Component({
@@ -32,9 +32,73 @@ export class ZoneDetails {
   readonly dialogMode = signal<'create' | 'edit' | 'delete' | null>(null);
   readonly selected = signal<DNSEndpoint | null>(null);
   readonly dialogOpen = computed(() => this.dialogMode() !== null);
+  readonly searchTerm = signal('');
+  readonly recordTypeFilter = signal<'all' | DNSRecordType>('all');
+  readonly sort = signal<{ field: 'name' | 'type'; direction: 'asc' | 'desc' }>({
+    field: 'name',
+    direction: 'asc',
+  });
+  readonly copiedEndpointName = signal<string | null>(null);
+  readonly recordTypes: DNSRecordType[] = ['A', 'AAAA', 'CNAME', 'TXT', 'MX', 'SRV', 'NS'];
+  readonly visibleDNSEndpoints = computed(() => {
+    const searchTerm = this.searchTerm().trim().toLowerCase();
+    const recordTypeFilter = this.recordTypeFilter();
+    const sort = this.sort();
+
+    return [...this.dnsEndpoints()]
+      .filter((dnsEndpoint) => {
+        if (recordTypeFilter !== 'all' && dnsEndpoint.spec.recordType !== recordTypeFilter) {
+          return false;
+        }
+        if (!searchTerm) {
+          return true;
+        }
+        return [dnsEndpoint.spec.dnsName, dnsEndpoint.spec.recordType, ...dnsEndpoint.spec.targets]
+          .some((value) => value.toLowerCase().includes(searchTerm));
+      })
+      .sort((left, right) => {
+        const leftValue = sort.field === 'name' ? left.spec.dnsName : left.spec.recordType;
+        const rightValue = sort.field === 'name' ? right.spec.dnsName : right.spec.recordType;
+        const comparison = leftValue.localeCompare(rightValue);
+        return sort.direction === 'asc' ? comparison : -comparison;
+      });
+  });
 
   readonly displayHost = (dnsName: string): string =>
     hostFromDnsName(dnsName, this.zoneName() ?? '');
+
+  setSearchTerm(event: Event): void {
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+  }
+
+  setRecordTypeFilter(event: Event): void {
+    this.recordTypeFilter.set((event.target as HTMLSelectElement).value as 'all' | DNSRecordType);
+  }
+
+  toggleSort(field: 'name' | 'type'): void {
+    this.sort.update((sort) => ({
+      field,
+      direction: sort.field === field && sort.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  }
+
+  sortDirection(field: 'name' | 'type'): 'ascending' | 'descending' | 'none' {
+    const sort = this.sort();
+    if (sort.field !== field) {
+      return 'none';
+    }
+    return sort.direction === 'asc' ? 'ascending' : 'descending';
+  }
+
+  copyDNSName(dnsEndpoint: DNSEndpoint): void {
+    navigator.clipboard?.writeText(dnsEndpoint.spec.dnsName);
+    this.copiedEndpointName.set(dnsEndpoint.metadata.name);
+    setTimeout(() => this.copiedEndpointName.set(null), 2000);
+  }
+
+  isCopied(dnsEndpoint: DNSEndpoint): boolean {
+    return this.copiedEndpointName() === dnsEndpoint.metadata.name;
+  }
 
   // Targets of the form `LINK: <service-name>` reference another resource instead of a DNS value.
   serviceLinkId(target: string): string | null {

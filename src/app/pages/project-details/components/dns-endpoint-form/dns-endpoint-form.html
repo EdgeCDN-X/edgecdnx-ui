@@ -35,11 +35,14 @@
   <div class="grid gap-4 sm:grid-cols-2">
     <div>
       <label for="record-type" class="form-label">Record type</label>
-      <select id="record-type" class="form-input-field" formControlName="recordType">
+      <select id="record-type" class="form-input-field" formControlName="recordType" [attr.aria-describedby]="dnsEndpoint() ? 'record-type-help' : null" (change)="selectRecordType($event)">
         @for (recordType of recordTypes; track recordType) {
           <option [value]="recordType">{{ recordType }}</option>
         }
       </select>
+      @if (dnsEndpoint()) {
+        <p id="record-type-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Record type cannot be changed after creation.</p>
+      }
     </div>
     <div>
       <label for="record-ttl" class="form-label">TTL in seconds</label>
@@ -50,20 +53,65 @@
     </div>
   </div>
 
-  <div>
-    <label for="record-targets" class="form-label">Values</label>
+  @if (form.controls.recordType.value === 'MX') {
+    <div>
+      <label for="record-priority" class="form-label">Priority</label>
+      <input id="record-priority" type="number" min="0" max="65535" class="form-input-field" formControlName="priority" />
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Lower values are preferred. The default is 10.</p>
+      @if (form.controls.priority.invalid && form.controls.priority.touched) {
+        <p class="mt-1 text-xs text-error-600">Priority must be between 0 and 65535.</p>
+      }
+    </div>
+  }
+
+  @if (form.controls.recordType.value === 'SRV') {
+    <fieldset formArrayName="srvRecords" class="space-y-4">
+      <legend class="form-label">Service records</legend>
+      @for (srvRecord of srvRecords.controls; track $index; let index = $index) {
+        <div [formGroupName]="index" class="grid gap-4 border-b border-gray-200 pb-4 dark:border-gray-700 sm:grid-cols-[1fr_1fr_1fr_2fr_auto]">
+          <div>
+            <label [for]="'srv-priority-' + index" class="form-label">Priority</label>
+            <input [id]="'srv-priority-' + index" type="number" min="0" max="65535" class="form-input-field" formControlName="priority" />
+          </div>
+          <div>
+            <label [for]="'srv-weight-' + index" class="form-label">Weight</label>
+            <input [id]="'srv-weight-' + index" type="number" min="0" max="65535" class="form-input-field" formControlName="weight" />
+          </div>
+          <div>
+            <label [for]="'srv-port-' + index" class="form-label">Port</label>
+            <input [id]="'srv-port-' + index" type="number" min="1" max="65535" class="form-input-field" formControlName="port" />
+          </div>
+          <div>
+            <label [for]="'srv-target-' + index" class="form-label">Target FQDN</label>
+            <input [id]="'srv-target-' + index" type="text" class="form-input-field font-mono" formControlName="target" placeholder="service.example.net." />
+          </div>
+          <button type="button" class="btn-secondary self-end" (click)="removeSrvRecord(index)" [disabled]="srvRecords.length === 1 || saving()" [attr.aria-label]="'Remove SRV record ' + (index + 1)">-</button>
+          @if (srvRecord.invalid && srvRecord.touched) {
+            <p class="text-xs text-error-600 sm:col-span-5">Priority and weight must be between 0 and 65535, port must be between 1 and 65535, and the target must be a fully qualified domain name.</p>
+          }
+        </div>
+      }
+      <button type="button" class="btn-secondary" (click)="addSrvRecord()" [disabled]="saving()">+</button>
+    </fieldset>
+  } @else {
+    <div>
+    <label for="record-targets" class="form-label">{{ valueLabel() }}</label>
     <textarea
       id="record-targets"
       rows="5"
       class="form-input-field h-auto min-h-32 resize-y font-mono"
       formControlName="targets"
-      placeholder="One value per line"
+      [placeholder]="valuePlaceholder()"
+      aria-describedby="record-targets-help"
     ></textarea>
-    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Enter one record value per line.</p>
-    @if (form.controls.targets.invalid && form.controls.targets.touched) {
+    <p id="record-targets-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ valueHelp() }}</p>
+    @if (form.controls.targets.hasError('txtValueTooLong') && form.controls.targets.touched) {
+      <p class="mt-1 text-xs text-error-600">A TXT value cannot exceed 255 characters. Split it into multiple record values, one per line.</p>
+    } @else if (form.controls.targets.hasError('required') && form.controls.targets.touched) {
       <p class="mt-1 text-xs text-error-600">At least one value is required.</p>
     }
-  </div>
+    </div>
+  }
 
   <div class="flex justify-end gap-3 pt-2">
     <button type="button" class="btn-secondary" (click)="canceled.emit()" [disabled]="saving()">Cancel</button>

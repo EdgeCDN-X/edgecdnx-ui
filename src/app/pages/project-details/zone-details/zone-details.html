@@ -24,12 +24,36 @@
   } @else if (!error() || error()?.action !== 'list') {
     <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
       @if (dnsEndpoints().length > 0) {
+        <div class="flex flex-col gap-3 border-b border-gray-200 bg-white px-4 py-3 sm:flex-row sm:items-center dark:border-gray-800 dark:bg-gray-900">
+          <input
+            type="search"
+            class="form-input-field min-w-0 flex-1"
+            placeholder="Search names, types, or values"
+            aria-label="Search DNS records"
+            [value]="searchTerm()"
+            (input)="setSearchTerm($event)"
+          />
+          <select class="form-input-field sm:w-40" aria-label="Filter by record type" (change)="setRecordTypeFilter($event)">
+            <option value="all">All types</option>
+            @for (recordType of recordTypes; track recordType) {
+              <option [value]="recordType">{{ recordType }}</option>
+            }
+          </select>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full min-w-[520px] table-fixed md:min-w-[900px]">
             <thead class="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.02]">
               <tr>
-                <th scope="col" class="table-label w-[22%] px-4">Name</th>
-                <th scope="col" class="table-label w-20 px-4">Type</th>
+                <th scope="col" class="table-label w-[22%] px-4" [attr.aria-sort]="sortDirection('name')">
+                  <button type="button" class="inline-flex items-center gap-1" (click)="toggleSort('name')">
+                    Name <span aria-hidden="true">{{ sort().field === 'name' && sort().direction === 'asc' ? '↑' : '↓' }}</span>
+                  </button>
+                </th>
+                <th scope="col" class="table-label w-20 px-4" [attr.aria-sort]="sortDirection('type')">
+                  <button type="button" class="inline-flex items-center gap-1" (click)="toggleSort('type')">
+                    Type <span aria-hidden="true">{{ sort().field === 'type' && sort().direction === 'asc' ? '↑' : '↓' }}</span>
+                  </button>
+                </th>
                 <th scope="col" class="table-label hidden w-20 px-4 md:table-cell">TTL</th>
                 <th scope="col" class="table-label hidden w-[30%] px-4 md:table-cell">Routing</th>
                 <th scope="col" class="table-label w-[22%] px-4">Values</th>
@@ -37,10 +61,25 @@
               </tr>
             </thead>
             <tbody class="table-divider">
-              @for (dnsEndpoint of dnsEndpoints(); track dnsEndpoint.metadata.uid ?? dnsEndpoint.metadata.name) {
+              @for (dnsEndpoint of visibleDNSEndpoints(); track dnsEndpoint.metadata.uid ?? dnsEndpoint.metadata.name) {
                 <tr>
                   <td class="px-4 py-4 align-top font-mono text-sm text-gray-800 dark:text-gray-200">
-                    {{ displayHost(dnsEndpoint.spec.dnsName) }}
+                    <div class="flex items-start justify-between gap-2">
+                      <span class="min-w-0 break-all">{{ displayHost(dnsEndpoint.spec.dnsName) }}</span>
+                      <button
+                        type="button"
+                        class="shrink-0 text-gray-500 hover:text-brand-700 dark:text-gray-400 dark:hover:text-brand-300"
+                        (click)="copyDNSName(dnsEndpoint)"
+                        [attr.aria-label]="'Copy ' + dnsEndpoint.spec.dnsName"
+                        [attr.title]="isCopied(dnsEndpoint) ? 'Copied' : 'Copy full domain name'"
+                      >
+                        @if (isCopied(dnsEndpoint)) {
+                          <span aria-hidden="true">✓</span>
+                        } @else {
+                          <span aria-hidden="true">⧉</span>
+                        }
+                      </button>
+                    </div>
                   </td>
                   <td class="px-4 py-4 align-top">
                     <span class="inline-flex rounded-md bg-blue-light-50 px-2 py-1 text-xs font-semibold text-blue-light-700 dark:bg-blue-light-500/10 dark:text-blue-light-300">
@@ -83,6 +122,11 @@
                       }
                     </div>
                   </td>
+                </tr>
+              }
+              @if (visibleDNSEndpoints().length === 0) {
+                <tr>
+                  <td colspan="6" class="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No DNS records match the current search and filter.</td>
                 </tr>
               }
             </tbody>
