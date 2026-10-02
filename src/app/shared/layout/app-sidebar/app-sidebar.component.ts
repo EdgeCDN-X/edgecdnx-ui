@@ -94,6 +94,12 @@ export class AppSidebarComponent {
       name: "Zones",
       path: `/projects/${this.projectStore.selectedProjectId()}/zones`,
       visible: this.projectStore.selectedProjectId() !== null,
+    },
+    {
+      icon: this.adminNavItems()[0].icon,
+      name: "Locations",
+      path: `/projects/${this.projectStore.selectedProjectId()}/locations`,
+      visible: this.projectStore.selectedProjectId() !== null,
     }
   ])
 

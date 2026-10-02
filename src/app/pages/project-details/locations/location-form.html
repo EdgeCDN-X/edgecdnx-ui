@@ -1,0 +1,189 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="location-editor space-y-6" aria-labelledby="location-form-heading">
+  <h2 id="location-form-heading" class="sub-card-title">{{ location() ? 'Edit Location' : 'New Location' }}</h2>
+  @if (validationError()) {
+    <p class="text-red-700 dark:text-red-300" role="alert">{{ validationError() }}</p>
+  }
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="location-name" class="form-label">Name</label>
+      <input id="location-name" class="form-input-field" formControlName="name" autocomplete="off" [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="location-field-error">Enter a lowercase Kubernetes resource name, up to 253 characters.</p>
+      }
+    </div>
+    <div>
+      <div class="mb-1 flex items-center gap-2">
+        <label for="location-weight" class="form-label mb-0">Global location weight</label>
+        <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-400 text-xs"
+          aria-label="Global location weight information" matTooltip="Used for weighted round robin." matTooltipPosition="above" matTooltipClass="location-weight-tooltip">
+          <span aria-hidden="true">?</span>
+        </button>
+      </div>
+      <input id="location-weight" type="number" step="1" class="form-input-field" formControlName="weight" />
+      @if (form.controls.weight.touched && form.controls.weight.invalid) {
+        <p class="location-field-error">Enter an integer between -2147483648 and 2147483647.</p>
+      }
+    </div>
+  </div>
+
+  <fieldset formArrayName="fallbackLocations" class="location-section">
+    <legend class="form-label">Fallback locations</legend>
+    @for (fallback of form.controls.fallbackLocations.controls; track fallback; let fallbackIndex = $index) {
+      <div class="flex items-end gap-2 py-2">
+        <div class="min-w-0 flex-1">
+          <label [for]="'fallback-' + fallbackIndex" class="form-label">Location {{ fallbackIndex + 1 }}</label>
+          <select [id]="'fallback-' + fallbackIndex" [formControlName]="fallbackIndex" class="form-input-field"
+            [attr.aria-invalid]="fallback.invalid && (fallback.touched || fallback.hasError('unavailable'))">
+            <option value="" disabled>Select fallback location</option>
+            @for (name of fallbackOptions(); track name) { <option [value]="name">{{ name }}</option> }
+          </select>
+          @if (fallback.invalid && (fallback.touched || fallback.hasError('unavailable'))) {
+            <p class="location-field-error">Select an existing location in this project, or remove this fallback.</p>
+          }
+        </div>
+        <button type="button" class="location-icon-button" title="Remove fallback location" aria-label="Remove fallback location" [disabled]="saving()" (click)="form.controls.fallbackLocations.removeAt(fallbackIndex)"><span aria-hidden="true">&times;</span></button>
+      </div>
+    }
+    @if (form.controls.fallbackLocations.hasError('duplicate')) { <p class="location-field-error">Fallback locations must be unique.</p> }
+    @if (fallbackOptions().length === 0) { <p class="base-text">No fallback locations are available in this project.</p> }
+    <button type="button" class="btn-secondary mt-2" [disabled]="saving() || fallbackOptions().length === 0" (click)="addFallback()">Add fallback location</button>
+  </fieldset>
+
+  <fieldset class="location-section">
+    <legend class="form-label">Geolookup</legend>
+    <div class="mb-1 flex items-center gap-2">
+      <label for="geo-weight" class="form-label mb-0">Geolookup weight</label>
+      <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-400 text-xs"
+        aria-label="Geolookup weight information" matTooltip="When multiple locations match, requests are distributed based on weight." matTooltipPosition="above" matTooltipClass="location-weight-tooltip">
+        <span aria-hidden="true">?</span>
+      </button>
+    </div>
+    <input id="geo-weight" type="number" min="0" max="1000" step="1" class="form-input-field sm:max-w-xs" formControlName="geoWeight" />
+    @if (form.controls.geoWeight.touched && form.controls.geoWeight.invalid) { <p class="location-field-error">Enter an integer from 0 to 1000.</p> }
+    <div formArrayName="attributes">
+      @for (attribute of form.controls.attributes.controls; track attribute; let attributeIndex = $index) {
+        <fieldset [formGroupName]="attributeIndex" class="location-item mt-4">
+          <legend class="form-label">Attribute {{ attributeIndex + 1 }}</legend>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label [for]="'attribute-name-' + attributeIndex" class="form-label">Attribute name</label>
+              <select [id]="'attribute-name-' + attributeIndex" formControlName="name" class="form-input-field" (change)="selectAttribute(attributeIndex, $event)">
+                <option value="" disabled>Select attribute</option>
+                @if (attribute.controls.name.value && !supportedAttribute(attribute.controls.name.value)) {
+                  <option [value]="attribute.controls.name.value" disabled>{{ attribute.controls.name.value }}</option>
+                }
+                @for (option of attributeOptions; track option.name) {
+                  <option [value]="option.name">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <div class="mb-1 flex items-center gap-2">
+                <label [for]="'attribute-weight-' + attributeIndex" class="form-label mb-0">Attribute weight</label>
+                <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-400 text-xs"
+                  aria-label="Attribute weight information" matTooltip="When attributes match, their weights are summed. The location with the highest weight is selected." matTooltipPosition="above" matTooltipClass="location-weight-tooltip">
+                  <span aria-hidden="true">?</span>
+                </button>
+              </div>
+              <input [id]="'attribute-weight-' + attributeIndex" type="number" step="1" formControlName="weight" class="form-input-field" />
+            </div>
+          </div>
+          <div formArrayName="values" class="mt-3 space-y-3">
+            @for (value of attribute.controls.values.controls; track value; let valueIndex = $index) {
+              <div [formGroupName]="valueIndex" class="location-value-row">
+                <div>
+                  <label [for]="'value-' + attributeIndex + '-' + valueIndex" class="form-label">Value</label>
+                  @if (attribute.controls.name.value === 'geoip/continent/code') {
+                    <select [id]="'value-' + attributeIndex + '-' + valueIndex" formControlName="value" class="form-input-field">
+                      <option value="" disabled>Select continent</option>
+                      @for (code of continentOptions; track code) { <option [value]="code">{{ code }}</option> }
+                    </select>
+                  } @else {
+                    <input [id]="'value-' + attributeIndex + '-' + valueIndex" formControlName="value" class="form-input-field"
+                      [attr.maxlength]="attribute.controls.name.value === 'geoip/country/code' ? 2 : null"
+                      [placeholder]="attribute.controls.name.value === 'geoip/country/code' ? 'DE' : ''" />
+                  }
+                  @if (value.controls.value.touched && value.controls.value.invalid) {
+                    <p class="location-field-error">
+                      @switch (attribute.controls.name.value) {
+                        @case ('geoip/country/code') { Enter a two-letter uppercase ISO 3166 country code. }
+                        @case ('geoip/continent/code') { Select a continent code. }
+                        @default { Value is required. }
+                      }
+                    </p>
+                  }
+                </div>
+                <div><label [for]="'value-weight-' + attributeIndex + '-' + valueIndex" class="form-label">Value weight</label><input [id]="'value-weight-' + attributeIndex + '-' + valueIndex" type="number" step="1" formControlName="weight" class="form-input-field" /></div>
+                <button type="button" class="location-icon-button" title="Remove attribute value" aria-label="Remove attribute value" [disabled]="saving()" (click)="attribute.controls.values.removeAt(valueIndex)"><span aria-hidden="true">&times;</span></button>
+              </div>
+            }
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button type="button" class="btn-secondary" [disabled]="saving()" (click)="addValue(attributeIndex)">Add value</button>
+            <button type="button" class="btn-secondary" [disabled]="saving()" (click)="form.controls.attributes.removeAt(attributeIndex)">Remove attribute</button>
+          </div>
+          @if (attribute.touched && attribute.invalid) { <p class="location-field-error">Attribute names and values are required; weights must be integers.</p> }
+        </fieldset>
+      }
+    </div>
+    @if (form.controls.attributes.hasError('duplicate')) { <p class="location-field-error">Attribute names must be unique.</p> }
+    <button type="button" class="btn-secondary mt-3" [disabled]="saving()" (click)="addAttribute()">Add attribute</button>
+  </fieldset>
+
+  <fieldset formArrayName="nodeGroups" class="location-section">
+    <legend class="form-label">Node groups</legend>
+    @for (group of form.controls.nodeGroups.controls; track group; let groupIndex = $index) {
+      <fieldset [formGroupName]="groupIndex" class="location-item mb-4">
+        <legend class="form-label">Node group {{ groupIndex + 1 }}</legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2"><label [for]="'group-name-' + groupIndex" class="form-label">Group name</label><input [id]="'group-name-' + groupIndex" formControlName="name" class="form-input-field" /></div>
+          <app-location-kv-builder [rows]="group.controls.labels" kind="label" [prefix]="'group-labels-' + groupIndex" [disabled]="saving()" />
+          <app-location-kv-builder [rows]="group.controls.metadata" kind="metadata" [prefix]="'group-metadata-' + groupIndex" [disabled]="saving()" />
+        </div>
+        <details class="mt-4">
+          <summary class="form-label cursor-pointer">Group configuration</summary>
+          <div class="mt-3 grid gap-4 sm:grid-cols-2">
+            <div><label [for]="'group-selector-' + groupIndex" class="form-label">Node selector (JSON)</label><textarea [id]="'group-selector-' + groupIndex" formControlName="nodeSelector" class="form-input-field font-mono" rows="3"></textarea></div>
+            <div><label [for]="'group-health-' + groupIndex" class="form-label">Health check profile</label><input [id]="'group-health-' + groupIndex" formControlName="healthCheck" class="form-input-field" /></div>
+            <div class="sm:col-span-2"><label [for]="'group-cache-' + groupIndex" class="form-label">Legacy cache configuration (JSON)</label><textarea [id]="'group-cache-' + groupIndex" formControlName="cacheConfig" class="form-input-field font-mono" rows="3" placeholder='{"path":"/cache","keysZone":"cache","inactive":"1h","maxSize":"10g"}'></textarea></div>
+          </div>
+        </details>
+        <div formArrayName="nodes" class="mt-4">
+          @for (node of group.controls.nodes.controls; track node; let nodeIndex = $index) {
+            <fieldset [formGroupName]="nodeIndex" class="location-node py-4">
+              <legend class="form-label">Node {{ nodeIndex + 1 }}</legend>
+              <div class="grid gap-3 sm:grid-cols-3">
+                <div><label [for]="'node-name-' + groupIndex + '-' + nodeIndex" class="form-label">Node name</label><input [id]="'node-name-' + groupIndex + '-' + nodeIndex" formControlName="name" class="form-input-field" /></div>
+                <div><label [for]="'node-ipv4-' + groupIndex + '-' + nodeIndex" class="form-label">IPv4</label><input [id]="'node-ipv4-' + groupIndex + '-' + nodeIndex" formControlName="ipv4" class="form-input-field" /></div>
+                <div><label [for]="'node-ipv6-' + groupIndex + '-' + nodeIndex" class="form-label">IPv6</label><input [id]="'node-ipv6-' + groupIndex + '-' + nodeIndex" formControlName="ipv6" class="form-input-field" /></div>
+              </div>
+              <label class="form-label mt-3 flex items-center gap-2"><input type="checkbox" formControlName="maintenanceMode" />Maintenance mode</label>
+              <details class="mt-3">
+                <summary class="form-label cursor-pointer">Node configuration</summary>
+                <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div><label [for]="'node-health-' + groupIndex + '-' + nodeIndex" class="form-label">Health check profile</label><input [id]="'node-health-' + groupIndex + '-' + nodeIndex" formControlName="healthCheck" class="form-input-field" /></div>
+                  <div><label [for]="'node-caches-' + groupIndex + '-' + nodeIndex" class="form-label">Legacy caches (JSON)</label><textarea [id]="'node-caches-' + groupIndex + '-' + nodeIndex" formControlName="caches" class="form-input-field font-mono" rows="2" placeholder='["cache"]'></textarea></div>
+                  <div class="sm:col-span-2"><label [for]="'node-alerts-' + groupIndex + '-' + nodeIndex" class="form-label">Alert matchers (JSON)</label><textarea [id]="'node-alerts-' + groupIndex + '-' + nodeIndex" formControlName="alerts" class="form-input-field font-mono" rows="3" placeholder='[{"alertName":"CacheDown","labels":{"severity":"critical"}}]'></textarea></div>
+                </div>
+              </details>
+              <button type="button" class="btn-secondary mt-3" [disabled]="saving()" (click)="group.controls.nodes.removeAt(nodeIndex)">Remove node</button>
+              @if (node.touched && node.invalid) { <p class="location-field-error">Node name is required. Check any JSON configuration.</p> }
+            </fieldset>
+          }
+        </div>
+        @if (group.controls.nodes.hasError('duplicate')) { <p class="location-field-error">Node names must be unique within a group.</p> }
+        @if (group.touched && group.invalid) { <p class="location-field-error">Check the group name, key/value entries, and any JSON configuration.</p> }
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button type="button" class="btn-secondary" [disabled]="saving()" (click)="addNode(groupIndex)">Add node</button>
+          <button type="button" class="btn-secondary" [disabled]="saving()" (click)="form.controls.nodeGroups.removeAt(groupIndex)">Remove group</button>
+        </div>
+      </fieldset>
+    }
+    @if (form.controls.nodeGroups.hasError('duplicate')) { <p class="location-field-error">Duplicate node groups are not allowed.</p> }
+    <button type="button" class="btn-secondary" [disabled]="saving()" (click)="addGroup()">Add node group</button>
+  </fieldset>
+  <div class="flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+    <button type="button" class="btn-secondary" [disabled]="saving()" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" class="btn-primary" [disabled]="saving()">{{ saving() ? 'Saving...' : location() ? 'Save changes' : 'Create location' }}</button>
+  </div>
+</form>

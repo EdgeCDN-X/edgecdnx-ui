@@ -1,0 +1,63 @@
+<section class="space-y-5" aria-labelledby="locations-heading" [attr.aria-busy]="store.loading()">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 id="locations-heading" class="sub-card-title">Locations</h2>
+    <div class="flex gap-2">
+      <button type="button" class="btn-secondary" (click)="refresh()" [disabled]="store.loading() || store.saving() || store.deleting()">Refresh</button>
+      <button id="new-location" type="button" class="btn-primary" (click)="openEditor()" [disabled]="editorOpen() || store.saving() || store.deleting() || !!deleteTarget()">New Location</button>
+    </div>
+  </div>
+  @if (store.error()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ store.error() }}</p> }
+  @if (success()) { <p class="text-green-700 dark:text-green-300" role="status">{{ success() }}</p> }
+  @if (editorOpen()) {
+    <app-location-form [projectId]="projectId()" [location]="editing()" [availableLocations]="store.locations()" [saving]="store.saving()" (submitted)="save($event)" (cancelled)="closeEditor()" />
+  } @else {
+    @if (deleteTarget(); as location) {
+      <div class="location-delete-confirm space-y-3" role="region" aria-labelledby="location-delete-heading">
+        <h3 id="location-delete-heading" class="form-label">Delete location {{ location.metadata.name }}?</h3>
+        <div class="flex flex-wrap gap-3">
+          <button id="cancel-location-delete" type="button" class="btn-secondary" [disabled]="store.deleting()" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn-primary" [disabled]="store.deleting()" (click)="deleteLocation()">{{ store.deleting() ? 'Deleting...' : 'Delete location' }}</button>
+        </div>
+      </div>
+    }
+    @if (store.loading() && store.locations().length === 0) {
+      <p class="base-text" role="status">Loading locations...</p>
+    } @else if (store.locations().length === 0 && !store.error()) {
+      <p class="base-text">No locations found.</p>
+    } @else if (store.locations().length > 0) {
+      <div class="location-table-scroll">
+        <table class="w-full table-auto">
+          <thead class="border-y border-gray-100 dark:border-white/10">
+            <tr>
+              <th scope="col" class="table-label">Name</th>
+              <th scope="col" class="table-label">Status</th>
+              <th scope="col" class="table-label">Weight</th>
+              <th scope="col" class="table-label">Node groups</th>
+              <th scope="col" class="table-label">Nodes</th>
+              <th scope="col" class="table-label">Fallbacks</th>
+              <th scope="col" class="table-label">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="table-divider">
+            @for (location of store.locations(); track location.metadata.name) {
+              <tr>
+                <th scope="row" class="base-text py-3 text-left font-mono font-medium">{{ location.metadata.name }}</th>
+                <td class="base-text">{{ location.status?.status ?? 'Pending' }}</td>
+                <td class="base-text">{{ location.spec?.weight ?? 0 }}</td>
+                <td class="base-text">{{ location.spec?.nodeGroups?.length ?? 0 }}</td>
+                <td class="base-text">{{ nodeCount(location) }}</td>
+                <td class="base-text">{{ location.spec?.fallbackLocations?.join(', ') || '-' }}</td>
+                <td class="base-text">
+                  <div class="flex gap-3">
+                    <button type="button" class="link-primary" [attr.aria-label]="'Edit ' + location.metadata.name" [disabled]="store.deleting() || !!deleteTarget()" (click)="openEditor(location)">Edit</button>
+                    <button type="button" class="link-primary" [attr.aria-label]="'Delete ' + location.metadata.name" [disabled]="store.deleting() || !!deleteTarget()" (click)="confirmDelete(location)">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>

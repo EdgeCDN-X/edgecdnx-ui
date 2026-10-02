@@ -913,3 +913,35 @@ pre[class*="language-"] {
 pre[class*="language-"].line-numbers {
   padding-left: 2.8em !important;
 }
+
+.location-editor, .location-table-scroll { min-width: 0; }
+.location-editor { color: var(--color-gray-800); }
+.dark .location-editor { color: var(--color-gray-200); }
+.location-editor .form-input-field { width: 100%; min-width: 0; }
+.location-editor textarea { resize: vertical; min-height: 5.5rem; height: auto; }
+.location-section { min-width: 0; border-top: 1px solid var(--color-gray-200); padding-top: 1rem; }
+.location-item { min-width: 0; border: 1px solid var(--color-gray-200); border-radius: 8px; padding: 1rem; }
+.location-node { min-width: 0; border-top: 1px solid var(--color-gray-200); }
+.dark .location-section, .dark .location-item, .dark .location-node { border-color: var(--color-gray-700); }
+.location-field-error { color: var(--color-red-700); font-size: 0.875rem; margin-top: 0.5rem; }
+.dark .location-field-error { color: var(--color-red-300); }
+.location-value-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem; align-items: end; gap: 0.75rem; }
+.location-icon-button { width: 2.75rem; height: 2.75rem; border: 1px solid var(--color-gray-300); border-radius: 4px; font-size: 1.5rem; flex-shrink: 0; }
+.location-icon-button:focus-visible, .location-editor button:focus-visible { outline: 2px solid var(--color-brand-500); outline-offset: 2px; }
+.location-editor button:disabled { cursor: not-allowed; opacity: 0.6; }
+.location-table-scroll { overflow-x: auto; }
+.location-table-scroll th, .location-table-scroll td { padding-right: 1rem; overflow-wrap: anywhere; }
+.location-delete-confirm { border-left: 3px solid var(--color-red-600); padding: 1rem; }
+.location-weight-tooltip .mat-mdc-tooltip-surface {
+  background-color: var(--color-gray-900);
+  color: var(--color-white);
+  font-family: var(--font-outfit);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+}
+@media (max-width: 480px) {
+  .location-value-row { grid-template-columns: minmax(0, 1fr) 2.75rem; }
+  .location-value-row > div:first-child { grid-column: 1 / -1; }
+}
