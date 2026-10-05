@@ -1,20 +1,22 @@
 import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inject, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { LocationStore } from '../../projects/store/location.store';
 import { CreateLocationDto, ProjectLocation, UpdateLocationDto } from '../../projects/store/location.types';
 import { LocationForm } from './location-form';
+import { HealthCheckProfileStore } from '../../projects/store/healthcheckprofile.store';
 
 @Component({
   selector: 'app-project-locations',
-  imports: [LocationForm],
-  providers: [LocationStore],
+  imports: [LocationForm, RouterLink],
+  providers: [LocationStore, HealthCheckProfileStore],
   templateUrl: './locations.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Locations {
   readonly store = inject(LocationStore);
+  readonly profileStore = inject(HealthCheckProfileStore);
   private readonly route = inject(ActivatedRoute);
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
@@ -40,7 +42,8 @@ export class Locations {
         this.loadedProject = projectId;
       }
       const subscription = this.store.load(projectId).subscribe({ error: () => {} });
-      onCleanup(() => subscription.unsubscribe());
+      const profiles = this.profileStore.load(projectId).subscribe({ error: () => {} });
+      onCleanup(() => { subscription.unsubscribe(); profiles.unsubscribe(); });
     });
   }
 

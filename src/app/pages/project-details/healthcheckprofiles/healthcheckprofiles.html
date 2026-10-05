@@ -1,0 +1,53 @@
+<section class="space-y-5" aria-labelledby="profiles-heading" [attr.aria-busy]="store.loading()">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 id="profiles-heading" class="sub-card-title">Health Check Profiles</h2>
+    <div class="flex gap-2">
+      <button type="button" class="btn-secondary" (click)="refresh()" [disabled]="store.loading() || store.saving() || store.deleting()">Refresh</button>
+      <button id="new-profile" type="button" class="btn-primary" (click)="openEditor()" [disabled]="editorOpen() || store.loading() || store.saving() || store.deleting() || !!deleteTarget()">New Profile</button>
+    </div>
+  </div>
+  @if (store.error()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ store.error() }}</p> }
+  @if (success()) { <p class="text-green-700 dark:text-green-300" role="status">{{ success() }}</p> }
+  @if (editorOpen()) {
+    <app-healthcheckprofile-form [projectId]="projectId()" [profile]="editing()" [saving]="store.saving()" (submitted)="save($event)" (cancelled)="closeEditor()" />
+  } @else {
+    @if (deleteTarget(); as profile) {
+      <div class="location-delete-confirm space-y-3" role="region" aria-labelledby="profile-delete-heading">
+        <h3 id="profile-delete-heading" class="form-label">Delete profile {{ profile.metadata.name }}?</h3>
+        <p class="base-text">Locations and nodes referencing this profile may lose their health checks. Update those references before deleting.</p>
+        <div class="flex gap-3">
+          <button id="cancel-profile-delete" type="button" class="btn-secondary" [disabled]="store.deleting()" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn-primary" [disabled]="store.deleting()" (click)="deleteProfile()">{{ store.deleting() ? 'Deleting...' : 'Delete profile' }}</button>
+        </div>
+      </div>
+    }
+    @if (store.loading() && store.profiles().length === 0) {
+      <p class="base-text" role="status">Loading health check profiles...</p>
+    } @else if (store.profiles().length === 0 && !store.error()) {
+      <p class="base-text">No health check profiles found.</p>
+    } @else if (store.profiles().length > 0) {
+      <div class="location-table-scroll">
+        <table class="w-full table-auto">
+          <thead class="border-y border-gray-100 dark:border-white/10"><tr>
+            <th scope="col" class="table-label">Name</th><th scope="col" class="table-label">Status</th><th scope="col" class="table-label">Probes</th><th scope="col" class="table-label">Actions</th>
+          </tr></thead>
+          <tbody class="table-divider">
+            @for (profile of store.profiles(); track profile.metadata.name) {
+              <tr>
+                <th scope="row" class="base-text py-3 text-left font-mono font-medium">{{ profile.metadata.name }}</th>
+                <td class="base-text">{{ profile.status?.status || 'Pending' }}</td>
+                <td class="base-text">
+                  @for (probe of profile.spec?.probes ?? []; track probe.name) { <div>{{ probe.name }} ({{ probe.type }})</div> }
+                </td>
+                <td class="base-text"><div class="flex gap-3">
+                  <button type="button" class="link-primary" [attr.aria-label]="'Edit ' + profile.metadata.name" [disabled]="store.loading() || store.deleting() || !!deleteTarget()" (click)="openEditor(profile)">Edit</button>
+                  <button type="button" class="link-primary" [attr.aria-label]="'Delete ' + profile.metadata.name" [disabled]="store.loading() || store.deleting() || !!deleteTarget()" (click)="confirmDelete(profile)">Delete</button>
+                </div></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>

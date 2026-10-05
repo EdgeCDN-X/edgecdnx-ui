@@ -1,5 +1,8 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="location-editor space-y-6" aria-labelledby="location-form-heading">
   <h2 id="location-form-heading" class="sub-card-title">{{ location() ? 'Edit Location' : 'New Location' }}</h2>
+  <datalist id="location-healthcheckprofiles">
+    @for (name of profileOptions(); track name) { <option [value]="name"></option> }
+  </datalist>
   @if (validationError()) {
     <p class="text-red-700 dark:text-red-300" role="alert">{{ validationError() }}</p>
   }
@@ -142,7 +145,19 @@
       <fieldset [formGroupName]="groupIndex" class="location-item mb-4">
         <legend class="form-label">Node group {{ groupIndex + 1 }}</legend>
         <div class="grid gap-4 sm:grid-cols-2">
-          <div class="sm:col-span-2"><label [for]="'group-name-' + groupIndex" class="form-label">Group name</label><input [id]="'group-name-' + groupIndex" formControlName="name" class="form-input-field" /></div>
+          <div><label [for]="'group-name-' + groupIndex" class="form-label">Group name</label><input [id]="'group-name-' + groupIndex" formControlName="name" class="form-input-field" /></div>
+          <div>
+            <label [for]="'group-health-' + groupIndex" class="form-label">Health check profile</label>
+            <select [id]="'group-health-' + groupIndex" formControlName="healthCheck" class="form-input-field"
+              [attr.aria-invalid]="group.controls.healthCheck.hasError('unavailable')">
+              <option value="">None</option>
+              @for (name of profileOptions(); track name) { <option [value]="name">{{ name }}</option> }
+            </select>
+            @if (group.controls.healthCheck.hasError('unavailable')) {
+              <p class="location-field-error">The assigned profile is unavailable in this project. Select an existing profile or None.</p>
+            }
+            @if (profileOptions().length === 0) { <p class="base-text">No health check profiles are available in this project.</p> }
+          </div>
           <app-location-kv-builder [rows]="group.controls.labels" kind="label" [prefix]="'group-labels-' + groupIndex" [disabled]="saving()" />
           <app-location-kv-builder [rows]="group.controls.metadata" kind="metadata" [prefix]="'group-metadata-' + groupIndex" [disabled]="saving()" />
         </div>
@@ -150,7 +165,6 @@
           <summary class="form-label cursor-pointer">Group configuration</summary>
           <div class="mt-3 grid gap-4 sm:grid-cols-2">
             <div><label [for]="'group-selector-' + groupIndex" class="form-label">Node selector (JSON)</label><textarea [id]="'group-selector-' + groupIndex" formControlName="nodeSelector" class="form-input-field font-mono" rows="3"></textarea></div>
-            <div><label [for]="'group-health-' + groupIndex" class="form-label">Health check profile</label><input [id]="'group-health-' + groupIndex" formControlName="healthCheck" class="form-input-field" /></div>
             <div class="sm:col-span-2"><label [for]="'group-cache-' + groupIndex" class="form-label">Legacy cache configuration (JSON)</label><textarea [id]="'group-cache-' + groupIndex" formControlName="cacheConfig" class="form-input-field font-mono" rows="3" placeholder='{"path":"/cache","keysZone":"cache","inactive":"1h","maxSize":"10g"}'></textarea></div>
           </div>
         </details>
@@ -167,7 +181,7 @@
               <details class="mt-3">
                 <summary class="form-label cursor-pointer">Node configuration</summary>
                 <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                  <div><label [for]="'node-health-' + groupIndex + '-' + nodeIndex" class="form-label">Health check profile</label><input [id]="'node-health-' + groupIndex + '-' + nodeIndex" formControlName="healthCheck" class="form-input-field" /></div>
+                  <div><label [for]="'node-health-' + groupIndex + '-' + nodeIndex" class="form-label">Health check profile</label><input [id]="'node-health-' + groupIndex + '-' + nodeIndex" formControlName="healthCheck" list="location-healthcheckprofiles" class="form-input-field" /></div>
                   <div><label [for]="'node-caches-' + groupIndex + '-' + nodeIndex" class="form-label">Legacy caches (JSON)</label><textarea [id]="'node-caches-' + groupIndex + '-' + nodeIndex" formControlName="caches" class="form-input-field font-mono" rows="2" placeholder='["cache"]'></textarea></div>
                   <div class="sm:col-span-2"><label [for]="'node-alerts-' + groupIndex + '-' + nodeIndex" class="form-label">Alert matchers (JSON)</label><textarea [id]="'node-alerts-' + groupIndex + '-' + nodeIndex" formControlName="alerts" class="form-input-field font-mono" rows="3" placeholder='[{"alertName":"CacheDown","labels":{"severity":"critical"}}]'></textarea></div>
                 </div>

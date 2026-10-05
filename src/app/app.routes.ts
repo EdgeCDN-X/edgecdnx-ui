@@ -65,10 +65,22 @@ export const routes: Routes = [
             title: 'Zones',
           },
           {
+            path: 'locations/healthcheckprofiles',
+            loadComponent: () =>
+              import('./pages/project-details/healthcheckprofiles/healthcheckprofiles').then((m) => m.HealthCheckProfiles),
+            title: 'Health Check Profiles',
+          },
+          {
             path: 'locations',
             loadComponent: () =>
               import('./pages/project-details/locations/locations').then((m) => m.Locations),
             title: 'Locations',
+          },
+          {
+            path: 'locations/:locationName',
+            loadComponent: () =>
+              import('./pages/project-details/location-details/location-details').then((m) => m.LocationDetails),
+            title: 'Location Details',
           },
           {
             path: 'zones/:zoneName',

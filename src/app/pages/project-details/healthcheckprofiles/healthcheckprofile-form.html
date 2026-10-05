@@ -1,0 +1,51 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="location-editor space-y-6" aria-labelledby="profile-form-heading">
+  <h2 id="profile-form-heading" class="sub-card-title">{{ profile() ? 'Edit Health Check Profile' : 'New Health Check Profile' }}</h2>
+  @if (validationError()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ validationError() }}</p> }
+  <div>
+    <label for="profile-name" class="form-label">Name</label>
+    <input id="profile-name" formControlName="name" class="form-input-field" autocomplete="off" />
+    @if (form.controls.name.touched && form.controls.name.invalid) { <p class="location-field-error">Enter a lowercase Kubernetes resource name, up to 253 characters.</p> }
+  </div>
+  <p class="base-text">Managed tenant label: <code>{{ tenantLabelKey }}={{ projectId() }}</code></p>
+  <fieldset formArrayName="probes" class="location-section space-y-4">
+    <legend class="form-label font-bold">Probes</legend>
+    @for (probe of form.controls.probes.controls; track probe; let i = $index) {
+      <fieldset [formGroupName]="i" class="location-item space-y-3">
+        <legend class="form-label">Probe {{ i + 1 }}</legend>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div><label [for]="'probe-name-' + i" class="form-label">Name</label><input [id]="'probe-name-' + i" formControlName="name" class="form-input-field" /></div>
+          <div>
+            <label [for]="'probe-type-' + i" class="form-label">Type</label>
+            <select [id]="'probe-type-' + i" formControlName="type" class="form-input-field"><option value="TCP">TCP</option><option value="HTTP">HTTP / HTTPS</option><option value="ASSUME">Static (ASSUME)</option></select>
+          </div>
+          <div><label [for]="'probe-interval-' + i" class="form-label">Interval (e.g. 30s)</label><input [id]="'probe-interval-' + i" formControlName="interval" class="form-input-field" placeholder="Default" /></div>
+          <div><label [for]="'probe-timeout-' + i" class="form-label">Timeout (e.g. 5s)</label><input [id]="'probe-timeout-' + i" formControlName="timeout" class="form-input-field" placeholder="Default" /></div>
+          <div>
+            <label [for]="'probe-stack-' + i" class="form-label">IP stack</label>
+            <select [id]="'probe-stack-' + i" formControlName="stack" class="form-input-field"><option value="Dual">Dual</option><option value="IPv4">IPv4</option><option value="IPv6">IPv6</option></select>
+          </div>
+          @if (probe.controls.type.value === 'ASSUME') {
+            <div><label [for]="'probe-status-' + i" class="form-label">Assumed status</label><select [id]="'probe-status-' + i" formControlName="status" class="form-input-field"><option value="Healthy">Healthy</option><option value="Unhealthy">Unhealthy</option></select></div>
+          } @else {
+            <div><label [for]="'probe-port-' + i" class="form-label">Port{{ probe.controls.type.value === 'HTTP' ? ' (0 = default)' : '' }}</label><input [id]="'probe-port-' + i" type="number" min="0" max="65535" step="1" formControlName="port" class="form-input-field" /></div>
+            <div><label [for]="'probe-target-' + i" class="form-label">Target override</label><input [id]="'probe-target-' + i" formControlName="target" class="form-input-field" placeholder="Node IP address" /></div>
+          }
+          @if (probe.controls.type.value === 'HTTP') {
+            <div><label [for]="'probe-protocol-' + i" class="form-label">Protocol</label><select [id]="'probe-protocol-' + i" formControlName="protocol" class="form-input-field"><option value="http">HTTP</option><option value="https">HTTPS</option></select></div>
+            <div><label [for]="'probe-path-' + i" class="form-label">Path</label><input [id]="'probe-path-' + i" formControlName="path" class="form-input-field" /></div>
+            <div><label [for]="'probe-host-' + i" class="form-label">Host header</label><input [id]="'probe-host-' + i" formControlName="host" class="form-input-field" /></div>
+          }
+        </div>
+        @if (probe.touched && probe.invalid) { <p class="location-field-error">Check the probe name, port, and duration settings.</p> }
+        <button type="button" class="btn-secondary" [disabled]="saving()" (click)="form.controls.probes.removeAt(i)">Remove probe</button>
+      </fieldset>
+    }
+    @if (form.controls.probes.hasError('duplicate')) { <p class="location-field-error">Probe names must be unique.</p> }
+    @if (form.controls.probes.length === 0) { <p class="location-field-error">At least one probe is required.</p> }
+    <button type="button" class="btn-secondary" [disabled]="saving()" (click)="addProbe()">Add probe</button>
+  </fieldset>
+  <div class="flex justify-end gap-3">
+    <button type="button" class="btn-secondary" [disabled]="saving()" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" class="btn-primary" [disabled]="saving()">{{ saving() ? 'Saving...' : profile() ? 'Save changes' : 'Create profile' }}</button>
+  </div>
+</form>

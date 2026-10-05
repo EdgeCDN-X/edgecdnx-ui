@@ -9,7 +9,8 @@
   @if (store.error()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ store.error() }}</p> }
   @if (success()) { <p class="text-green-700 dark:text-green-300" role="status">{{ success() }}</p> }
   @if (editorOpen()) {
-    <app-location-form [projectId]="projectId()" [location]="editing()" [availableLocations]="store.locations()" [saving]="store.saving()" (submitted)="save($event)" (cancelled)="closeEditor()" />
+    @if (profileStore.error()) { <p class="text-red-700 dark:text-red-300" role="alert">Unable to load profile suggestions: {{ profileStore.error() }}</p> }
+    <app-location-form [projectId]="projectId()" [location]="editing()" [availableLocations]="store.locations()" [availableProfiles]="profileStore.profiles()" [saving]="store.saving()" (submitted)="save($event)" (cancelled)="closeEditor()" />
   } @else {
     @if (deleteTarget(); as location) {
       <div class="location-delete-confirm space-y-3" role="region" aria-labelledby="location-delete-heading">
@@ -41,7 +42,7 @@
           <tbody class="table-divider">
             @for (location of store.locations(); track location.metadata.name) {
               <tr>
-                <th scope="row" class="base-text py-3 text-left font-mono font-medium">{{ location.metadata.name }}</th>
+                <th scope="row" class="base-text py-3 text-left font-mono font-medium"><a class="link-primary" [routerLink]="['/projects', projectId(), 'locations', location.metadata.name]">{{ location.metadata.name }}</a></th>
                 <td class="base-text">{{ location.status?.status ?? 'Pending' }}</td>
                 <td class="base-text">{{ location.spec?.weight ?? 0 }}</td>
                 <td class="base-text">{{ location.spec?.nodeGroups?.length ?? 0 }}</td>
@@ -49,6 +50,7 @@
                 <td class="base-text">{{ location.spec?.fallbackLocations?.join(', ') || '-' }}</td>
                 <td class="base-text">
                   <div class="flex gap-3">
+                    <a class="link-primary" [attr.aria-label]="'Healthchecks for ' + location.metadata.name" [routerLink]="['/projects', projectId(), 'locations', location.metadata.name]">Health</a>
                     <button type="button" class="link-primary" [attr.aria-label]="'Edit ' + location.metadata.name" [disabled]="store.deleting() || !!deleteTarget()" (click)="openEditor(location)">Edit</button>
                     <button type="button" class="link-primary" [attr.aria-label]="'Delete ' + location.metadata.name" [disabled]="store.deleting() || !!deleteTarget()" (click)="confirmDelete(location)">Delete</button>
                   </div>

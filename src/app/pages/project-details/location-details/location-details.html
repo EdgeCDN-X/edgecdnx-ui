@@ -1,0 +1,117 @@
+<section class="space-y-6" aria-labelledby="location-heading">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div class="min-w-0">
+      <a [routerLink]="['/projects', projectId(), 'locations']" class="link-primary inline-flex items-center gap-1">
+        <span aria-hidden="true">&larr;</span>
+        Locations
+      </a>
+      <h2 id="location-heading" class="mt-2 truncate font-mono text-2xl font-semibold text-gray-900 dark:text-white">{{ locationName() }}</h2>
+      @if (location(); as loc) {
+        <p class="base-text mt-1">
+          Status: {{ loc.status?.status ?? 'Pending' }} · Weight: {{ loc.spec?.weight ?? 0 }} · Node groups: {{ loc.spec?.nodeGroups?.length ?? 0 }}
+          @if (loc.spec?.fallbackLocations?.length) { · Fallbacks: {{ loc.spec?.fallbackLocations?.join(', ') }} }
+        </p>
+      } @else if (locationStore.error()) {
+        <p class="mt-1 text-red-700 dark:text-red-300" role="alert">{{ locationStore.error() }}</p>
+      }
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="base-text inline-flex items-center gap-2" role="status" aria-live="polite">
+        <span class="relative flex h-2.5 w-2.5" aria-hidden="true">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" [class]="healthStore.error() ? 'bg-error-500' : 'bg-success-500'"></span>
+          <span class="relative inline-flex h-2.5 w-2.5 rounded-full" [class]="healthStore.error() ? 'bg-error-500' : 'bg-success-500'"></span>
+        </span>
+        Live · every {{ pollSeconds }}s
+        @if (healthStore.lastUpdated(); as updated) { · updated {{ updated | date: 'HH:mm:ss' }} }
+      </span>
+      <button type="button" class="btn-secondary" (click)="refresh()" [disabled]="healthStore.loading()">Refresh</button>
+    </div>
+  </div>
+
+  @if (healthStore.error()) {
+    <p class="text-red-700 dark:text-red-300" role="alert">Unable to load healthchecks: {{ healthStore.error() }}</p>
+  }
+
+  @if (healthStore.healthchecks() === null) {
+    @if (healthStore.loading()) { <p class="base-text" role="status">Loading healthchecks...</p> }
+  } @else {
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+        <p class="base-text">Nodes</p>
+        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ summary().total }}</p>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+        <p class="base-text">Healthy</p>
+        <p class="text-2xl font-semibold text-success-600">{{ summary().healthy }}</p>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+        <p class="base-text">Unhealthy</p>
+        <p class="text-2xl font-semibold text-error-600">{{ summary().unhealthy }}</p>
+      </div>
+      <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+        <p class="base-text">No data</p>
+        <p class="text-2xl font-semibold text-gray-500">{{ summary().unknown }}</p>
+      </div>
+    </div>
+
+    @if (nodes().length === 0) {
+      <p class="base-text">No nodes or healthchecks found for this location.</p>
+    }
+
+    @for (node of nodes(); track node.name) {
+      <article class="rounded-lg border border-gray-200 dark:border-gray-800" [attr.aria-labelledby]="'node-' + node.name">
+        <header class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <div class="min-w-0">
+            <h3 [id]="'node-' + node.name" class="font-mono font-semibold text-gray-900 dark:text-white">{{ node.name }}</h3>
+            <p class="base-text text-sm">
+              @if (node.nodeGroup) { {{ node.nodeGroup }}/{{ node.flavor }} }
+              @if (node.ipv4) { · {{ node.ipv4 }} }
+              @if (node.ipv6) { · {{ node.ipv6 }} }
+              @if (!node.configured) { · not configured on this location }
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            @if (node.maintenanceMode) {
+              <span class="rounded-full bg-warning-50 px-2.5 py-0.5 text-xs font-medium text-warning-700 dark:bg-warning-500/15 dark:text-warning-500">Maintenance</span>
+            }
+            <span class="rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="statusClass(node.status)">{{ node.status === 'Unknown' ? 'No data' : node.status }}</span>
+          </div>
+        </header>
+
+        @if (node.checks.length === 0) {
+          <p class="base-text px-4 py-3">No healthcheck results in the last {{ windowMinutes() }} minutes.</p>
+        }
+        @for (check of node.checks; track check.name + check.type + check.target) {
+          <div class="space-y-2 px-4 py-3">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+              <span class="text-gray-900 dark:text-white">
+                <span class="font-medium">{{ check.name }}</span>
+                <span class="base-text"> · {{ check.type }} · {{ check.target }}</span>
+              </span>
+              <span class="base-text">
+                {{ uptime(check) | number: '1.0-1' }}% healthy
+                @if (averageDuration(check); as avg) { · avg {{ avg | number: '1.1-1' }} ms }
+                · last {{ check.lastCheck | date: 'HH:mm:ss' }}
+              </span>
+            </div>
+            <ol class="flex h-9 items-stretch gap-0.5" [attr.aria-label]="'Last ' + check.results.length + ' results of ' + check.name + ' on ' + node.name">
+              @for (slot of emptySlots(check); track slot) {
+                <li class="max-w-2 min-w-0.5 flex-1 rounded-sm bg-gray-100 dark:bg-white/5" aria-hidden="true"></li>
+              }
+              @for (result of check.results; track result.time) {
+                <li class="max-w-2 min-w-0.5 flex-1 rounded-sm transition-opacity hover:opacity-70"
+                  [class.bg-success-500]="result.alive" [class.bg-error-500]="!result.alive"
+                  [attr.title]="barLabel(result)" [attr.aria-label]="barLabel(result)"></li>
+              }
+            </ol>
+            @if (latest(check); as last) {
+              @if (!last.alive) {
+                <p class="break-all text-sm text-error-600 dark:text-error-500">{{ last.code }} · {{ last.message }}</p>
+              }
+            }
+          </div>
+        }
+      </article>
+    }
+  }
+</section>

@@ -1,6 +1,19 @@
 import { FormArray, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { CacheConfig, GeoLookupAttribute, PrometheusAlertMatcher } from '../../admin/store/admin.types';
 import { LocationNode, LocationNodeGroup, ProjectLocation, UpdateLocationDto } from '../../projects/store/location.types';
+import { HealthCheckProfile } from '../../projects/store/healthcheckprofile.types';
+
+export function projectHealthCheckProfileNames(profiles: readonly HealthCheckProfile[], projectId: string): string[] {
+  if (!projectId) return [];
+  return profiles
+    .filter((profile) => profile.metadata.labels?.[tenantLabelKey] === projectId)
+    .map((profile) => profile.metadata.name)
+    .sort((first, second) => first.localeCompare(second));
+}
+
+export function healthCheckProfileValidator(availableNames: readonly string[]): ValidatorFn {
+  return (control) => !control.value || availableNames.includes(control.value) ? null : { unavailable: true };
+}
 
 const integer: ValidatorFn = (control) => Number.isInteger(control.value) ? null : { integer: true };
 const nameValidators = [Validators.required, Validators.maxLength(253), Validators.pattern(/^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?(?:\.[a-z0-9](?:[-a-z0-9]*[a-z0-9])?)*$/)];

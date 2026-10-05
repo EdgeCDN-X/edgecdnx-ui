@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, inject, signal, computed } from '@angular/core';
+import { Component, ElementRef, QueryList, ViewChildren, ChangeDetectorRef, inject, signal, computed, effect } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { SafeHtmlPipe } from '../../pipe/safe-html.pipe';
 import { Subscription } from 'rxjs';
@@ -99,6 +99,10 @@ export class AppSidebarComponent {
       icon: this.adminNavItems()[0].icon,
       name: "Locations",
       path: `/projects/${this.projectStore.selectedProjectId()}/locations`,
+      subItems: [
+        { name: 'Locations', path: `/projects/${this.projectStore.selectedProjectId()}/locations` },
+        { name: 'Health Check Profiles', path: `/projects/${this.projectStore.selectedProjectId()}/locations/healthcheckprofiles` },
+      ],
       visible: this.projectStore.selectedProjectId() !== null,
     }
   ])
@@ -127,7 +131,9 @@ export class AppSidebarComponent {
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {
+    effect(() => this.setActiveMenuFromRoute(this.router.url));
+  }
 
   ngOnInit() {
     // Subscribe to router events
@@ -179,31 +185,22 @@ export class AppSidebarComponent {
   }
 
   private setActiveMenuFromRoute(currentUrl: string) {
-    // const menuGroups = [
-    //   { items: this.navItems, prefix: 'main' },
-    //   { items: this.projectNavItems, prefix: 'project' }
-    // ];
-
-    // menuGroups.forEach(group => {
-    //   group.items.forEach((nav, i) => {
-    //     if (nav.subItems) {
-    //       nav.subItems.forEach(subItem => {
-    //         if (currentUrl === subItem.path) {
-    //           const key = `${group.prefix}-${i}`;
-    //           this.openSubmenu = key;
-
-    //           setTimeout(() => {
-    //             const el = document.getElementById(key);
-    //             if (el) {
-    //               this.subMenuHeights[key] = el.scrollHeight;
-    //               this.cdr.detectChanges(); // Ensure UI updates
-    //             }
-    //           });
-    //         }
-    //       });
-    //     }
-    //   });
-    // });
+    this.openSubmenu = null;
+    this.navGroups().forEach((group) => {
+      group.items.forEach((nav, index) => {
+        if (nav.subItems?.some((item) => item.path === currentUrl)) {
+          const key = `${group.name}-${index}`;
+          this.openSubmenu = key;
+          setTimeout(() => {
+            const el = document.getElementById(key);
+            if (el) {
+              this.subMenuHeights[key] = el.scrollHeight;
+              this.cdr.detectChanges();
+            }
+          });
+        }
+      });
+    });
   }
 
   onSubmenuClick() {
