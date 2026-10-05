@@ -9,7 +9,7 @@ import { ProjectLocation, UpdateLocationDto } from './location.types';
 describe('LocationStore', () => {
   let store: LocationStore;
   let http: HttpTestingController;
-  const dto: UpdateLocationDto = { weight: 0, geoLookup: { weight: 0, attributes: {} }, nodeGroups: [], fallbackLocations: [] };
+  const dto: UpdateLocationDto = { labels: {}, weight: 0, geoLookup: { weight: 0, attributes: {} }, nodeGroups: [], fallbackLocations: [] };
   const location: ProjectLocation = { metadata: { name: 'fra1' }, spec: dto };
   const collection = 'https://api.example/project/project-a/locations';
 

@@ -81,6 +81,30 @@ function keyValueMapForm(value: Record<string, string> = {}) {
   return new FormArray(Object.entries(value).map(([key, value]) => keyValueForm(key, value)), unique(['key']));
 }
 
+export const tenantLabelKey = 'edgecdnx.com/tenant';
+const labelName = /^([A-Za-z0-9]([-A-Za-z0-9_.]{0,61}[A-Za-z0-9])?)$/;
+const labelPrefix = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/;
+
+function validLabelKey(key: string): boolean {
+  const parts = key.split('/');
+  if (parts.length > 2) return false;
+  const name = parts.pop()!;
+  const prefix = parts[0];
+  return labelName.test(name) && (prefix === undefined || (prefix.length <= 253 && labelPrefix.test(prefix)));
+}
+
+const resourceLabelsValidator: ValidatorFn = (control) => {
+  const rows = control.value as { key: string; value: string }[];
+  if (rows.some((row) => row.key === tenantLabelKey)) return { reserved: true };
+  const invalid = rows.some((row) => row.key && (!validLabelKey(row.key) || (row.value !== '' && !labelName.test(row.value))));
+  return invalid ? { labelFormat: true } : null;
+};
+
+export function resourceLabelsForm(labels: Record<string, string> = {}) {
+  const rows = Object.entries(labels).filter(([key]) => key !== tenantLabelKey).map(([key, value]) => keyValueForm(key, value));
+  return new FormArray(rows, [unique(['key']), resourceLabelsValidator]);
+}
+
 export function nodeForm(node?: LocationNode) {
   return new FormGroup({
     name: text(node?.name, [Validators.required]),
@@ -132,6 +156,7 @@ export function selectGeoLookupAttribute(attribute: ReturnType<typeof attributeF
 export function createLocationForm(location?: ProjectLocation) {
   return new FormGroup({
     name: text(location?.metadata.name, nameValidators),
+    labels: resourceLabelsForm(location?.metadata.labels),
     weight: new FormControl(location?.spec?.weight ?? 0, {
       nonNullable: true,
       validators: [Validators.required, integer, Validators.min(-2147483648), Validators.max(2147483647)],
@@ -157,6 +182,7 @@ export function locationDtoFromForm(form: ReturnType<typeof createLocationForm>,
   if (form.invalid) throw new Error('Check the highlighted fields.');
   const value = form.getRawValue();
   return {
+    labels: Object.fromEntries(value.labels.map(({ key, value }) => [key, value])),
     weight: value.weight,
     fallbackLocations: value.fallbackLocations,
     geoLookup: {

@@ -1,7 +1,33 @@
 import { ProjectLocation } from '../../projects/store/location.types';
-import { attributeForm, attributeValueForm, createLocationForm, fallbackForm, keyValueForm, locationDtoFromForm, nodeForm, nodeGroupForm, projectFallbackLocationNames, selectGeoLookupAttribute } from './location-form.model';
+import { attributeForm, attributeValueForm, createLocationForm, fallbackForm, keyValueForm, locationDtoFromForm, nodeForm, nodeGroupForm, projectFallbackLocationNames, resourceLabelsForm, selectGeoLookupAttribute } from './location-form.model';
 
 describe('Location form DTOs', () => {
+  it('loads resource labels without the managed tenant label and serializes edits', () => {
+    const form = createLocationForm({
+      metadata: { name: 'fra1', labels: { 'edgecdnx.com/tenant': 'project-a', 'edgecdnx.com/route-kind': 'static' } },
+    });
+    expect(form.controls.labels.length).toBe(1);
+    form.controls.labels.push(keyValueForm('region', 'eu'));
+    expect(locationDtoFromForm(form, 'project-a').labels).toEqual({ 'edgecdnx.com/route-kind': 'static', region: 'eu' });
+    form.controls.labels.clear();
+    expect(locationDtoFromForm(form, 'project-a').labels).toEqual({});
+  });
+
+  it('rejects the reserved tenant key and invalid Kubernetes label keys or values', () => {
+    const labels = resourceLabelsForm();
+    labels.push(keyValueForm('edgecdnx.com/tenant', 'project-b'));
+    expect(labels.hasError('reserved')).toBeTrue();
+    labels.at(0).controls.key.setValue('edgecdnx.com/route-kind');
+    expect(labels.valid).toBeTrue();
+    for (const [key, value] of [['invalid key', 'x'], ['a/b/c', 'x'], ['Bad_Prefix/name', 'x'], ['region', 'not valid!'], ['region', 'x'.repeat(64)]]) {
+      labels.at(0).controls.key.setValue(key);
+      labels.at(0).controls.value.setValue(value);
+      expect(labels.hasError('labelFormat')).withContext(`${key}=${value}`).toBeTrue();
+    }
+    labels.at(0).controls.value.setValue('');
+    labels.at(0).controls.key.setValue('region');
+    expect(labels.valid).toBeTrue();
+  });
   it('offers only existing locations with the exact project tenant label, excluding itself', () => {
     const locations: ProjectLocation[] = [
       { metadata: { name: 'fra1', labels: { 'edgecdnx.com/tenant': 'project-a' } } },
@@ -89,7 +115,7 @@ describe('Location form DTOs', () => {
   it('round-trips every editable field including nested optional configuration', () => {
     const form = createLocationForm(location);
     expect(form.valid).toBeTrue();
-    expect(locationDtoFromForm(form, 'project-a')).toEqual(location.spec! as ReturnType<typeof locationDtoFromForm>);
+    expect(locationDtoFromForm(form, 'project-a')).toEqual({ ...location.spec!, labels: {} } as ReturnType<typeof locationDtoFromForm>);
   });
 
   it('defaults new node groups to an empty flavor without requiring user input', () => {
@@ -123,7 +149,7 @@ describe('Location form DTOs', () => {
     form.controls.attributes.clear();
     form.controls.fallbackLocations.clear();
     expect(locationDtoFromForm(form, 'project-a')).toEqual({
-      weight: 0, geoLookup: { weight: 0, attributes: {} }, nodeGroups: [], fallbackLocations: [],
+      labels: {}, weight: 0, geoLookup: { weight: 0, attributes: {} }, nodeGroups: [], fallbackLocations: [],
     });
   });
 

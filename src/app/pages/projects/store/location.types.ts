@@ -28,6 +28,7 @@ export type LocationNodeGroup = {
 };
 
 export type UpdateLocationDto = {
+  labels: Record<string, string>;
   nodeGroups: LocationNodeGroup[];
   geoLookup: GeoLookup;
   weight: number;
@@ -38,6 +39,6 @@ export type CreateLocationDto = UpdateLocationDto & { name: string };
 
 export type ProjectLocation = {
   metadata: KubernetesObjectMeta & { name: string };
-  spec?: Partial<UpdateLocationDto>;
+  spec?: Partial<Omit<UpdateLocationDto, 'labels'>>;
   status?: LocationStatus;
 };

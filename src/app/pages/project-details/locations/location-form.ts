@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output, si
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ProjectLocation, CreateLocationDto, UpdateLocationDto } from '../../projects/store/location.types';
-import { attributeForm, attributeValueForm, continentCodes, createLocationForm, fallbackForm, geoLookupAttributes, locationDtoFromForm, nodeForm, nodeGroupForm, projectFallbackLocationNames, selectGeoLookupAttribute } from './location-form.model';
+import { attributeForm, attributeValueForm, continentCodes, createLocationForm, fallbackForm, geoLookupAttributes, locationDtoFromForm, nodeForm, nodeGroupForm, projectFallbackLocationNames, selectGeoLookupAttribute, tenantLabelKey } from './location-form.model';
 import { LocationKvBuilder } from './location-kv-builder';
 
 @Component({
@@ -24,6 +24,7 @@ export class LocationForm {
   readonly fallbackOptions = computed(() => projectFallbackLocationNames(
     this.availableLocations(), this.projectId(), this.location()?.metadata.name,
   ));
+  readonly tenantLabel = computed(() => ({ [tenantLabelKey]: this.projectId() }));
   form = createLocationForm();
 
   constructor() {

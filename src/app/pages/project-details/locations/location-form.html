@@ -26,8 +26,14 @@
     </div>
   </div>
 
+  <div class="location-section">
+    <app-location-kv-builder [rows]="form.controls.labels" kind="label" prefix="location-labels" legend="Location labels"
+      [lockedLabels]="tenantLabel()" [disabled]="saving()"
+      tooltip="Labels set on the Location resource. DNSEndpoint routeSelectors match these labels to target specific locations. The edgecdnx.com/tenant label is always set automatically." />
+  </div>
+
   <fieldset formArrayName="fallbackLocations" class="location-section">
-    <legend class="form-label">Fallback locations</legend>
+    <legend class="form-label font-bold">Fallback locations</legend>
     @for (fallback of form.controls.fallbackLocations.controls; track fallback; let fallbackIndex = $index) {
       <div class="flex items-end gap-2 py-2">
         <div class="min-w-0 flex-1">
@@ -50,7 +56,7 @@
   </fieldset>
 
   <fieldset class="location-section">
-    <legend class="form-label">Geolookup</legend>
+    <legend class="form-label font-bold">Geolookup</legend>
     <div class="mb-1 flex items-center gap-2">
       <label for="geo-weight" class="form-label mb-0">Geolookup weight</label>
       <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-400 text-xs"
@@ -131,7 +137,7 @@
   </fieldset>
 
   <fieldset formArrayName="nodeGroups" class="location-section">
-    <legend class="form-label">Node groups</legend>
+    <legend class="form-label font-bold">Node groups</legend>
     @for (group of form.controls.nodeGroups.controls; track group; let groupIndex = $index) {
       <fieldset [formGroupName]="groupIndex" class="location-item mb-4">
         <legend class="form-label">Node group {{ groupIndex + 1 }}</legend>
