@@ -16,12 +16,55 @@ describe('Locations sidebar submenu', () => {
     TestBed.configureTestingModule({
       imports: [AppSidebarComponent],
       providers: [
-        provideRouter([{ path: 'projects/:name/locations', component: TestPage }, { path: 'projects/:name/locations/healthcheckprofiles', component: TestPage }]),
+        provideRouter([
+          { path: 'projects/:name/locations', component: TestPage },
+          { path: 'projects/:name/locations/healthcheckprofiles', component: TestPage },
+          { path: 'projects/:name/locations/:locationName', component: TestPage },
+          { path: 'projects/:name/services', component: TestPage },
+        ]),
         { provide: ProjectsStore, useValue: { selectedProjectId: projectId } },
         { provide: AuthStore, useValue: { isAdmin: signal(true) } },
       ],
     });
   });
+
+    it('keeps Locations expanded and highlighted when filters change', async () => {
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/projects/project-a/locations?label=region%3Deu');
+      const fixture = TestBed.createComponent(AppSidebarComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const sidebar = fixture.componentInstance;
+      const element: HTMLElement = fixture.nativeElement;
+      for (const url of [
+        '/projects/project-a/locations?label=region%3Deu&label=tier%3Dedge',
+        '/projects/project-a/locations?label=tier%3Dedge#results',
+        '/projects/project-a/locations',
+      ]) {
+        await router.navigateByUrl(url);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+        expect(sidebar.openSubmenu).toBe('Project-2');
+        expect(sidebar.isActive('/projects/project-a/locations')).toBeTrue();
+        expect(element.querySelector('a[href="/projects/project-a/locations"]')?.classList.contains('menu-dropdown-item-active')).toBeTrue();
+        expect(element.querySelector('#Project-2')?.getAttribute('style')).not.toContain('height: 0px');
+      }
+      await router.navigateByUrl('/projects/project-a/locations/fra1?label=region%3Deu');
+      fixture.detectChanges();
+      expect(sidebar.openSubmenu).toBe('Project-2');
+      expect(sidebar.isActive('/projects/project-a/locations/healthcheckprofiles')).toBeFalse();
+      await router.navigateByUrl('/projects/project-a/locations/healthcheckprofiles?label=region%3Deu');
+      fixture.detectChanges();
+      expect(sidebar.openSubmenu).toBe('Project-2');
+      expect(sidebar.isActive('/projects/project-a/locations/healthcheckprofiles')).toBeTrue();
+      expect(sidebar.isActive('/projects/project-a/locations')).toBeFalse();
+      await router.navigateByUrl('/projects/project-a/services');
+      fixture.detectChanges();
+      expect(sidebar.openSubmenu).toBeNull();
+      fixture.destroy();
+    });
 
   it('renders project locations and profiles beneath Locations, without changing admin navigation', async () => {
     await TestBed.inject(Router).navigateByUrl('/projects/project-a/locations/healthcheckprofiles');

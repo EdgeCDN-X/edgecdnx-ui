@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inject, Injector, signal } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
@@ -6,10 +6,11 @@ import { LocationStore } from '../../projects/store/location.store';
 import { CreateLocationDto, ProjectLocation, UpdateLocationDto } from '../../projects/store/location.types';
 import { LocationForm } from './location-form';
 import { HealthCheckProfileStore } from '../../projects/store/healthcheckprofile.store';
+import { LocationLabels } from './location-labels';
 
 @Component({
   selector: 'app-project-locations',
-  imports: [LocationForm, RouterLink],
+  imports: [LocationForm, RouterLink, LocationLabels],
   providers: [LocationStore, HealthCheckProfileStore],
   templateUrl: './locations.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +23,18 @@ export class Locations {
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly projectId = toSignal(this.route.parent!.paramMap.pipe(map((params) => params.get('name') ?? '')), { initialValue: '' });
+  readonly selectedLabels = toSignal(this.route.queryParamMap.pipe(map((params) => [...new Set(params.getAll('label'))])), { initialValue: [] });
+  readonly visibleLocations = computed(() => this.store.locations().filter((location) =>
+    this.selectedLabels().every((label) => {
+      const separator = label.indexOf('=');
+      return separator > 0 && location.metadata.labels?.[label.slice(0, separator)] === label.slice(separator + 1);
+    }),
+  ));
+
+  withoutLabel(label: string): string[] | null {
+    const labels = this.selectedLabels().filter((item) => item !== label);
+    return labels.length ? labels : null;
+  }
   readonly editorOpen = signal(false);
   readonly editing = signal<ProjectLocation | null>(null);
   readonly deleteTarget = signal<ProjectLocation | null>(null);

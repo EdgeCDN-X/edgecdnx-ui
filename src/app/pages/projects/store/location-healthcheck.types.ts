@@ -1,10 +1,18 @@
 export type HealthcheckResult = {
+  source: string;
   time: string;
   start?: string;
   code?: number;
   message: string;
   alive: boolean;
   durationMs?: number;
+};
+
+export type HealthcheckSource = {
+  source: string;
+  alive: boolean;
+  lastCheck: string;
+  results: HealthcheckResult[];
 };
 
 export type HealthcheckSeries = {
@@ -14,6 +22,7 @@ export type HealthcheckSeries = {
   alive: boolean;
   lastCheck: string;
   results: HealthcheckResult[];
+  sources: HealthcheckSource[];
 };
 
 export type NodeHealthStatus = 'Healthy' | 'Unhealthy' | 'Unknown';

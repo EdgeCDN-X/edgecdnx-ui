@@ -132,7 +132,7 @@ export class AppSidebarComponent {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {
-    effect(() => this.setActiveMenuFromRoute(this.router.url));
+    effect(() => this.setActiveMenuFromRoute());
   }
 
   ngOnInit() {
@@ -140,14 +140,14 @@ export class AppSidebarComponent {
     this.subscription.add(
       this.router.events.subscribe(event => {
         if (event instanceof NavigationEnd) {
-          this.setActiveMenuFromRoute(this.router.url);
+          this.setActiveMenuFromRoute();
           this.sidebarStore.setMobileOpen(false);
         }
       })
     );
 
     // Initial load
-    this.setActiveMenuFromRoute(this.router.url);
+    this.setActiveMenuFromRoute();
   }
 
   ngOnDestroy() {
@@ -156,7 +156,9 @@ export class AppSidebarComponent {
   }
 
   isActive(path: string): boolean {
-    return this.router.url === path;
+    return this.router.isActive(path, {
+      paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored',
+    });
   }
 
   toggleSubmenu(section: string, index: number) {
@@ -184,11 +186,14 @@ export class AppSidebarComponent {
     }
   }
 
-  private setActiveMenuFromRoute(currentUrl: string) {
+  private setActiveMenuFromRoute() {
     this.openSubmenu = null;
     this.navGroups().forEach((group) => {
       group.items.forEach((nav, index) => {
-        if (nav.subItems?.some((item) => item.path === currentUrl)) {
+        if (nav.subItems?.some((item) => this.isActive(item.path)) ||
+          (nav.subItems && nav.path && this.router.isActive(nav.path, {
+            paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored',
+          }))) {
           const key = `${group.name}-${index}`;
           this.openSubmenu = key;
           setTimeout(() => {

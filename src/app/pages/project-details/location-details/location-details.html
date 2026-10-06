@@ -1,7 +1,7 @@
 <section class="space-y-6" aria-labelledby="location-heading">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
     <div class="min-w-0">
-      <a [routerLink]="['/projects', projectId(), 'locations']" class="link-primary inline-flex items-center gap-1">
+      <a [routerLink]="['/projects', projectId(), 'locations']" [queryParams]="{ label: selectedLabels().length ? selectedLabels() : null }" class="link-primary inline-flex items-center gap-1">
         <span aria-hidden="true">&larr;</span>
         Locations
       </a>
@@ -11,6 +11,10 @@
           Status: {{ loc.status?.status ?? 'Pending' }} · Weight: {{ loc.spec?.weight ?? 0 }} · Node groups: {{ loc.spec?.nodeGroups?.length ?? 0 }}
           @if (loc.spec?.fallbackLocations?.length) { · Fallbacks: {{ loc.spec?.fallbackLocations?.join(', ') }} }
         </p>
+        <div class="mt-3 space-y-1">
+          <h3 class="base-text text-sm font-medium">Labels</h3>
+          <app-location-labels [labels]="loc.metadata.labels" [projectId]="projectId()" [selectedLabels]="selectedLabels()" />
+        </div>
       } @else if (locationStore.error()) {
         <p class="mt-1 text-red-700 dark:text-red-300" role="alert">{{ locationStore.error() }}</p>
       }
@@ -81,12 +85,13 @@
         @if (node.checks.length === 0) {
           <p class="base-text px-4 py-3">No healthcheck results in the last {{ windowMinutes() }} minutes.</p>
         }
-        @for (check of node.checks; track check.name + check.type + check.target) {
+        @for (check of node.checks; track [check.name, check.type, check.target].join('|')) {
           <div class="space-y-2 px-4 py-3">
             <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
               <span class="text-gray-900 dark:text-white">
                 <span class="font-medium">{{ check.name }}</span>
-                <span class="base-text"> · {{ check.type }} · {{ check.target }}</span>
+                <span class="base-text"> · {{ check.type }} · {{ check.target }} · All sources</span>
+                <span class="ml-2 rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="statusClass(check.alive ? 'Healthy' : 'Unhealthy')">{{ check.alive ? 'Healthy' : 'Unhealthy' }}</span>
               </span>
               <span class="base-text">
                 {{ uptime(check) | number: '1.0-1' }}% healthy
@@ -94,20 +99,39 @@
                 · last {{ check.lastCheck | date: 'HH:mm:ss' }}
               </span>
             </div>
-            <ol class="flex h-9 items-stretch gap-0.5" [attr.aria-label]="'Last ' + check.results.length + ' results of ' + check.name + ' on ' + node.name">
-              @for (slot of emptySlots(check); track slot) {
-                <li class="max-w-2 min-w-0.5 flex-1 rounded-sm bg-gray-100 dark:bg-white/5" aria-hidden="true"></li>
-              }
-              @for (result of check.results; track result.time) {
-                <li class="max-w-2 min-w-0.5 flex-1 rounded-sm transition-opacity hover:opacity-70"
-                  [class.bg-success-500]="result.alive" [class.bg-error-500]="!result.alive"
-                  [attr.title]="barLabel(result)" [attr.aria-label]="barLabel(result)"></li>
-              }
-            </ol>
+            <app-healthcheck-bars [results]="check.results" [label]="'Last ' + check.results.length + ' results of ' + check.name + ' on ' + node.name + ' across all sources'" />
             @if (latest(check); as last) {
               @if (!last.alive) {
                 <p class="break-all text-sm text-error-600 dark:text-error-500">{{ last.code }} · {{ last.message }}</p>
               }
+              <details class="my-1 rounded-lg border border-gray-200 dark:border-gray-800">
+                <summary class="link-primary cursor-pointer px-3 py-2 text-sm focus-visible:outline-2" [attr.aria-label]="'Details by source for ' + check.name + ' on ' + node.name">
+                  Details · {{ check.sources.length }} {{ check.sources.length === 1 ? 'source' : 'sources' }}
+                </summary>
+                <div class="space-y-4 border-t border-gray-200 p-3 dark:border-gray-800">
+                  @for (source of check.sources; track source.source) {
+                    <section class="space-y-2" [attr.aria-label]="'Source ' + (source.source || 'Unknown source')">
+                      <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                        <span class="text-gray-900 dark:text-white">
+                          <span class="font-mono font-medium">{{ source.source || 'Unknown source' }}</span>
+                          <span class="ml-2 rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="statusClass(source.alive ? 'Healthy' : 'Unhealthy')">{{ source.alive ? 'Healthy' : 'Unhealthy' }}</span>
+                        </span>
+                        <span class="base-text">
+                          {{ uptime(source) | number: '1.0-1' }}% healthy
+                          @if (averageDuration(source); as avg) { · avg {{ avg | number: '1.1-1' }} ms }
+                          · last {{ source.lastCheck | date: 'HH:mm:ss' }}
+                        </span>
+                      </div>
+                      <app-healthcheck-bars [results]="source.results" [label]="'Last ' + source.results.length + ' results of ' + check.name + ' on ' + node.name + ' from ' + (source.source || 'Unknown source')" />
+                      @if (latest(source); as last) {
+                        @if (!last.alive) {
+                          <p class="break-all text-sm text-error-600 dark:text-error-500">{{ last.code }} · {{ last.message }}</p>
+                        }
+                      }
+                    </section>
+                  }
+                </div>
+              </details>
             }
           </div>
         }

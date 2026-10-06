@@ -31,6 +31,24 @@ current project's tenant label. Select **None** to clear a reference. Missing or
 foreign node-group references must be replaced or cleared before saving.
 Node editors suggest project profile names while still allowing manual references.
 Before deleting a profile, remove its references from locations and nodes.
+The location list and details page display all resource labels, including the
+tenant label, as alphabetically sorted `key=value` badges. Locations without
+labels display **No labels**.
+On screens below the medium breakpoint (768px), the location list hides the
+Node groups and Nodes columns. Labels are collapsed behind a clickable
+three-dot button; opening it lists the labels vertically, and clicking it again
+collapses them. Desktop labels remain on one line. Table cells do not wrap,
+with horizontal scrolling when needed. Labels on the details page still wrap.
+Click any label on either page to filter the location list. Filters use repeated
+`label=key=value` query parameters, for example
+`/projects/my-project/locations?label=region%3Deu&label=tier%3Dedge`.
+A location must match **all** selected labels. Clicking an already selected
+label removes that filter; active filter badges and **Clear filters** also
+remove selections. Filters survive reloads, browser navigation, and visits to
+location details. Filtering is applied to the project's loaded locations;
+it does not change permissions or the resources available in the editor.
+The Locations sidebar submenu stays expanded on filtered URLs and location
+details; query parameters and fragments do not affect active menu matching.
 
 The location details page refreshes live healthcheck results every 30 seconds.
 Each request resolves the current profiles (node references override node-group
@@ -38,6 +56,18 @@ references) and shows only results matching an active probe's name, type, and
 target. Removed probes, obsolete targets, and removed nodes no longer affect the
 displayed node health. Nodes without matching results show **No data**. Profile
 lookup failures are displayed as errors rather than returning unfiltered history.
+
+Healthcheck results include the database `source` field identifying the probing
+location. Each check shows one combined chronological bar row by default. Expand
+**Details** to see each source's status, history, duration, and latest failure.
+The combined row keeps the latest 60 results across sources; each source keeps
+its own latest 60 results within the requested window. A check (and its node) is
+unhealthy if the latest result from any source is unhealthy. Older failures do
+not override a source's newer successful result. Empty or NULL sources are
+grouped as **Unknown source**. The database must have a `source` text column.
+Hover over or keyboard-focus a result bar in either view to see a tooltip with
+the check context, status, source, timestamp, start time (when available),
+response code, duration in milliseconds, and message.
 
 ## Development server
 

@@ -8,6 +8,17 @@
   </div>
   @if (store.error()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ store.error() }}</p> }
   @if (success()) { <p class="text-green-700 dark:text-green-300" role="status">{{ success() }}</p> }
+  @if (selectedLabels().length) {
+    <div class="flex flex-wrap items-center gap-2" aria-label="Active label filters">
+      <span class="base-text text-sm">Matching all labels:</span>
+      @for (label of selectedLabels(); track label) {
+        <a [routerLink]="[]" [queryParams]="{ label: withoutLabel(label) }" queryParamsHandling="merge"
+          class="rounded-full bg-brand-50 px-2 py-1 text-xs text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
+          [attr.aria-label]="'Remove label filter ' + label">{{ label }} <span aria-hidden="true">&times;</span></a>
+      }
+      <a class="link-primary text-sm" [routerLink]="[]" [queryParams]="{ label: null }" queryParamsHandling="merge">Clear filters</a>
+    </div>
+  }
   @if (editorOpen()) {
     @if (profileStore.error()) { <p class="text-red-700 dark:text-red-300" role="alert">Unable to load profile suggestions: {{ profileStore.error() }}</p> }
     <app-location-form [projectId]="projectId()" [location]="editing()" [availableLocations]="store.locations()" [availableProfiles]="profileStore.profiles()" [saving]="store.saving()" (submitted)="save($event)" (cancelled)="closeEditor()" />
@@ -23,34 +34,36 @@
     }
     @if (store.loading() && store.locations().length === 0) {
       <p class="base-text" role="status">Loading locations...</p>
-    } @else if (store.locations().length === 0 && !store.error()) {
-      <p class="base-text">No locations found.</p>
-    } @else if (store.locations().length > 0) {
+    } @else if (visibleLocations().length === 0 && !store.error()) {
+      <p class="base-text">{{ selectedLabels().length ? 'No locations match the selected labels.' : 'No locations found.' }}</p>
+    } @else if (visibleLocations().length > 0) {
       <div class="location-table-scroll">
         <table class="w-full table-auto">
           <thead class="border-y border-gray-100 dark:border-white/10">
             <tr>
               <th scope="col" class="table-label">Name</th>
+              <th scope="col" class="table-label">Labels</th>
               <th scope="col" class="table-label">Status</th>
               <th scope="col" class="table-label">Weight</th>
-              <th scope="col" class="table-label">Node groups</th>
-              <th scope="col" class="table-label">Nodes</th>
+              <th scope="col" class="table-label hidden md:table-cell">Node groups</th>
+              <th scope="col" class="table-label hidden md:table-cell">Nodes</th>
               <th scope="col" class="table-label">Fallbacks</th>
               <th scope="col" class="table-label">Actions</th>
             </tr>
           </thead>
           <tbody class="table-divider">
-            @for (location of store.locations(); track location.metadata.name) {
+            @for (location of visibleLocations(); track location.metadata.name) {
               <tr>
-                <th scope="row" class="base-text py-3 text-left font-mono font-medium"><a class="link-primary" [routerLink]="['/projects', projectId(), 'locations', location.metadata.name]">{{ location.metadata.name }}</a></th>
+                <th scope="row" class="base-text py-3 text-left font-mono font-medium"><a class="link-primary" [routerLink]="['/projects', projectId(), 'locations', location.metadata.name]" [queryParams]="{ label: selectedLabels().length ? selectedLabels() : null }">{{ location.metadata.name }}</a></th>
+                <td class="py-3"><app-location-labels [labels]="location.metadata.labels" [projectId]="projectId()" [selectedLabels]="selectedLabels()" [compact]="true" /></td>
                 <td class="base-text">{{ location.status?.status ?? 'Pending' }}</td>
                 <td class="base-text">{{ location.spec?.weight ?? 0 }}</td>
-                <td class="base-text">{{ location.spec?.nodeGroups?.length ?? 0 }}</td>
-                <td class="base-text">{{ nodeCount(location) }}</td>
+                <td class="base-text hidden md:table-cell">{{ location.spec?.nodeGroups?.length ?? 0 }}</td>
+                <td class="base-text hidden md:table-cell">{{ nodeCount(location) }}</td>
                 <td class="base-text">{{ location.spec?.fallbackLocations?.join(', ') || '-' }}</td>
                 <td class="base-text">
                   <div class="flex gap-3">
-                    <a class="link-primary" [attr.aria-label]="'Healthchecks for ' + location.metadata.name" [routerLink]="['/projects', projectId(), 'locations', location.metadata.name]">Health</a>
+                    <a class="link-primary" [attr.aria-label]="'Healthchecks for ' + location.metadata.name" [routerLink]="['/projects', projectId(), 'locations', location.metadata.name]" [queryParams]="{ label: selectedLabels().length ? selectedLabels() : null }">Health</a>
                     <button type="button" class="link-primary" [attr.aria-label]="'Edit ' + location.metadata.name" [disabled]="store.deleting() || !!deleteTarget()" (click)="openEditor(location)">Edit</button>
                     <button type="button" class="link-primary" [attr.aria-label]="'Delete ' + location.metadata.name" [disabled]="store.deleting() || !!deleteTarget()" (click)="confirmDelete(location)">Delete</button>
                   </div>

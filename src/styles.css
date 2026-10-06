@@ -930,9 +930,10 @@ pre[class*="language-"].line-numbers {
 .location-icon-button:focus-visible, .location-editor button:focus-visible { outline: 2px solid var(--color-brand-500); outline-offset: 2px; }
 .location-editor button:disabled { cursor: not-allowed; opacity: 0.6; }
 .location-table-scroll { overflow-x: auto; }
-.location-table-scroll th, .location-table-scroll td { padding-right: 1rem; overflow-wrap: anywhere; }
+.location-table-scroll th, .location-table-scroll td { padding-right: 1rem; white-space: nowrap; }
 .location-delete-confirm { border-left: 3px solid var(--color-red-600); padding: 1rem; }
-.location-weight-tooltip .mat-mdc-tooltip-surface {
+.location-weight-tooltip .mat-mdc-tooltip-surface,
+.healthcheck-bar-tooltip .mat-mdc-tooltip-surface {
   background-color: var(--color-gray-900);
   color: var(--color-white);
   font-family: var(--font-outfit);
@@ -940,6 +941,12 @@ pre[class*="language-"].line-numbers {
   line-height: 1.4;
   padding: 0.5rem 0.75rem;
   border-radius: 4px;
+}
+.healthcheck-bar-tooltip .mat-mdc-tooltip-surface {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  max-width: min(28rem, calc(100vw - 2rem));
+  text-align: left;
 }
 @media (max-width: 480px) {
   .location-value-row { grid-template-columns: minmax(0, 1fr) 2.75rem; }
