@@ -23,7 +23,7 @@ import {
   hostInputFromDnsName,
 } from '../../zone-details/dns-name';
 import { LocationKvBuilder } from '../../locations/location-kv-builder';
-import { resourceLabelsForm, tenantLabelKey } from '../../locations/location-form.model';
+import { resourceLabelsForm, projectLabelKey } from '../../locations/location-form.model';
 
 @Component({
   selector: 'app-dns-endpoint-form',
@@ -47,10 +47,10 @@ export class DNSEndpointForm {
   readonly locationsLoading = this.locationStore.loading;
   readonly locationsError = this.locationStore.error;
   readonly availableLocations = computed(() => this.locationStore.locations()
-    .filter((location) => location.metadata.labels?.[tenantLabelKey] === this.projectId())
+    .filter((location) => location.metadata.labels?.[projectLabelKey] === this.projectId())
     .map((location) => location.metadata.name)
     .sort((first, second) => first.localeCompare(second)));
-  readonly tenantLabel = computed(() => ({ [tenantLabelKey]: this.projectId() }));
+  readonly projectLabel = computed(() => ({ [projectLabelKey]: this.projectId() }));
   readonly routingPolicies: { value: DNSRoutingPolicy; label: string }[] = [
     { value: 'Simple', label: 'Simple' },
     { value: 'RoundRobin', label: 'Round Robin' },
@@ -156,7 +156,7 @@ export class DNSEndpointForm {
         ? {
             matchLabels: {
               ...Object.fromEntries(value.routeLabels.map(({ key, value }) => [key, value])),
-              ...this.tenantLabel(),
+              ...this.projectLabel(),
             },
           }
         : null,

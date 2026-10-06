@@ -56,7 +56,7 @@ import { keyValueForm } from './location-form.model';
         <p class="location-field-error">Keys must be unique.</p>
       }
       @if (rows().hasError('reserved')) {
-        <p class="location-field-error">The edgecdnx.com/tenant label is managed automatically.</p>
+        <p class="location-field-error">The project label is managed automatically.</p>
       }
       @if (rows().hasError('labelFormat')) {
         <p class="location-field-error">Use valid Kubernetes label keys and values (alphanumerics, '-', '_', '.', max 63 characters).</p>

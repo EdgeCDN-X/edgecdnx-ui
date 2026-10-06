@@ -6,7 +6,7 @@ import { HealthCheckProfile } from '../../projects/store/healthcheckprofile.type
 export function projectHealthCheckProfileNames(profiles: readonly HealthCheckProfile[], projectId: string): string[] {
   if (!projectId) return [];
   return profiles
-    .filter((profile) => profile.metadata.labels?.[tenantLabelKey] === projectId)
+    .filter((profile) => profile.metadata.labels?.[projectLabelKey] === projectId)
     .map((profile) => profile.metadata.name)
     .sort((first, second) => first.localeCompare(second));
 }
@@ -28,7 +28,7 @@ const weight = (value = 0) => new FormControl(value, { nonNullable: true, valida
 export function projectFallbackLocationNames(locations: readonly ProjectLocation[], projectId: string, currentName?: string): string[] {
   if (!projectId) return [];
   return locations
-    .filter((location) => location.metadata.labels?.['edgecdnx.com/tenant'] === projectId && location.metadata.name !== currentName)
+    .filter((location) => location.metadata.labels?.['project'] === projectId && location.metadata.name !== currentName)
     .map((location) => location.metadata.name)
     .sort((first, second) => first.localeCompare(second));
 }
@@ -94,7 +94,7 @@ function keyValueMapForm(value: Record<string, string> = {}) {
   return new FormArray(Object.entries(value).map(([key, value]) => keyValueForm(key, value)), unique(['key']));
 }
 
-export const tenantLabelKey = 'edgecdnx.com/tenant';
+export const projectLabelKey = 'project';
 const labelName = /^([A-Za-z0-9]([-A-Za-z0-9_.]{0,61}[A-Za-z0-9])?)$/;
 const labelPrefix = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/;
 
@@ -108,13 +108,13 @@ function validLabelKey(key: string): boolean {
 
 const resourceLabelsValidator: ValidatorFn = (control) => {
   const rows = control.value as { key: string; value: string }[];
-  if (rows.some((row) => row.key === tenantLabelKey)) return { reserved: true };
+  if (rows.some((row) => row.key === projectLabelKey)) return { reserved: true };
   const invalid = rows.some((row) => row.key && (!validLabelKey(row.key) || (row.value !== '' && !labelName.test(row.value))));
   return invalid ? { labelFormat: true } : null;
 };
 
 export function resourceLabelsForm(labels: Record<string, string> = {}) {
-  const rows = Object.entries(labels).filter(([key]) => key !== tenantLabelKey).map(([key, value]) => keyValueForm(key, value));
+  const rows = Object.entries(labels).filter(([key]) => key !== projectLabelKey).map(([key, value]) => keyValueForm(key, value));
   return new FormArray(rows, [unique(['key']), resourceLabelsValidator]);
 }
 
@@ -207,8 +207,8 @@ export function locationDtoFromForm(form: ReturnType<typeof createLocationForm>,
     },
     nodeGroups: value.nodeGroups.map((group) => {
       const labels = Object.fromEntries(group.labels.map(({ key, value }) => [key, value]));
-      if (labels?.['edgecdnx.com/tenant'] !== undefined && labels['edgecdnx.com/tenant'] !== projectId) {
-        throw new Error('Node group tenant labels must match the selected project.');
+      if (labels?.['project'] !== undefined && labels['project'] !== projectId) {
+        throw new Error('Node group project labels must match the selected project.');
       }
       return {
         name: group.name,

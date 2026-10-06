@@ -4,10 +4,10 @@ import { LocationForm } from './location-form';
 
 describe('NodeGroup health check profile dropdown', () => {
   const profiles: HealthCheckProfile[] = [
-    { metadata: { name: 'web', labels: { 'edgecdnx.com/tenant': 'project-a' } } },
-    { metadata: { name: 'tcp', labels: { 'edgecdnx.com/tenant': 'project-a' } } },
-    { metadata: { name: 'foreign', labels: { 'edgecdnx.com/tenant': 'project-b' } } },
-    { metadata: { name: 'global', labels: { 'edgecdnx.com/tenant': 'global' } } },
+    { metadata: { name: 'web', labels: { 'project': 'project-a' } } },
+    { metadata: { name: 'tcp', labels: { 'project': 'project-a' } } },
+    { metadata: { name: 'foreign', labels: { 'project': 'project-b' } } },
+    { metadata: { name: 'global', labels: { 'project': 'global' } } },
     { metadata: { name: 'unowned' } },
   ];
 

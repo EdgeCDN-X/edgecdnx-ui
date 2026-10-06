@@ -67,8 +67,8 @@
       kind="label"
       prefix="route-selector"
       legend="Route selector (Match labels)"
-      tooltip="Select locations matching all these labels. The tenant label restricts routing to this project and cannot be changed. Match expressions are not supported."
-      [lockedLabels]="tenantLabel()"
+      tooltip="Select locations matching all these labels. The project label restricts routing to this project and cannot be changed. Match expressions are not supported."
+      [lockedLabels]="projectLabel()"
       [disabled]="saving()"
     />
     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">All labels must match. Add labels to narrow the selection within this project.</p>

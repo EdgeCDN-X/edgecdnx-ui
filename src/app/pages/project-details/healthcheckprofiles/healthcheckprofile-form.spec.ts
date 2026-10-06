@@ -7,7 +7,7 @@ describe('HealthCheckProfileForm', () => {
     fixture.componentRef.setInput('projectId', 'project-a');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-location-kv-builder')).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('edgecdnx.com/tenant=project-a');
+    expect(fixture.nativeElement.textContent).toContain('project=project-a');
     const component = fixture.componentInstance;
     const stack = fixture.nativeElement.querySelector('#probe-stack-0') as HTMLSelectElement;
     expect(stack.value).toBe('Dual');

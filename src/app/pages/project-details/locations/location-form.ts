@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output, si
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ProjectLocation, CreateLocationDto, UpdateLocationDto } from '../../projects/store/location.types';
-import { attributeForm, attributeValueForm, continentCodes, createLocationForm, fallbackForm, geoLookupAttributes, healthCheckProfileValidator, locationDtoFromForm, nodeForm, nodeGroupForm, projectFallbackLocationNames, projectHealthCheckProfileNames, selectGeoLookupAttribute, tenantLabelKey } from './location-form.model';
+import { attributeForm, attributeValueForm, continentCodes, createLocationForm, fallbackForm, geoLookupAttributes, healthCheckProfileValidator, locationDtoFromForm, nodeForm, nodeGroupForm, projectFallbackLocationNames, projectHealthCheckProfileNames, selectGeoLookupAttribute, projectLabelKey } from './location-form.model';
 import { LocationKvBuilder } from './location-kv-builder';
 import { HealthCheckProfile } from '../../projects/store/healthcheckprofile.types';
 
@@ -26,7 +26,7 @@ export class LocationForm {
   readonly fallbackOptions = computed(() => projectFallbackLocationNames(
     this.availableLocations(), this.projectId(), this.location()?.metadata.name,
   ));
-  readonly tenantLabel = computed(() => ({ [tenantLabelKey]: this.projectId() }));
+  readonly projectLabel = computed(() => ({ [projectLabelKey]: this.projectId() }));
   readonly profileOptions = computed(() => projectHealthCheckProfileNames(this.availableProfiles(), this.projectId()));
   form = createLocationForm();
 

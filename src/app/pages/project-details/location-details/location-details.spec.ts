@@ -53,14 +53,14 @@ describe('LocationDetails', () => {
     fixture.detectChanges();
     http.expectOne('https://api.example/project/project-a/locations').flush([
       { metadata: { name: 'ams1', labels: { region: 'do-not-show' } } },
-      { metadata: { name: 'fra1', labels: { region: 'eu-central', 'edgecdnx.com/tenant': 'project-a' } } },
+      { metadata: { name: 'fra1', labels: { region: 'eu-central', 'project': 'project-a' } } },
     ]);
     http.expectOne('https://api.example/project/project-a/locations/fra1/healthchecks?limit=60').flush(data);
     fixture.detectChanges();
     const element: HTMLElement = fixture.nativeElement;
     const labels = element.querySelector('app-location-labels');
     expect(labels?.textContent).toContain('region=eu-central');
-    expect(labels?.textContent).toContain('edgecdnx.com/tenant=project-a');
+    expect(labels?.textContent).toContain('project=project-a');
     expect(labels?.textContent).not.toContain('do-not-show');
     fixture.destroy();
     http.verify();

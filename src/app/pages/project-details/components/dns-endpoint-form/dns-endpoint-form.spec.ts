@@ -6,7 +6,7 @@ import { DNSEndpointStore } from '../../../projects/store/dns-endpoint.store';
 import { LocationStore } from '../../../projects/store/location.store';
 import { ProjectLocation } from '../../../projects/store/location.types';
 import { DNSEndpoint, DNSEndpointActionError } from '../../../projects/store/dns-endpoint.types';
-import { keyValueForm, tenantLabelKey } from '../../locations/location-form.model';
+import { keyValueForm, projectLabelKey } from '../../locations/location-form.model';
 
 describe('DNSEndpointForm routing', () => {
   const endpoint: DNSEndpoint = {
@@ -32,10 +32,10 @@ describe('DNSEndpointForm routing', () => {
     };
     const locationStore = {
       locations: signal<ProjectLocation[]>([
-        { metadata: { name: 'fra1', labels: { [tenantLabelKey]: 'project-a' } } },
-        { metadata: { name: 'ams1', labels: { [tenantLabelKey]: 'project-a' } } },
-        { metadata: { name: 'foreign', labels: { [tenantLabelKey]: 'project-b' } } },
-        { metadata: { name: 'global', labels: { [tenantLabelKey]: 'global' } } },
+        { metadata: { name: 'fra1', labels: { [projectLabelKey]: 'project-a' } } },
+        { metadata: { name: 'ams1', labels: { [projectLabelKey]: 'project-a' } } },
+        { metadata: { name: 'foreign', labels: { [projectLabelKey]: 'project-b' } } },
+        { metadata: { name: 'global', labels: { [projectLabelKey]: 'global' } } },
       ]),
       loading: signal(false),
       error: signal<string | null>(loadError ? 'Unable to load locations.' : null),
@@ -66,17 +66,17 @@ describe('DNSEndpointForm routing', () => {
   });
 
   for (const policy of ['RoundRobin', 'Weighted', 'Geolocation'] as const) {
-    it(`creates ${policy} records using a locked tenant and matchLabels without targets`, () => {
+    it(`creates ${policy} records using a locked project label and matchLabels without targets`, () => {
       const { fixture, form, store } = setup();
       form.form.controls.routingPolicy.setValue(policy);
       fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
-      const tenantKey = fixture.nativeElement.querySelector('#route-selector-locked-key-0') as HTMLInputElement;
-      const tenantValue = fixture.nativeElement.querySelector('#route-selector-locked-value-0') as HTMLInputElement;
-      expect(tenantKey.value).toBe(tenantLabelKey);
-      expect(tenantValue.value).toBe('project-a');
-      expect(tenantKey.disabled).toBeTrue();
-      expect(tenantValue.disabled).toBeTrue();
+      const projectKey = fixture.nativeElement.querySelector('#route-selector-locked-key-0') as HTMLInputElement;
+      const projectValue = fixture.nativeElement.querySelector('#route-selector-locked-value-0') as HTMLInputElement;
+      expect(projectKey.value).toBe(projectLabelKey);
+      expect(projectValue.value).toBe('project-a');
+      expect(projectKey.disabled).toBeTrue();
+      expect(projectValue.disabled).toBeTrue();
       expect(fixture.nativeElement.querySelector('#record-targets')).toBeNull();
       form.form.controls.routeLabels.push(keyValueForm('region', 'eu'));
       const saved = jasmine.createSpy('saved');
@@ -88,18 +88,18 @@ describe('DNSEndpointForm routing', () => {
         recordTTL: 300,
         recordType: 'A',
         targets: [],
-        routeSelector: { matchLabels: { region: 'eu', [tenantLabelKey]: 'project-a' } },
+        routeSelector: { matchLabels: { region: 'eu', [projectLabelKey]: 'project-a' } },
       });
       expect(saved).toHaveBeenCalledTimes(1);
     });
   }
 
-  it('permits selecting all locations in the project using only the managed tenant', () => {
+  it('permits selecting all locations in the project using only the managed project label', () => {
     const { form, store } = setup();
     form.form.controls.routingPolicy.setValue('RoundRobin');
     form.submit();
     expect(store.create.calls.mostRecent().args[2].routeSelector)
-      .toEqual({ matchLabels: { [tenantLabelKey]: 'project-a' } });
+      .toEqual({ matchLabels: { [projectLabelKey]: 'project-a' } });
   });
 
   for (const policy of ['Simple'] as const) {
@@ -213,7 +213,7 @@ describe('DNSEndpointForm routing', () => {
   for (const rows of [
     [keyValueForm('', 'eu')],
     [keyValueForm('region', 'eu'), keyValueForm('region', 'us')],
-    [keyValueForm(tenantLabelKey, 'project-b')],
+    [keyValueForm(projectLabelKey, 'project-b')],
     [keyValueForm('bad/key/name', 'eu')],
     [keyValueForm('region', 'bad value')],
   ]) {
@@ -231,14 +231,14 @@ describe('DNSEndpointForm routing', () => {
     const { form, store } = setup({
       ...endpoint,
       spec: { ...endpoint.spec, targets: [], routingPolicy: 'Geolocation',
-        routeSelector: { matchLabels: { region: 'eu', [tenantLabelKey]: 'project-a' } } },
+        routeSelector: { matchLabels: { region: 'eu', [projectLabelKey]: 'project-a' } } },
     });
     expect(form.form.controls.routeLabels.getRawValue()).toEqual([{ key: 'region', value: 'eu' }]);
     expect(form.form.controls.recordType.disabled).toBeTrue();
     form.submit();
     expect(store.update.calls.mostRecent().args[3]).toEqual({
       dnsName: 'www.example.com', recordTTL: 300, recordType: 'A', routingPolicy: 'Geolocation',
-      targets: [], routeSelector: { matchLabels: { region: 'eu', [tenantLabelKey]: 'project-a' } },
+      targets: [], routeSelector: { matchLabels: { region: 'eu', [projectLabelKey]: 'project-a' } },
     });
   });
 

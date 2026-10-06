@@ -18,21 +18,21 @@ The API exposes `GET`/`POST /project/:project-id/healthcheckprofiles` and
 Create DTOs contain `name` and `probes`; update DTOs contain optional `probes`.
 PATCH preserves omitted probes and replaces supplied probes. Profile labels
 are not configurable; requests containing `labels` are rejected. Creates and
-updates set only the automatically managed `edgecdnx.com/tenant` label.
+updates set only the automatically managed `project` label.
 Responses are Kubernetes HealthCheckProfile objects
 (or an array for listing); delete returns 204. The server manages the
-`edgecdnx.com/tenant` label and isolates access to the owning project.
+`project` label and isolates access to the owning project.
 Authorization uses the `healthcheckprofile` resource with `read`, `create`,
 `update`, and `delete` actions.
 
 Location node-group editors show a health check profile dropdown next to the
 group name, outside the collapsed advanced configuration. It contains only profiles with the
-current project's tenant label. Select **None** to clear a reference. Missing or
+managed `project=<project-id>` label. Select **None** to clear a reference. Missing or
 foreign node-group references must be replaced or cleared before saving.
 Node editors suggest project profile names while still allowing manual references.
 Before deleting a profile, remove its references from locations and nodes.
 The location list and details page display all resource labels, including the
-tenant label, as alphabetically sorted `key=value` badges. Locations without
+project label, as alphabetically sorted `key=value` badges. Locations without
 labels display **No labels**.
 On screens below the medium breakpoint (768px), the location list hides the
 Node groups and Nodes columns. Labels are collapsed behind a clickable
@@ -89,14 +89,14 @@ failures, unavailable selections, and projects without locations block
 Failover saves. Existing Failover records pre-select their primary location.
 Round Robin, Weighted Round Robin, and
 Geolocation instead require a `routeSelector.matchLabels` selector. The
-`edgecdnx.com/tenant=<project-id>` label is pre-filled, locked, and included in
+`project=<project-id>` label is pre-filled, locked, and included in
 every selector; additional labels narrow the selection of project locations.
 Label keys must be unique and use Kubernetes label syntax. Match expressions
 cannot be configured in this form; existing records using them are blocked
 from selector-based saves rather than silently losing their expressions.
 
 The zones API accepts the same policies, validates match-label selectors,
-enforces the project tenant label, and preserves routing configuration on
+enforces the project label, and preserves routing configuration on
 partial updates. An explicit switch to Simple or Failover clears the selector.
 
 ## Development server

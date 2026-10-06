@@ -2,9 +2,9 @@ import { ProjectLocation } from '../../projects/store/location.types';
 import { attributeForm, attributeValueForm, createLocationForm, fallbackForm, keyValueForm, locationDtoFromForm, nodeForm, nodeGroupForm, projectFallbackLocationNames, resourceLabelsForm, selectGeoLookupAttribute } from './location-form.model';
 
 describe('Location form DTOs', () => {
-  it('loads resource labels without the managed tenant label and serializes edits', () => {
+  it('loads resource labels without the managed project label and serializes edits', () => {
     const form = createLocationForm({
-      metadata: { name: 'fra1', labels: { 'edgecdnx.com/tenant': 'project-a', 'edgecdnx.com/route-kind': 'static' } },
+      metadata: { name: 'fra1', labels: { 'project': 'project-a', 'edgecdnx.com/route-kind': 'static' } },
     });
     expect(form.controls.labels.length).toBe(1);
     form.controls.labels.push(keyValueForm('region', 'eu'));
@@ -13,9 +13,9 @@ describe('Location form DTOs', () => {
     expect(locationDtoFromForm(form, 'project-a').labels).toEqual({});
   });
 
-  it('rejects the reserved tenant key and invalid Kubernetes label keys or values', () => {
+  it('rejects the reserved project key and invalid Kubernetes label keys or values', () => {
     const labels = resourceLabelsForm();
-    labels.push(keyValueForm('edgecdnx.com/tenant', 'project-b'));
+    labels.push(keyValueForm('project', 'project-b'));
     expect(labels.hasError('reserved')).toBeTrue();
     labels.at(0).controls.key.setValue('edgecdnx.com/route-kind');
     expect(labels.valid).toBeTrue();
@@ -28,12 +28,12 @@ describe('Location form DTOs', () => {
     labels.at(0).controls.key.setValue('region');
     expect(labels.valid).toBeTrue();
   });
-  it('offers only existing locations with the exact project tenant label, excluding itself', () => {
+  it('offers only existing locations with the exact project label, excluding itself', () => {
     const locations: ProjectLocation[] = [
-      { metadata: { name: 'fra1', labels: { 'edgecdnx.com/tenant': 'project-a' } } },
-      { metadata: { name: 'ams1', labels: { 'edgecdnx.com/tenant': 'project-a' } } },
-      { metadata: { name: 'foreign', labels: { 'edgecdnx.com/tenant': 'project-b' } } },
-      { metadata: { name: 'shared', labels: { 'edgecdnx.com/tenant': 'global' } } },
+      { metadata: { name: 'fra1', labels: { 'project': 'project-a' } } },
+      { metadata: { name: 'ams1', labels: { 'project': 'project-a' } } },
+      { metadata: { name: 'foreign', labels: { 'project': 'project-b' } } },
+      { metadata: { name: 'shared', labels: { 'project': 'global' } } },
       { metadata: { name: 'unowned' } },
     ];
     expect(projectFallbackLocationNames(locations, 'project-a')).toEqual(['ams1', 'fra1']);
@@ -99,7 +99,7 @@ describe('Location form DTOs', () => {
       geoLookup: { weight: 100, attributes: { country: { weight: 50, values: [{ value: 'DE', weight: 20 }] } } },
       nodeGroups: [{
         name: 'nginx', flavor: 'standard',
-        labels: { region: 'eu', 'edgecdnx.com/tenant': 'project-a' },
+        labels: { region: 'eu', 'project': 'project-a' },
         metadata: { maxSize: '10g' }, nodeSelector: { arch: 'amd64' },
         healthCheck: { name: 'group-health' },
         cacheConfig: { name: 'cache', path: '/cache', keysZone: 'cache', inactive: '1h', maxSize: '10g' },
@@ -207,11 +207,11 @@ describe('Location form DTOs', () => {
     expect(node.controls.alerts.invalid).toBeTrue();
   });
 
-  it('rejects attempts to override the project tenant through node-group labels', () => {
+  it('rejects attempts to override the project through node-group labels', () => {
     const form = createLocationForm(location);
-    const tenant = form.controls.nodeGroups.at(0).controls.labels.controls.find((row) => row.controls.key.value === 'edgecdnx.com/tenant');
-    tenant!.controls.value.setValue('project-b');
-    expect(() => locationDtoFromForm(form, 'project-a')).toThrowError(/tenant labels/);
+    const projectLabel = form.controls.nodeGroups.at(0).controls.labels.controls.find((row) => row.controls.key.value === 'project');
+    projectLabel!.controls.value.setValue('project-b');
+    expect(() => locationDtoFromForm(form, 'project-a')).toThrowError(/project labels/);
   });
 
   it('adds and removes label and metadata rows while preserving empty values', () => {
@@ -221,7 +221,7 @@ describe('Location form DTOs', () => {
     group.controls.labels.removeAt(0);
     group.controls.metadata.push(keyValueForm('inactive', '1h'));
     const dto = locationDtoFromForm(form, 'project-a');
-    expect(dto.nodeGroups[0].labels).toEqual({ 'edgecdnx.com/tenant': 'project-a', optional: '' });
+    expect(dto.nodeGroups[0].labels).toEqual({ 'project': 'project-a', optional: '' });
     expect(dto.nodeGroups[0].metadata).toEqual({ maxSize: '10g', inactive: '1h' });
     group.controls.labels.clear();
     group.controls.metadata.clear();

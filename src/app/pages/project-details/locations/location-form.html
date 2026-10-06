@@ -31,8 +31,8 @@
 
   <div class="location-section">
     <app-location-kv-builder [rows]="form.controls.labels" kind="label" prefix="location-labels" legend="Location labels"
-      [lockedLabels]="tenantLabel()" [disabled]="saving()"
-      tooltip="Labels set on the Location resource. DNSEndpoint routeSelectors match these labels to target specific locations. The edgecdnx.com/tenant label is always set automatically." />
+      [lockedLabels]="projectLabel()" [disabled]="saving()"
+      tooltip="Labels set on the Location resource. DNSEndpoint routeSelectors match these labels to target specific locations. The project label is always set automatically." />
   </div>
 
   <fieldset formArrayName="fallbackLocations" class="location-section">

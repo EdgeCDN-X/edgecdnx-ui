@@ -25,7 +25,7 @@ describe('Locations', () => {
     const fixture = TestBed.createComponent(Locations);
     fixture.detectChanges();
     http.expectOne('https://api.example/project/project-a/locations').flush([
-      { metadata: { name: 'fra1', labels: { region: 'eu-central', 'edgecdnx.com/tenant': 'project-a' } } },
+      { metadata: { name: 'fra1', labels: { region: 'eu-central', 'project': 'project-a' } } },
       { metadata: { name: 'ams1' } },
     ]);
     http.expectOne('https://api.example/project/project-a/healthcheckprofiles').flush([]);
@@ -35,7 +35,7 @@ describe('Locations', () => {
     expect(rows.length).toBe(2);
     expect(element.querySelector('thead')?.textContent).toContain('Labels');
     expect(rows[0].querySelector('app-location-labels')?.textContent).toContain('region=eu-central');
-    expect(rows[0].textContent).toContain('edgecdnx.com/tenant=project-a');
+    expect(rows[0].textContent).toContain('project=project-a');
     expect(rows[1].querySelector('app-location-labels')?.textContent).toContain('No labels');
     expect(rows[0].querySelector('a')?.getAttribute('href')).toBe('/projects/project-a/locations/fra1');
     expect(rows[0].textContent).toContain('Edit');

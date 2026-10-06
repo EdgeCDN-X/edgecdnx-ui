@@ -6,7 +6,7 @@
     <input id="profile-name" formControlName="name" class="form-input-field" autocomplete="off" />
     @if (form.controls.name.touched && form.controls.name.invalid) { <p class="location-field-error">Enter a lowercase Kubernetes resource name, up to 253 characters.</p> }
   </div>
-  <p class="base-text">Managed tenant label: <code>{{ tenantLabelKey }}={{ projectId() }}</code></p>
+  <p class="base-text">Managed project label: <code>{{ projectLabelKey }}={{ projectId() }}</code></p>
   <fieldset formArrayName="probes" class="location-section space-y-4">
     <legend class="form-label font-bold">Probes</legend>
     @for (probe of form.controls.probes.controls; track probe; let i = $index) {

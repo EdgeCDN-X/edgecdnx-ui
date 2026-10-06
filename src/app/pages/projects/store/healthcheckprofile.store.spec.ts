@@ -47,8 +47,8 @@ describe('HealthCheckProfileStore', () => {
     request = http.expectOne(collection + '/web');
     expect(request.request.method).toBe('PATCH');
     expect(request.request.body).toEqual({ probes: dto.probes });
-    request.flush({ ...profile, metadata: { name: 'web', labels: { 'edgecdnx.com/tenant': 'project-a' } } });
-    expect(store.profiles()[0].metadata.labels).toEqual({ 'edgecdnx.com/tenant': 'project-a' });
+    request.flush({ ...profile, metadata: { name: 'web', labels: { 'project': 'project-a' } } });
+    expect(store.profiles()[0].metadata.labels).toEqual({ 'project': 'project-a' });
     store.delete('project-a', 'web').subscribe();
     request = http.expectOne(collection + '/web');
     expect(request.request.method).toBe('DELETE');

@@ -18,7 +18,7 @@ describe('Health check profile form', () => {
   });
 
   const profile: HealthCheckProfile = {
-    metadata: { name: 'web', labels: { 'edgecdnx.com/tenant': 'project-a', region: 'eu' } },
+    metadata: { name: 'web', labels: { 'project': 'project-a', region: 'eu' } },
     spec: { probes: [
       { name: 'tcp', type: 'TCP', interval: '30s', timeout: '5s', tcp: { port: 443, target: 'example.com', stack: 'Dual' } },
       { name: 'https', type: 'HTTP', http: { protocol: 'https', port: 8443, path: '/health', host: 'example.com', stack: 'IPv6' } },

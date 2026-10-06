@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CreateHealthCheckProfileDto, HealthCheckProfile, UpdateHealthCheckProfileDto } from '../../projects/store/healthcheckprofile.types';
-import { tenantLabelKey } from '../locations/location-form.model';
+import { projectLabelKey } from '../locations/location-form.model';
 import { createHealthCheckProfileForm, healthCheckProfileDtoFromForm, probeForm } from './healthcheckprofile-form.model';
 
 @Component({
@@ -17,7 +17,7 @@ export class HealthCheckProfileForm {
   readonly submitted = output<CreateHealthCheckProfileDto | UpdateHealthCheckProfileDto>();
   readonly cancelled = output<void>();
   readonly validationError = signal<string | null>(null);
-  readonly tenantLabelKey = tenantLabelKey;
+  readonly projectLabelKey = projectLabelKey;
   form = createHealthCheckProfileForm();
 
   constructor() {

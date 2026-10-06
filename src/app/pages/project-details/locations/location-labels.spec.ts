@@ -12,17 +12,17 @@ describe('LocationLabels', () => {
     providers: [provideRouter([{ path: 'projects/:name/locations', component: FilterDestination }])],
   }));
 
-  it('shows sorted key/value badges including tenant and empty values', () => {
+  it('shows sorted key/value badges including project and empty values', () => {
     TestBed.configureTestingModule({ imports: [LocationLabels] });
     const fixture = TestBed.createComponent(LocationLabels);
     fixture.componentRef.setInput('projectId', 'project-a');
     fixture.componentRef.setInput('labels', {
-      region: 'eu-central', 'edgecdnx.com/tenant': 'project-a', empty: '',
+      region: 'eu-central', 'project': 'project-a', empty: '',
     });
     fixture.detectChanges();
     const element: HTMLElement = fixture.nativeElement;
     expect(Array.from(element.querySelectorAll('li'), (item) => item.textContent?.trim())).toEqual([
-      'edgecdnx.com/tenant=project-a', 'empty=', 'region=eu-central',
+      'empty=', 'project=project-a', 'region=eu-central',
     ]);
     fixture.componentRef.setInput('labels', { region: 'eu-west' });
     fixture.detectChanges();

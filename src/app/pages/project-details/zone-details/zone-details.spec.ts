@@ -14,7 +14,7 @@ describe('ZoneDetails selector records', () => {
       metadata: { name: 'www-a', namespace: 'edgecdnx' },
       spec: {
         dnsName: 'www.example.com', routingPolicy: 'RoundRobin', recordType: 'A', recordTTL: 300,
-        routeSelector: { matchLabels: { 'edgecdnx.com/tenant': 'project-a', region: 'eu' } },
+        routeSelector: { matchLabels: { 'project': 'project-a', region: 'eu' } },
       },
     };
     TestBed.configureTestingModule({
