@@ -50,6 +50,15 @@ it does not change permissions or the resources available in the editor.
 The Locations sidebar submenu stays expanded on filtered URLs and location
 details; query parameters and fragments do not affect active menu matching.
 
+The location details header uses icon badges for status, routing weight, node
+group count, and configured fallback locations, with tooltips and screen-reader
+labels. Badges wrap on smaller screens and status remains visible as text.
+
+The location details page displays a GEO attributes section when
+`spec.geoLookup.attributes` is non-empty. It lists attributes alphabetically,
+their configured values, and any defined GEO, attribute, and value weights.
+Locations without GEO attributes omit this section.
+
 The location details page refreshes live healthcheck results every 30 seconds.
 Each request resolves the current profiles (node references override node-group
 references) and shows only results matching an active probe's name, type, and
@@ -68,6 +77,27 @@ grouped as **Unknown source**. The database must have a `source` text column.
 Hover over or keyboard-focus a result bar in either view to see a tooltip with
 the check context, status, source, timestamp, start time (when available),
 response code, duration in milliseconds, and message.
+
+## DNS record routing
+
+The create/edit DNS record form supports Simple, Failover, Round Robin,
+Weighted Round Robin (`Weighted`), and Geolocation policies. Simple uses
+explicit record targets. Failover requires a primary location selected from
+the current project's locations and submits its name as the target. Its
+fallback chain is configured on the location, not the DNS record. Loading
+failures, unavailable selections, and projects without locations block
+Failover saves. Existing Failover records pre-select their primary location.
+Round Robin, Weighted Round Robin, and
+Geolocation instead require a `routeSelector.matchLabels` selector. The
+`edgecdnx.com/tenant=<project-id>` label is pre-filled, locked, and included in
+every selector; additional labels narrow the selection of project locations.
+Label keys must be unique and use Kubernetes label syntax. Match expressions
+cannot be configured in this form; existing records using them are blocked
+from selector-based saves rather than silently losing their expressions.
+
+The zones API accepts the same policies, validates match-label selectors,
+enforces the project tenant label, and preserves routing configuration on
+partial updates. An explicit switch to Simple or Failover clears the selector.
 
 ## Development server
 

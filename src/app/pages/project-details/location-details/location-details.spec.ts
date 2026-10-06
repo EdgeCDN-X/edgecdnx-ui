@@ -66,6 +66,87 @@ describe('LocationDetails', () => {
     http.verify();
   });
 
+  it('shows accessible icon badges for location status, weight, node groups, and fallbacks', () => {
+    const http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(LocationDetails);
+    fixture.detectChanges();
+    http.expectOne('https://api.example/project/project-a/locations').flush([
+      { metadata: { name: 'fra1' }, status: { status: 'Healthy' },
+        spec: { weight: 70, nodeGroups: [{ name: 'edge' }], fallbackLocations: ['test-loc2'] } },
+    ]);
+    http.expectOne('https://api.example/project/project-a/locations/fra1/healthchecks?limit=60').flush(data);
+    fixture.detectChanges();
+    const summary: HTMLElement = fixture.nativeElement.querySelector('[aria-label="Location summary"]');
+    expect(summary.querySelectorAll('li').length).toBe(4);
+    expect(summary.querySelectorAll('svg[aria-hidden="true"]').length).toBe(4);
+    expect(summary.textContent).toContain('Status: Healthy');
+    expect(summary.textContent).toContain('Weight: 70');
+    expect(summary.textContent).toContain('Node groups: 1');
+    expect(summary.textContent).toContain('Fallbacks: test-loc2');
+    expect(summary.querySelector('[title="Location status"]')?.classList).toContain('text-success-700');
+    fixture.componentInstance.locationStore.locations.set([{ metadata: { name: 'fra1' }, status: { status: 'Degraded' } }]);
+    fixture.detectChanges();
+    expect(summary.textContent).toContain('Status: Degraded');
+    expect(summary.querySelector('[title="Location status"]')?.classList).toContain('text-error-700');
+    fixture.componentInstance.locationStore.locations.set([{ metadata: { name: 'fra1' } }]);
+    fixture.detectChanges();
+    expect(summary.querySelectorAll('li').length).toBe(3);
+    expect(summary.textContent).toContain('Status: Pending');
+    expect(summary.textContent).toContain('Weight: 0');
+    expect(summary.textContent).toContain('Node groups: 0');
+    fixture.destroy();
+    http.verify();
+  });
+
+  it('displays selected location GEO attributes, values, and defined weights', () => {
+    const http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(LocationDetails);
+    fixture.detectChanges();
+    http.expectOne('https://api.example/project/project-a/locations').flush([
+      { metadata: { name: 'ams1' }, spec: { geoLookup: { attributes: { hidden: { values: [{ value: 'do-not-show' }] } } } } },
+      { metadata: { name: 'fra1' }, spec: { geoLookup: { weight: 0, attributes: {
+        'geoip/country/code': { weight: 100, values: [{ value: 'DE', weight: 0 }, { value: 'NL', weight: 5 }] },
+        'geoip/city/name': { values: [{ value: 'Frankfurt' }] },
+        custom: {},
+      } } } },
+    ]);
+    http.expectOne('https://api.example/project/project-a/locations/fra1/healthchecks?limit=60').flush(data);
+    fixture.detectChanges();
+    const section: HTMLElement = fixture.nativeElement.querySelector('[aria-labelledby="geo-attributes-heading"]');
+    expect(section.textContent).toContain('GEO weight: 0');
+    const attributes = section.querySelectorAll('dl > div');
+    expect(Array.from(attributes).map((attribute) => attribute.querySelector('dt span')?.textContent))
+      .toEqual(['custom', 'geoip/city/name', 'geoip/country/code']);
+    expect(attributes[0].textContent).toContain('No values defined.');
+    expect(attributes[1].textContent).toContain('Frankfurt');
+    expect(attributes[1].textContent).not.toContain('Weight:');
+    expect(attributes[2].querySelector('dt')?.textContent).toContain('Weight: 100');
+    const values = attributes[2].querySelectorAll('li');
+    expect(values[0].textContent).toContain('DE');
+    expect(values[0].textContent).toContain('Weight: 0');
+    expect(values[1].textContent).toContain('NL');
+    expect(values[1].textContent).toContain('Weight: 5');
+    expect(section.textContent).not.toContain('do-not-show');
+    fixture.destroy();
+    http.verify();
+  });
+
+  for (const spec of [undefined, {}, { geoLookup: {} }, { geoLookup: { weight: 10, attributes: {} } }]) {
+    it('omits the GEO section when no attributes are defined', () => {
+      const http = TestBed.inject(HttpTestingController);
+      const fixture = TestBed.createComponent(LocationDetails);
+      fixture.detectChanges();
+      http.expectOne('https://api.example/project/project-a/locations').flush([
+        { metadata: { name: 'fra1' }, spec },
+      ]);
+      http.expectOne('https://api.example/project/project-a/locations/fra1/healthchecks?limit=60').flush(data);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[aria-labelledby="geo-attributes-heading"]')).toBeNull();
+      fixture.destroy();
+      http.verify();
+    });
+  }
+
   it('shows a combined row with collapsed source details and preserves expansion across polls', fakeAsync(() => {
     const http = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(LocationDetails);

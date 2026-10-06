@@ -1,6 +1,6 @@
 <header class="pr-10">
   <h2 class="card-title">{{ dnsEndpoint() ? 'Edit DNS record' : 'Create DNS record' }}</h2>
-  <p class="base-text">Routing policy is currently limited to Simple.</p>
+  <p class="base-text">Choose a routing policy and configure targets or matching location labels.</p>
 </header>
 
 @if (error() && (error()!.action === 'create' || error()!.action === 'update')) {
@@ -10,6 +10,14 @@
 }
 
 <form class="mt-5 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+  <div>
+    <label for="routing-policy" class="form-label">Routing policy</label>
+    <select id="routing-policy" class="form-input-field" formControlName="routingPolicy">
+      @for (policy of routingPolicies; track policy.value) {
+        <option [value]="policy.value">{{ policy.label }}</option>
+      }
+    </select>
+  </div>
   <div>
     <label for="dns-host" class="form-label">Host</label>
     <div class="flex rounded-lg border border-gray-300 bg-white focus-within:border-brand-500 focus-within:ring-3 focus-within:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900">
@@ -53,7 +61,43 @@
     </div>
   </div>
 
-  @if (form.controls.recordType.value === 'MX') {
+  @if (usesRouteSelector()) {
+    <app-location-kv-builder
+      [rows]="form.controls.routeLabels"
+      kind="label"
+      prefix="route-selector"
+      legend="Route selector (Match labels)"
+      tooltip="Select locations matching all these labels. The tenant label restricts routing to this project and cannot be changed. Match expressions are not supported."
+      [lockedLabels]="tenantLabel()"
+      [disabled]="saving()"
+    />
+    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">All labels must match. Add labels to narrow the selection within this project.</p>
+    @if (hasUnsupportedSelector()) {
+      <p class="mt-1 text-xs text-error-600" role="alert">This record uses match expressions and cannot be saved with selector-based routing in this form. Manage its selector through the API before editing here.</p>
+    }
+  }
+
+  @if (isFailover()) {
+    <div>
+      <label for="failover-location" class="form-label">Primary location</label>
+      <select id="failover-location" class="form-input-field" formControlName="failoverLocation" aria-describedby="failover-location-help">
+        <option value="">{{ locationsLoading() ? 'Loading locations...' : 'Select a location' }}</option>
+        @for (location of availableLocations(); track location) {
+          <option [value]="location">{{ location }}</option>
+        }
+      </select>
+      <p id="failover-location-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Traffic starts at this location and uses its configured fallback locations when unavailable.</p>
+      @if (locationsError()) {
+        <p class="mt-1 text-xs text-error-600" role="alert">{{ locationsError() }}</p>
+      } @else if (!locationsLoading() && availableLocations().length === 0) {
+        <p class="mt-1 text-xs text-error-600" role="alert">No locations are available in this project. Create a location before configuring Failover routing.</p>
+      } @else if (form.controls.failoverLocation.invalid && form.controls.failoverLocation.touched) {
+        <p class="mt-1 text-xs text-error-600">Select an available location in this project.</p>
+      }
+    </div>
+  }
+
+  @if (!usesRouteSelector() && !isFailover() && form.controls.recordType.value === 'MX') {
     <div>
       <label for="record-priority" class="form-label">Priority</label>
       <input id="record-priority" type="number" min="0" max="65535" class="form-input-field" formControlName="priority" />
@@ -64,7 +108,7 @@
     </div>
   }
 
-  @if (form.controls.recordType.value === 'SRV') {
+  @if (!usesRouteSelector() && !isFailover() && form.controls.recordType.value === 'SRV') {
     <fieldset formArrayName="srvRecords" class="space-y-4">
       <legend class="form-label">Service records</legend>
       @for (srvRecord of srvRecords.controls; track $index; let index = $index) {
@@ -93,7 +137,7 @@
       }
       <button type="button" class="btn-secondary" (click)="addSrvRecord()" [disabled]="saving()">+</button>
     </fieldset>
-  } @else {
+  } @else if (!usesRouteSelector() && !isFailover()) {
     <div>
     <label for="record-targets" class="form-label">{{ valueLabel() }}</label>
     <textarea
@@ -115,7 +159,7 @@
 
   <div class="flex justify-end gap-3 pt-2">
     <button type="button" class="btn-secondary" (click)="canceled.emit()" [disabled]="saving()">Cancel</button>
-    <button type="submit" class="btn-primary" [disabled]="saving()">
+    <button type="submit" class="btn-primary" [disabled]="saving() || hasUnsupportedSelector()">
       {{ saving() ? 'Saving...' : dnsEndpoint() ? 'Save changes' : 'Create record' }}
     </button>
   </div>

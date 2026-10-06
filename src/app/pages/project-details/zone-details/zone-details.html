@@ -101,7 +101,7 @@
                   </td>
                   <td class="px-4 py-4 align-top">
                     <ul class="m-0 space-y-1 p-0" [attr.aria-label]="dnsEndpoint.spec.recordType + ' record values'">
-                      @for (target of dnsEndpoint.spec.targets; track $index) {
+                      @for (target of dnsEndpoint.spec.targets ?? []; track $index) {
                         <li class="break-all font-mono text-sm text-gray-700 dark:text-gray-300">
                           @if (serviceLinkId(target); as serviceId) {
                             <a class="link-primary" [routerLink]="serviceRouterLink(serviceId)">{{ serviceId }}</a>

@@ -32,16 +32,17 @@ export interface DNSEndpointSpec {
   routingPolicy: DNSRoutingPolicy;
   recordTTL: number;
   recordType: DNSRecordType;
-  targets: string[];
+  targets?: string[];
   routeSelector?: LabelSelector | null;
 }
 
 export interface CreateDNSEndpointDto {
   dnsName: string;
-  routingPolicy: 'Simple';
+  routingPolicy: DNSRoutingPolicy;
   recordTTL: number;
   recordType: DNSRecordType;
   targets: string[];
+  routeSelector?: Pick<LabelSelector, 'matchLabels'> | null;
 }
 
 export type UpdateDNSEndpointDto = Partial<CreateDNSEndpointDto>;

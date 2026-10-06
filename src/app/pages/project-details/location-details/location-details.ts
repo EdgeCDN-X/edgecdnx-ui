@@ -25,6 +25,9 @@ export class LocationDetails {
   readonly locationName = toSignal(this.route.paramMap.pipe(map((params) => params.get('locationName') ?? '')), { initialValue: '' });
   readonly selectedLabels = toSignal(this.route.queryParamMap.pipe(map((params) => [...new Set(params.getAll('label'))])), { initialValue: [] });
   readonly location = computed(() => this.locationStore.locations().find((item) => item.metadata.name === this.locationName()) ?? null);
+  readonly geoAttributes = computed(() => Object.entries(this.location()?.spec?.geoLookup?.attributes ?? {})
+    .sort(([first], [second]) => first.localeCompare(second))
+    .map(([name, attribute]) => ({ name, ...attribute })));
   readonly nodes = computed(() => this.healthStore.healthchecks()?.nodes ?? []);
   readonly summary = computed(() => {
     const nodes = this.nodes();

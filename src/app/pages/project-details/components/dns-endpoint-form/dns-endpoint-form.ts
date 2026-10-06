@@ -1,26 +1,33 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
   output,
+  untracked,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import {
   CreateDNSEndpointDto,
   DNSEndpoint,
   DNSRecordType,
+  DNSRoutingPolicy,
 } from '../../../projects/store/dns-endpoint.types';
 import { DNSEndpointStore } from '../../../projects/store/dns-endpoint.store';
+import { LocationStore } from '../../../projects/store/location.store';
 import {
   dnsNameFromHost,
   hostInputFromDnsName,
 } from '../../zone-details/dns-name';
+import { LocationKvBuilder } from '../../locations/location-kv-builder';
+import { resourceLabelsForm, tenantLabelKey } from '../../locations/location-form.model';
 
 @Component({
   selector: 'app-dns-endpoint-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LocationKvBuilder],
   templateUrl: './dns-endpoint-form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -32,12 +39,36 @@ export class DNSEndpointForm {
   readonly canceled = output<void>();
 
   private readonly store = inject(DNSEndpointStore);
+  private readonly locationStore = inject(LocationStore);
   private readonly formBuilder = inject(FormBuilder);
 
   readonly saving = this.store.saving;
   readonly error = this.store.error;
+  readonly locationsLoading = this.locationStore.loading;
+  readonly locationsError = this.locationStore.error;
+  readonly availableLocations = computed(() => this.locationStore.locations()
+    .filter((location) => location.metadata.labels?.[tenantLabelKey] === this.projectId())
+    .map((location) => location.metadata.name)
+    .sort((first, second) => first.localeCompare(second)));
+  readonly tenantLabel = computed(() => ({ [tenantLabelKey]: this.projectId() }));
+  readonly routingPolicies: { value: DNSRoutingPolicy; label: string }[] = [
+    { value: 'Simple', label: 'Simple' },
+    { value: 'RoundRobin', label: 'Round Robin' },
+    { value: 'Weighted', label: 'Weighted Round Robin' },
+    { value: 'Geolocation', label: 'Geolocation' },
+    { value: 'Failover', label: 'Failover' },
+  ];
   readonly recordTypes: DNSRecordType[] = ['A', 'AAAA', 'CNAME', 'TXT', 'MX', 'SRV', 'NS'];
   readonly form = this.formBuilder.nonNullable.group({
+    routingPolicy: this.formBuilder.nonNullable.control<DNSRoutingPolicy>('Simple', Validators.required),
+    routeLabels: resourceLabelsForm(),
+    failoverLocation: this.formBuilder.nonNullable.control('', [
+      Validators.required,
+      (control: AbstractControl): ValidationErrors | null => !control.value ? null : untracked(() =>
+        this.locationsLoading() || this.locationsError() || !this.availableLocations().includes(control.value)
+          ? { unavailableLocation: true }
+          : null),
+    ]),
     host: this.formBuilder.nonNullable.control('', {
       validators: [
         Validators.maxLength(253),
@@ -64,12 +95,29 @@ export class DNSEndpointForm {
   }
 
   constructor() {
+    effect((onCleanup) => {
+      const subscription = this.locationStore.load(this.projectId()).subscribe({ error: () => {
+        // LocationStore exposes the request error in the form.
+      } });
+      onCleanup(() => subscription.unsubscribe());
+    });
+    effect(() => {
+      this.availableLocations();
+      this.locationsLoading();
+      this.locationsError();
+      this.form.controls.failoverLocation.updateValueAndValidity({ emitEvent: false });
+    });
+    this.form.controls.routingPolicy.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.updateTargetValidators(this.form.controls.recordType.value));
     effect(() => {
       const dnsEndpoint = this.dnsEndpoint();
       const recordType = dnsEndpoint?.spec.recordType ?? 'A';
       const fields = targetFieldsFromEndpoint(recordType, dnsEndpoint?.spec.targets ?? []);
       this.store.clearError();
       this.form.reset({
+        routingPolicy: dnsEndpoint?.spec.routingPolicy || 'Simple',
+        failoverLocation: dnsEndpoint?.spec.routingPolicy === 'Failover' ? dnsEndpoint.spec.targets?.[0] ?? '' : '',
         host: dnsEndpoint
           ? hostInputFromDnsName(dnsEndpoint.spec.dnsName, this.zoneName())
           : '',
@@ -78,6 +126,7 @@ export class DNSEndpointForm {
         targets: fields.targets.join('\n'),
         priority: fields.priority,
       });
+      this.form.setControl('routeLabels', resourceLabelsForm(dnsEndpoint?.spec.routeSelector?.matchLabels));
       this.setSrvRecords(fields.srvRecords);
       this.updateHostValidators(recordType);
       this.updateTargetValidators(recordType);
@@ -91,7 +140,7 @@ export class DNSEndpointForm {
   }
 
   submit(): void {
-    if (this.form.invalid) {
+    if (this.saving() || this.form.invalid || this.hasUnsupportedSelector()) {
       this.form.markAllAsTouched();
       return;
     }
@@ -99,13 +148,21 @@ export class DNSEndpointForm {
     const value = this.form.getRawValue();
     const dto: CreateDNSEndpointDto = {
       dnsName: dnsNameFromHost(value.host, this.zoneName()),
-      routingPolicy: 'Simple',
+      routingPolicy: value.routingPolicy,
       recordTTL: value.recordTTL,
       recordType: value.recordType,
-      targets: this.targetsForRecord(value),
+      targets: this.usesRouteSelector() ? [] : this.isFailover() ? [value.failoverLocation] : this.targetsForRecord(value),
+      routeSelector: this.usesRouteSelector()
+        ? {
+            matchLabels: {
+              ...Object.fromEntries(value.routeLabels.map(({ key, value }) => [key, value])),
+              ...this.tenantLabel(),
+            },
+          }
+        : null,
     };
 
-    if (dto.targets.length === 0) {
+    if (!this.usesRouteSelector() && dto.targets.length === 0) {
       this.form.controls.targets.setErrors({ required: true });
       return;
     }
@@ -116,6 +173,18 @@ export class DNSEndpointForm {
       : this.store.create(this.projectId(), this.zoneName(), dto);
 
     request.subscribe({ next: () => this.saved.emit() });
+  }
+
+  usesRouteSelector(): boolean {
+    return ['RoundRobin', 'Weighted', 'Geolocation'].includes(this.form.controls.routingPolicy.value);
+  }
+
+  isFailover(): boolean {
+    return this.form.controls.routingPolicy.value === 'Failover';
+  }
+
+  hasUnsupportedSelector(): boolean {
+    return this.usesRouteSelector() && !!this.dnsEndpoint()?.spec.routeSelector?.matchExpressions?.length;
   }
 
   valueLabel(): string {
@@ -175,6 +244,29 @@ export class DNSEndpointForm {
   }
 
   private updateTargetValidators(recordType: DNSRecordType): void {
+    const selector = this.usesRouteSelector();
+    const failover = this.isFailover();
+    for (const [control, active] of [
+      [this.form.controls.targets, recordType !== 'SRV'],
+      [this.form.controls.priority, recordType === 'MX'],
+      [this.srvRecords, recordType === 'SRV'],
+    ] as const) {
+      if (selector || failover || !active) {
+        control.disable({ emitEvent: false });
+      } else {
+        control.enable({ emitEvent: false });
+      }
+      if (failover) {
+        this.form.controls.failoverLocation.enable({ emitEvent: false });
+      } else {
+        this.form.controls.failoverLocation.disable({ emitEvent: false });
+      }
+    }
+    if (selector) {
+      this.form.controls.routeLabels.enable({ emitEvent: false });
+    } else {
+      this.form.controls.routeLabels.disable({ emitEvent: false });
+    }
     const validators = recordType === 'SRV' ? [] : [Validators.required];
     if (recordType === 'TXT') {
       validators.push(txtTargetLengthValidator);
@@ -217,10 +309,10 @@ export class DNSEndpointForm {
     const recordType = (event.target as HTMLSelectElement).value as DNSRecordType;
     this.form.controls.recordType.setValue(recordType, { emitEvent: false });
     this.updateHostValidators(recordType);
-    this.updateTargetValidators(recordType);
     if (recordType === 'SRV' && this.srvRecords.length === 0) {
       this.addSrvRecord();
     }
+    this.updateTargetValidators(recordType);
   }
 
   removeSrvRecord(index: number): void {

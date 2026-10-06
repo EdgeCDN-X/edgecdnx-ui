@@ -53,7 +53,7 @@ export class ZoneDetails {
         if (!searchTerm) {
           return true;
         }
-        return [dnsEndpoint.spec.dnsName, dnsEndpoint.spec.recordType, ...dnsEndpoint.spec.targets]
+        return [dnsEndpoint.spec.dnsName, dnsEndpoint.spec.recordType, ...(dnsEndpoint.spec.targets ?? [])]
           .some((value) => value.toLowerCase().includes(searchTerm));
       })
       .sort((left, right) => {
