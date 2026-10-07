@@ -82,3 +82,26 @@ describe('NodeGroup health check profile dropdown', () => {
     expect(fixture.componentInstance.form.controls.nodeGroups.at(0).controls.healthCheck.invalid).toBeTrue();
   });
 });
+
+describe('Location geolookup attribute dropdown', () => {
+  it('selects the implicit default attribute without exposing value controls', () => {
+    const fixture = TestBed.createComponent(LocationForm);
+    fixture.componentRef.setInput('projectId', 'project-a');
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component.form.controls.name.setValue('fra1');
+    component.addAttribute();
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('#attribute-name-0') as HTMLSelectElement;
+    expect(Array.from(select.options).map((option) => option.value)).toContain('default');
+    select.value = 'default';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(component.form.controls.attributes.at(0).controls.weight.value).toBe(1);
+    expect(fixture.nativeElement.querySelector('#value-0-0')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button[aria-label="Add value"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Default always matches and does not use specific values.');
+  });
+});

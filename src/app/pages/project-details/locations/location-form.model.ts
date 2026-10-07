@@ -34,6 +34,7 @@ export function projectFallbackLocationNames(locations: readonly ProjectLocation
 }
 
 export const geoLookupAttributes = [
+  { name: 'default', label: 'Default (always matches)', weight: 1 },
   { name: 'geoip/city/name', label: 'City (geoip/city/name)', weight: 10 },
   { name: 'geoip/country/code', label: 'Country (geoip/country/code)', weight: 100 },
   { name: 'geoip/continent/code', label: 'Continent (geoip/continent/code)', weight: 1000 },
@@ -151,7 +152,7 @@ export function attributeForm(name = '', attribute?: GeoLookupAttribute) {
   return new FormGroup({
     name: text(name, [Validators.required]),
     weight: weight(attribute?.weight ?? geoLookupAttributes.find((option) => option.name === name)?.weight ?? 0),
-    values: new FormArray((attribute?.values ?? []).map((item) => attributeValueForm(item.value, item.weight, name))),
+    values: new FormArray((name === 'default' ? [] : attribute?.values ?? []).map((item) => attributeValueForm(item.value, item.weight, name))),
   });
 }
 
@@ -160,6 +161,7 @@ export function selectGeoLookupAttribute(attribute: ReturnType<typeof attributeF
   if (!option) return;
   attribute.controls.name.setValue(option.name);
   attribute.controls.weight.setValue(option.weight);
+  if (option.name === 'default') attribute.controls.values.clear();
   for (const value of attribute.controls.values.controls) {
     value.controls.value.setValidators(attributeValueValidators(option.name));
     value.controls.value.updateValueAndValidity();
@@ -202,7 +204,7 @@ export function locationDtoFromForm(form: ReturnType<typeof createLocationForm>,
       weight: value.geoWeight,
       attributes: Object.fromEntries(value.attributes.map((attribute) => [attribute.name, {
         weight: attribute.weight,
-        values: attribute.values,
+        ...(attribute.name === 'default' ? {} : { values: attribute.values }),
       }])),
     },
     nodeGroups: value.nodeGroups.map((group) => {

@@ -55,6 +55,7 @@ describe('Location form DTOs', () => {
 
   it('prefills editable weights for each supported geolookup attribute', () => {
     for (const [name, defaultWeight] of [
+      ['default', 1],
       ['geoip/city/name', 10], ['geoip/country/code', 100], ['geoip/continent/code', 1000],
     ] as const) {
       const attribute = attributeForm();
@@ -67,6 +68,8 @@ describe('Location form DTOs', () => {
   });
 
   it('preserves saved custom and zero weights when editing', () => {
+    expect(attributeForm('default').controls.weight.value).toBe(1);
+    expect(attributeForm('default', { weight: 8, values: [{ value: 'ignored', weight: 2 }] }).controls.values.length).toBe(0);
     expect(attributeForm('geoip/city/name').controls.weight.value).toBe(10);
     expect(attributeForm('geoip/country/code', { weight: 37 }).controls.weight.value).toBe(37);
     expect(attributeForm('geoip/continent/code', { weight: 0 }).controls.weight.value).toBe(0);
@@ -89,6 +92,18 @@ describe('Location form DTOs', () => {
       value.setValue(code);
       expect(value.valid).withContext(code).toBeTrue();
     }
+    selectGeoLookupAttribute(attribute, 'default');
+    expect(attribute.controls.weight.value).toBe(1);
+    expect(attribute.controls.values.length).toBe(0);
+    selectGeoLookupAttribute(attribute, 'geoip/city/name');
+    expect(attribute.controls.values.length).toBe(0);
+  });
+
+  it('omits specific values when serializing the default attribute', () => {
+    const form = createLocationForm();
+    form.controls.name.setValue('fra1');
+    form.controls.attributes.push(attributeForm('default'));
+    expect(locationDtoFromForm(form, 'project-a').geoLookup.attributes?.['default']).toEqual({ weight: 1 });
   });
 
   const location: ProjectLocation = {

@@ -97,38 +97,44 @@
               <input [id]="'attribute-weight-' + attributeIndex" type="number" step="1" formControlName="weight" class="form-input-field" />
             </div>
           </div>
-          <div formArrayName="values" class="mt-3 space-y-3">
-            @for (value of attribute.controls.values.controls; track value; let valueIndex = $index) {
-              <div [formGroupName]="valueIndex" class="location-value-row">
-                <div>
-                  <label [for]="'value-' + attributeIndex + '-' + valueIndex" class="form-label">Value</label>
-                  @if (attribute.controls.name.value === 'geoip/continent/code') {
-                    <select [id]="'value-' + attributeIndex + '-' + valueIndex" formControlName="value" class="form-input-field">
-                      <option value="" disabled>Select continent</option>
-                      @for (code of continentOptions; track code) { <option [value]="code">{{ code }}</option> }
-                    </select>
-                  } @else {
-                    <input [id]="'value-' + attributeIndex + '-' + valueIndex" formControlName="value" class="form-input-field"
-                      [attr.maxlength]="attribute.controls.name.value === 'geoip/country/code' ? 2 : null"
-                      [placeholder]="attribute.controls.name.value === 'geoip/country/code' ? 'DE' : ''" />
-                  }
-                  @if (value.controls.value.touched && value.controls.value.invalid) {
-                    <p class="location-field-error">
-                      @switch (attribute.controls.name.value) {
-                        @case ('geoip/country/code') { Enter a two-letter uppercase ISO 3166 country code. }
-                        @case ('geoip/continent/code') { Select a continent code. }
-                        @default { Value is required. }
-                      }
-                    </p>
-                  }
+          @if (attribute.controls.name.value === 'default') {
+            <p class="base-text mt-3">Default always matches and does not use specific values.</p>
+          } @else {
+            <div formArrayName="values" class="mt-3 space-y-3">
+              @for (value of attribute.controls.values.controls; track value; let valueIndex = $index) {
+                <div [formGroupName]="valueIndex" class="location-value-row">
+                  <div>
+                    <label [for]="'value-' + attributeIndex + '-' + valueIndex" class="form-label">Value</label>
+                    @if (attribute.controls.name.value === 'geoip/continent/code') {
+                      <select [id]="'value-' + attributeIndex + '-' + valueIndex" formControlName="value" class="form-input-field">
+                        <option value="" disabled>Select continent</option>
+                        @for (code of continentOptions; track code) { <option [value]="code">{{ code }}</option> }
+                      </select>
+                    } @else {
+                      <input [id]="'value-' + attributeIndex + '-' + valueIndex" formControlName="value" class="form-input-field"
+                        [attr.maxlength]="attribute.controls.name.value === 'geoip/country/code' ? 2 : null"
+                        [placeholder]="attribute.controls.name.value === 'geoip/country/code' ? 'DE' : ''" />
+                    }
+                    @if (value.controls.value.touched && value.controls.value.invalid) {
+                      <p class="location-field-error">
+                        @switch (attribute.controls.name.value) {
+                          @case ('geoip/country/code') { Enter a two-letter uppercase ISO 3166 country code. }
+                          @case ('geoip/continent/code') { Select a continent code. }
+                          @default { Value is required. }
+                        }
+                      </p>
+                    }
+                  </div>
+                  <div><label [for]="'value-weight-' + attributeIndex + '-' + valueIndex" class="form-label">Value weight</label><input [id]="'value-weight-' + attributeIndex + '-' + valueIndex" type="number" step="1" formControlName="weight" class="form-input-field" /></div>
+                  <button type="button" class="location-icon-button" title="Remove attribute value" aria-label="Remove attribute value" [disabled]="saving()" (click)="attribute.controls.values.removeAt(valueIndex)"><span aria-hidden="true">&times;</span></button>
                 </div>
-                <div><label [for]="'value-weight-' + attributeIndex + '-' + valueIndex" class="form-label">Value weight</label><input [id]="'value-weight-' + attributeIndex + '-' + valueIndex" type="number" step="1" formControlName="weight" class="form-input-field" /></div>
-                <button type="button" class="location-icon-button" title="Remove attribute value" aria-label="Remove attribute value" [disabled]="saving()" (click)="attribute.controls.values.removeAt(valueIndex)"><span aria-hidden="true">&times;</span></button>
-              </div>
-            }
-          </div>
+              }
+            </div>
+          }
           <div class="mt-3 flex flex-wrap gap-2">
-            <button type="button" class="btn-secondary" [disabled]="saving()" (click)="addValue(attributeIndex)">Add value</button>
+            @if (attribute.controls.name.value !== 'default') {
+              <button type="button" class="btn-secondary" [disabled]="saving()" (click)="addValue(attributeIndex)">Add value</button>
+            }
             <button type="button" class="btn-secondary" [disabled]="saving()" (click)="form.controls.attributes.removeAt(attributeIndex)">Remove attribute</button>
           </div>
           @if (attribute.touched && attribute.invalid) { <p class="location-field-error">Attribute names and values are required; weights must be integers.</p> }
