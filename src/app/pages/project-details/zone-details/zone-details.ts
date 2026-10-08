@@ -9,10 +9,11 @@ import { DNSEndpointForm } from '../components/dns-endpoint-form/dns-endpoint-fo
 import { DNSEndpointStore } from '../../projects/store/dns-endpoint.store';
 import { DNSEndpoint, DNSRecordType, LabelSelector } from '../../projects/store/dns-endpoint.types';
 import { hostFromDnsName } from './dns-name';
+import { ZoneDelegation } from '../components/zone-delegation/zone-delegation';
 
 @Component({
   selector: 'app-zone-details',
-  imports: [RouterLink, Placeholder, ModalComponent, ButtonComponent, DNSEndpointForm],
+  imports: [RouterLink, Placeholder, ModalComponent, ButtonComponent, DNSEndpointForm, ZoneDelegation],
   templateUrl: './zone-details.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

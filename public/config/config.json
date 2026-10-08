@@ -1,6 +1,7 @@
 {
     "production": false,
     "apiUrl": "http://localhost:5555",
+    "dnsNameservers": ["ns1.demo.edgecdnx.com"],
     "auth": {
         "oidc": {
             "issuer": "https://auth.demo.edgecdnx.com/realms/edgecdnx",

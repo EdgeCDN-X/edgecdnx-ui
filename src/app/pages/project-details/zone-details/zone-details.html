@@ -13,6 +13,8 @@
     <app-button size="sm" (btnClick)="openCreate()">Create record</app-button>
   </div>
 
+  <app-zone-delegation class="mb-5 block" [domain]="zoneName()" />
+
   @if (error()?.action === 'list') {
     <div class="rounded-lg border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700" role="alert">
       {{ error()!.message }}

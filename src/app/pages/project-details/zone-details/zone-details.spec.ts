@@ -1,12 +1,60 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { ZoneDetails } from './zone-details';
 import { DNSEndpointStore } from '../../projects/store/dns-endpoint.store';
 import { DNSEndpoint, DNSEndpointActionError, DNSRoutingPolicy } from '../../projects/store/dns-endpoint.types';
+import { ConfigService } from '../../../config/config.store';
 
 describe('ZoneDetails selector records', () => {
+  it('shows delegation below the description and above records for the current zone', () => {
+    const params = new BehaviorSubject(convertToParamMap({ zoneName: 'random.mydomain.com' }));
+    const environment = signal({ dnsNameservers: ['ns1.demo.edgecdnx.com', 'ns2.example.com'] });
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: ConfigService, useValue: { environment } },
+        { provide: ActivatedRoute, useValue: {
+          parent: { paramMap: of(convertToParamMap({ name: 'project-a' })) },
+          paramMap: params.asObservable(),
+        } },
+        { provide: DNSEndpointStore, useValue: {
+          dnsEndpoints: signal([]),
+          loading: signal(false),
+          deleting: signal(false),
+          error: signal(null),
+          load: jasmine.createSpy('load'),
+        } },
+      ],
+    });
+    const fixture = TestBed.createComponent(ZoneDetails);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+    const guidance = element.querySelector('app-zone-delegation')!;
+    const description = element.querySelector('#zone-heading + p')!;
+    const records = element.querySelector('.overflow-hidden')!;
+    expect(description.compareDocumentPosition(guidance) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+    expect(guidance.compareDocumentPosition(records) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+    const suggestions = () => Array.from(
+      guidance.querySelectorAll('[aria-label="Delegation nameservers"] li'),
+      record => record.textContent?.trim(),
+    );
+    expect(suggestions()).toEqual([
+      'random.mydomain.com NS ns1.demo.edgecdnx.com',
+      'random.mydomain.com NS ns2.example.com',
+    ]);
+    params.next(convertToParamMap({ zoneName: 'another.example.com' }));
+    fixture.detectChanges();
+    expect(suggestions()[0]).toBe('another.example.com NS ns1.demo.edgecdnx.com');
+    environment.set({ dnsNameservers: [] });
+    fixture.detectChanges();
+    expect(guidance.querySelector('[role="alert"]')?.textContent)
+      .toContain('Delegation nameservers are not configured');
+  });
+
   it('renders and searches records whose API responses omit targets', () => {
     const endpoint: DNSEndpoint = {
       kind: 'DNSEndpoint',

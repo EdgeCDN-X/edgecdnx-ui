@@ -3,6 +3,7 @@ import { Injectable, signal } from '@angular/core';
 export interface Environment {
     production: boolean;
     apiUrl: string;
+    dnsNameservers?: string[];
     auth: {
         oidc: {
             issuer: string;

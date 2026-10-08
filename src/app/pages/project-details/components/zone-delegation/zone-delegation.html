@@ -1,0 +1,38 @@
+<section class="pt-3 text-sm base-text" aria-labelledby="delegation-title">
+    <h3 id="delegation-title" class="form-label">Configure domain delegation</h3>
+    <p class="pb-2">
+        Creating a zone does not automatically delegate your domain. Configure delegation
+        with every nameserver listed below so DNS queries reach the platform.
+    </p>
+    <ul class="list-disc pl-5 space-y-2">
+        <li>
+            <strong>Whole domain (example.com):</strong> At your domain registrar, open
+            the domain's nameserver settings and replace the existing nameservers with
+            the nameservers below. These are the domain's NS records.
+        </li>
+        <li>
+            <strong>Subzone (cdn.example.com):</strong> In the parent domain's DNS settings
+            at your registrar or current DNS provider, create an NS record for the
+            corresponding subzone for each nameserver below. Use cdn as the record name
+            if your provider appends example.com automatically, or cdn.example.com if
+            it requires the full name. Do not change the parent domain's nameservers.
+        </li>
+    </ul>
+    @if (nameservers()?.length) {
+    <p class="form-label pt-3">Nameserver records (type NS)</p>
+    @if (!domain()) {
+    <p class="pb-2">Enter a valid Zone Domain above to see the full suggested NS records.</p>
+    }
+    <ul class="space-y-1" aria-label="Delegation nameservers">
+        @for (nameserver of nameservers(); track $index) {
+        <li><code class="break-all">{{ domain() ? domain() + ' ' : '' }}NS {{ nameserver }}</code></li>
+        }
+    </ul>
+    } @else {
+    <p class="text-red-600 pt-3" role="alert">
+        Delegation nameservers are not configured. Contact your platform administrator
+        for the NS records before configuring delegation.
+    </p>
+    }
+    <p class="pt-2">DNS changes may take time to propagate. Creating the zone alone does not complete delegation.</p>
+</section>

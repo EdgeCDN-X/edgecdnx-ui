@@ -2,10 +2,11 @@ import { Component, effect, EventEmitter, inject, Input, OnInit, Output } from '
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ZoneStore } from '../../../projects/store/zone.store';
 import { CreateZoneDto } from '../../../projects/store/zone.types';
+import { ZoneDelegation } from '../zone-delegation/zone-delegation';
 
 @Component({
   selector: 'app-zone-create-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ZoneDelegation],
   templateUrl: './zone-create-form.html',
   styleUrl: './zone-create-form.css',
 })

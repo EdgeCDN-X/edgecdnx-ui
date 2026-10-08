@@ -78,6 +78,33 @@ Hover over or keyboard-focus a result bar in either view to see a tooltip with
 the check context, status, source, timestamp, start time (when available),
 response code, duration in milliseconds, and message.
 
+## DNS zone delegation
+
+The New Zone modal and zone details page share guidance on delegating a whole
+domain or a subzone. Zone details show this guidance below the title and
+description, above the DNS records, with NS suggestions for the current zone.
+Set `dnsNameservers` in the runtime configuration at `public/config/config.json`
+(served as `config/config.json`) to a JSON array of nameserver hostnames:
+
+```json
+{
+  "dnsNameservers": ["ns1.demo.edgecdnx.com"]
+}
+```
+
+Configure the appropriate nameservers for each environment; the modal displays
+every entry as an NS record below the email field. As users enter a valid Zone
+Domain, the suggestions update to include that domain, for example
+`random.mydomain.com NS ns1.demo.edgecdnx.com`.
+If the array is missing or empty, it displays a
+configuration warning instead of using demo nameservers.
+
+For a whole domain, users must update the domain's nameservers at their registrar.
+For a subzone, users must add an NS record for each configured nameserver under
+the corresponding subzone in the parent domain's authoritative DNS settings
+(at the registrar or current DNS provider), without changing the parent domain's
+delegation. Creating a zone does not perform delegation or bypass DNS propagation.
+
 ## DNS record routing
 
 The create/edit DNS record form supports Simple, Failover, Round Robin,
