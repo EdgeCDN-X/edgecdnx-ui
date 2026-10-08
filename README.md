@@ -127,8 +127,9 @@ returns to that route. Logout still uses the identity provider's logout flow.
 Initialization failures are logged and release route guards rather than leaving
 the application waiting indefinitely.
 Successful callback processing also releases route guards before awaiting the
-post-login navigation. When OIDC state is empty, the authenticated user is
-redirected to `/projects`.
+post-login navigation. On the configured login callback URL, empty OIDC state
+redirects the authenticated user to `/projects`. Normal page reloads retain
+their path, query parameters, and fragment, even when OIDC state is present.
 
 ## Development server
 

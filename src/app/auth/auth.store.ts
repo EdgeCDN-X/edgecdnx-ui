@@ -119,6 +119,8 @@ export class AuthStore {
     }
 
     public async runInitialLoginSequence(): Promise<void> {
+        const redirectUri = this.config.environment()?.auth.oidc.redirectUri || authConfig.redirectUri!;
+        const isLoginCallback = window.location.pathname === new URL(redirectUri, window.location.origin).pathname;
         this.oauthService.configure(
             {
                 ...authConfig,
@@ -126,7 +128,7 @@ export class AuthStore {
                 clientId: this.config.environment()?.auth.oidc.clientId || authConfig.clientId,
                 scope: this.config.environment()?.auth.oidc.scope || authConfig.scope,
                 requireHttps: this.config.environment()?.auth.oidc.requireHttps ?? authConfig.requireHttps,
-                redirectUri: this.config.environment()?.auth.oidc.redirectUri || authConfig.redirectUri,
+                redirectUri,
             }
         );
         try {
@@ -137,7 +139,7 @@ export class AuthStore {
             }
             this._isAuthenticated.set(!this.sessionExpired && this.oauthService.hasValidAccessToken());
             this._isLoaded.set(true);
-            if (this.isAuthenticated()) {
+            if (this.isAuthenticated() && isLoginCallback) {
                 const state = this.oauthService.state;
                 await this.router.navigateByUrl(state ? decodeURIComponent(state) : '/projects');
             }
