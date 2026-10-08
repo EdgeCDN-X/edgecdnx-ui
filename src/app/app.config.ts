@@ -5,16 +5,17 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { DefaultOAuthInterceptor, provideOAuthClient } from 'angular-oauth2-oidc';
+import { provideOAuthClient } from 'angular-oauth2-oidc';
 import { routes } from './app.routes';
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './auth/auth.interceptor';
 import { tap } from 'rxjs';
 import { Environment, ConfigService } from './config/config.store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideAppInitializer(() => {
       const http = inject(HttpClient);
       const configService = inject(ConfigService);
@@ -27,6 +28,5 @@ export const appConfig: ApplicationConfig = {
     }),
     provideRouter(routes),
     provideOAuthClient(),
-    { provide: HTTP_INTERCEPTORS, useClass: DefaultOAuthInterceptor, multi: true },
   ],
 };

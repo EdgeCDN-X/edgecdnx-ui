@@ -25,8 +25,8 @@ export const authConfig: AuthConfig = {
   // Logout URL
   logoutUrl: undefined,
 
-  // Use silent refresh
-  useSilentRefresh: true,
+  // Code flow renews through the token endpoint, without third-party iframe cookies.
+  useSilentRefresh: false,
 
   // Silent refresh timeout
   silentRefreshTimeout: 5000,

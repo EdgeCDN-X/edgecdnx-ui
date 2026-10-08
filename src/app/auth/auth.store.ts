@@ -1,7 +1,7 @@
-import { computed, effect, inject, Injectable, signal } from "@angular/core";
+import { computed, DestroyRef, effect, inject, Injectable, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router } from "@angular/router";
-import { OAuthErrorEvent, OAuthService } from "angular-oauth2-oidc";
-import { filter } from "rxjs";
+import { OAuthErrorEvent, OAuthInfoEvent, OAuthService } from "angular-oauth2-oidc";
 import { authConfig } from "./auth.config";
 import { ConfigService } from "../config/config.store";
 
@@ -13,6 +13,10 @@ export class AuthStore {
     private config = inject(ConfigService);
     private oauthService = inject(OAuthService);
     private router = inject(Router);
+    private destroyRef = inject(DestroyRef);
+    private refreshInFlight: Promise<void> | null = null;
+    private sessionExpired = false;
+    private renewalDue = false;
 
     private readonly _isAuthenticated = signal<boolean>(false);
     private readonly _isLoaded = signal<boolean>(false);
@@ -48,40 +52,69 @@ export class AuthStore {
             }
         })
 
-        // debugging OAuth events
-        this.oauthService.events.subscribe(event => {
-            this._isAuthenticated.set(this.oauthService.hasValidAccessToken());
-            this._userInfo.set(this.oauthService.getIdentityClaims() as Record<string, any> || {});
+        this.oauthService.events.pipe(takeUntilDestroyed()).subscribe(event => {
+            if (event.type === 'token_received' && this.sessionExpired) {
+                this.oauthService.logOut(true);
+                return;
+            }
+            this._isAuthenticated.set(!this.sessionExpired && this.oauthService.hasValidAccessToken());
+            this._userInfo.set(this.isAuthenticated()
+                ? this.oauthService.getIdentityClaims() as Record<string, any> || {}
+                : {});
             if (event instanceof OAuthErrorEvent) {
                 console.error('OAuthErrorEvent Object:', event);
-            } else {
-                console.warn('OAuthEvent Object:', event);
+            }
+            if (this.isLoaded() && [
+                'token_refresh_error', 'silent_refresh_error', 'silent_refresh_timeout',
+                'session_terminated', 'session_error',
+            ].includes(event.type)) {
+                this.expireSession();
+            }
+            if (event instanceof OAuthInfoEvent &&
+                event.type === 'token_expires' && event.info === 'access_token') {
+                if (this.isLoaded()) {
+                    void this.refreshAccessToken().catch(error => console.error('Scheduled token renewal failed:', error));
+                } else {
+                    this.renewalDue = true;
+                }
+            }
+            if (event.type === 'token_received') {
+                this.renewalDue = false;
+                void this.oauthService.loadUserProfile()
+                    .catch(error => console.error('Failed to load OIDC user profile:', error));
             }
         });
 
-
-        window.addEventListener('storage', (event) => {
+        const onStorage = (event: StorageEvent) => {
             // The `key` is `null` if the event was caused by `.clear()`
             if (event.key !== 'access_token' && event.key !== null) {
                 return;
             }
 
-            console.warn('Noticed changes to access_token (most likely from another tab), updating isAuthenticated');
             this._isAuthenticated.set(this.oauthService.hasValidAccessToken());
 
-
             if (!this.oauthService.hasValidAccessToken()) {
-                this.router.navigateByUrl('/');
+                this.expireSession();
             }
+        };
+        const onResume = () => {
+            if (!this.isLoaded() || this.sessionExpired || document.visibilityState === 'hidden') {
+                return;
+            }
+            const expiresAt = this.oauthService.getAccessTokenExpiration();
+            if (this.oauthService.getAccessToken() &&
+                (!this.oauthService.hasValidAccessToken() || expiresAt - Date.now() <= 60_000)) {
+                void this.refreshAccessToken().catch(error => console.error('Token renewal on tab resume failed:', error));
+            }
+        };
+        window.addEventListener('storage', onStorage);
+        window.addEventListener('focus', onResume);
+        document.addEventListener('visibilitychange', onResume);
+        this.destroyRef.onDestroy(() => {
+            window.removeEventListener('storage', onStorage);
+            window.removeEventListener('focus', onResume);
+            document.removeEventListener('visibilitychange', onResume);
         });
-
-        this.oauthService.events
-            .pipe(filter(e => ['token_received'].includes(e.type)))
-            .subscribe(e => this.oauthService.loadUserProfile());
-
-        this.oauthService.events
-            .pipe(filter(e => ['session_terminated', 'session_error'].includes(e.type)))
-            .subscribe(e => this.router.navigateByUrl('/'));
 
     }
 
@@ -96,26 +129,74 @@ export class AuthStore {
                 redirectUri: this.config.environment()?.auth.oidc.redirectUri || authConfig.redirectUri,
             }
         );
-        await this.oauthService.loadDiscoveryDocumentAndTryLogin();
-        this._isAuthenticated.set(this.oauthService.hasValidAccessToken());
-
-        if (this.isAuthenticated()) {
-            const state = this.oauthService.state;
-            if (state) {
-                this.router.navigateByUrl(decodeURIComponent(state));
+        try {
+            await this.oauthService.loadDiscoveryDocumentAndTryLogin();
+            if ((!this.oauthService.hasValidAccessToken() && this.oauthService.getRefreshToken()) ||
+                (this.renewalDue && this.oauthService.getAccessToken())) {
+                await this.refreshAccessToken();
             }
+            this._isAuthenticated.set(!this.sessionExpired && this.oauthService.hasValidAccessToken());
+            this._isLoaded.set(true);
+            if (this.isAuthenticated()) {
+                const state = this.oauthService.state;
+                await this.router.navigateByUrl(state ? decodeURIComponent(state) : '/projects');
+            }
+        } catch (error) {
+            console.error('OIDC initialization failed:', error);
+            this.expireSession();
+        } finally {
+            this._isLoaded.set(true);
         }
+    }
 
-        this.oauthService.setupAutomaticSilentRefresh();
+    public refreshAccessToken(): Promise<void> {
+        if (this.refreshInFlight) {
+            return this.refreshInFlight;
+        }
+        this.refreshInFlight = Promise.resolve().then(async () => {
+            if (this.sessionExpired || !this.oauthService.getRefreshToken()) {
+                throw new Error('The OIDC session has no usable refresh token');
+            }
+            await this.oauthService.refreshToken();
+            if (this.sessionExpired || !this.oauthService.hasValidAccessToken()) {
+                throw new Error('Token renewal did not restore the OIDC session');
+            }
+            this._isAuthenticated.set(true);
+            this.renewalDue = false;
+        }).catch(error => {
+            console.error('OIDC token renewal failed:', error);
+            this.expireSession();
+            throw error;
+        }).finally(() => {
+            this.refreshInFlight = null;
+        });
+        return this.refreshInFlight;
+    }
 
-        this._isLoaded.set(true);
+    public expireSession(): void {
+        if (this.sessionExpired) {
+            return;
+        }
+        this.sessionExpired = true;
+        this._isAuthenticated.set(false);
+        this._userInfo.set({});
+        this.oauthService.logOut(true);
+        const currentUrl = this.router.url;
+        if (/^\/(signin|logout)([/?#]|$)/.test(currentUrl)) {
+            return;
+        }
+        const redirectUrl = /^\/callback([/?#]|$)/.test(currentUrl) ? '/dashboard' : currentUrl;
+        void this.router.navigate(['/signin'], { queryParams: { redirectUrl } })
+            .catch(error => console.error('Failed to navigate to sign-in:', error));
     }
 
     public async login(targetUrl?: string): Promise<void> {
+        this.sessionExpired = false;
         return this.oauthService.initCodeFlow(targetUrl || '/dashboard');
     }
 
     public async register(targetUrl?: string): Promise<void> {
+        this.sessionExpired = false;
         return this.oauthService.initCodeFlow(targetUrl || '/dashboard',
             {
                 prompt: "create"
@@ -123,6 +204,7 @@ export class AuthStore {
     }
 
     public logout(): void {
+        this.sessionExpired = true;
         this.oauthService.logOut();
     }
 

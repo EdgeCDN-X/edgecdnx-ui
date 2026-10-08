@@ -99,6 +99,29 @@ The zones API accepts the same policies, validates match-label selectors,
 enforces the project label, and preserves routing configuration on
 partial updates. An explicit switch to Simple or Failover clears the selector.
 
+## OIDC session renewal
+
+Authentication uses authorization code flow with PKCE and refresh-token renewal,
+not hidden-iframe login. Configure the identity provider to issue refresh tokens
+to this browser client, allow token-endpoint CORS from the UI origin, and enable
+refresh-token rotation where supported. The runtime OIDC scope must include the
+provider's required scope for refresh tokens (typically `offline_access`).
+
+Access tokens renew at 75% of their lifetime. Scheduled renewal, tab-resume
+checks, and API requests share one in-flight renewal. Requests to the configured
+API receive the current token; a 401 triggers renewal and one retry, while 403
+and unrelated errors retain their existing handling. OIDC endpoints and URLs
+outside the configured API origin/path are excluded.
+
+Missing refresh tokens, failed renewal, session termination, or a second 401
+clear the local session and navigate to `/signin?redirectUrl=...`. Signing in
+returns to that route. Logout still uses the identity provider's logout flow.
+Initialization failures are logged and release route guards rather than leaving
+the application waiting indefinitely.
+Successful callback processing also releases route guards before awaiting the
+post-login navigation. When OIDC state is empty, the authenticated user is
+redirected to `/projects`.
+
 ## Development server
 
 To start a local development server, run:
