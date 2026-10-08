@@ -114,6 +114,22 @@ export class ZoneDetails {
     return Boolean(dnsEndpoint.metadata.labels?.['service']);
   }
 
+  routeSelectorQueryParams(dnsEndpoint: DNSEndpoint): { label: string[] } | null {
+    const { routingPolicy, routeSelector } = dnsEndpoint.spec;
+    if (
+      this.isManaged(dnsEndpoint) ||
+      !['Geolocation', 'Weighted', 'RoundRobin'].includes(routingPolicy) ||
+      routeSelector?.matchExpressions?.length
+    ) {
+      return null;
+    }
+
+    const labels = Object.entries(routeSelector?.matchLabels ?? {}).map(
+      ([key, value]) => `${key}=${value}`,
+    );
+    return labels.length ? { label: labels } : null;
+  }
+
   routeSelectorEntries(selector: LabelSelector | null | undefined): string[] {
     if (!selector) {
       return [];

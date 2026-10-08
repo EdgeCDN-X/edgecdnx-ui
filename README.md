@@ -95,6 +95,14 @@ Label keys must be unique and use Kubernetes label syntax. Match expressions
 cannot be configured in this form; existing records using them are blocked
 from selector-based saves rather than silently losing their expressions.
 
+On the zone details page, clicking any routing label for a Geolocation,
+Weighted, or Round Robin record opens the project's Locations page with
+**all** of that record's match-label filters, including the project label.
+Selectors containing match expressions remain non-clickable because the
+location filters support match labels only.
+Managed-service records also keep their routing labels non-clickable because
+their locations are not visible to the user.
+
 The zones API accepts the same policies, validates match-label selectors,
 enforces the project label, and preserves routing configuration on
 partial updates. An explicit switch to Simple or Failover clears the selector.

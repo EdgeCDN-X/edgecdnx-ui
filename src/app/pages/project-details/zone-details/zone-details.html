@@ -94,7 +94,18 @@
                     @if (routeSelectorEntries(dnsEndpoint.spec.routeSelector).length > 0) {
                       <ul class="m-0 mt-2 space-y-1 p-0" aria-label="Route selector">
                         @for (entry of routeSelectorEntries(dnsEndpoint.spec.routeSelector); track $index) {
-                          <li class="break-all font-mono text-xs text-gray-500 dark:text-gray-400">{{ entry }}</li>
+                          <li class="break-all font-mono text-xs text-gray-500 dark:text-gray-400">
+                            @if (routeSelectorQueryParams(dnsEndpoint); as queryParams) {
+                              <a class="link-primary rounded-sm hover:underline focus-visible:outline-2"
+                                [routerLink]="['/projects', projectId(), 'locations']"
+                                [queryParams]="queryParams"
+                                [attr.aria-label]="'View locations matching all routing labels for ' + dnsEndpoint.spec.dnsName">
+                                {{ entry }}
+                              </a>
+                            } @else {
+                              {{ entry }}
+                            }
+                          </li>
                         }
                       </ul>
                     }
