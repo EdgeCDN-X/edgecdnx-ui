@@ -1,44 +1,110 @@
-<div class="sub-card">
+<div class="sub-card" [attr.aria-busy]="store.loading()">
     <div class="flex justify-between pb-4 items-center">
         <h2 class="sub-card-title">Members</h2>
+        @if (!formOpen()) {
+            <button type="button" class="btn-secondary" (click)="openForm()" [disabled]="store.loading() || store.saving() || store.removing()">Assign user to group</button>
+        }
     </div>
 
-    <table class="w-full table-fixed">
-        <thead class="border-gray-100 border-y dark:border-white/[0.05]">
-            <tr>
-                <th scope="col" class="table-label">
-                    Group
-                </th>
-                <th scope="col" class="table-label">
-                    Username
-                </th>
-            </tr>
-        </thead>
-        <tbody class="table-divider">
-            @for (item of groups(); track $index) {
-            @for (user of item.users; track $index) {
-            <tr>
-                <td class="py-3">
-                    <div class="flex items-center gap-[18px]">
-                        <div>
-                            <p class="base-text">
-                                {{item.groupName}}
-                            </p>
-                        </div>
-                    </div>
-                </td>
-                <td class="py-3">
-                    <div class="flex items-center w-full gap-5">
-                        <div class="truncate">
-                            <p class="mb-0.5 truncate base-text">
-                                {{user}}
-                            </p>
-                        </div>
-                    </div>
-                </td>
-            </tr>
+    @if (store.error()) { <p class="mb-4 text-red-700 dark:text-red-300" role="alert">{{ store.error() }}</p> }
+    @if (success()) { <p class="mb-4 text-green-700 dark:text-green-300" role="status">{{ success() }}</p> }
+
+    @if (formOpen()) {
+        <form [formGroup]="form" (ngSubmit)="assign()" class="mb-5 space-y-4 rounded-lg border border-gray-100 p-4 dark:border-white/[0.05]" aria-labelledby="member-form-heading">
+            <h3 id="member-form-heading" class="form-label">{{ inviting() ? 'Invite new user' : 'Assign user to group' }}</h3>
+            @if (validationError()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ validationError() }}</p> }
+
+            @if (inviting()) {
+                <div>
+                    <label for="member-email" class="form-label">Email address</label>
+                    <input id="member-email" type="email" formControlName="email" class="form-input-field" autocomplete="off" placeholder="user@example.com" />
+                    @if (form.controls.email.touched && form.controls.email.invalid) {
+                        <p class="mt-1 text-sm text-red-700 dark:text-red-300">Enter a valid email address.</p>
+                    }
+                    @if (users().length > 0) {
+                        <button type="button" class="link-primary mt-2 text-sm" (click)="chooseExistingUser()">Choose an existing user instead</button>
+                    }
+                </div>
+            } @else {
+                <div>
+                    <label for="member-user" class="form-label">User</label>
+                    <select id="member-user" formControlName="user" class="form-input-field">
+                        <option value="" disabled>Select a user</option>
+                        @for (user of users(); track user) {
+                            <option [value]="user">{{ user }}</option>
+                        }
+                        <option [value]="inviteOption">+ Invite new user…</option>
+                    </select>
+                    @if (form.controls.user.touched && form.controls.user.invalid) {
+                        <p class="mt-1 text-sm text-red-700 dark:text-red-300">Select a user.</p>
+                    }
+                </div>
             }
+
+            <div>
+                <label for="member-role" class="form-label">Group</label>
+                <select id="member-role" formControlName="role" class="form-input-field">
+                    <option value="" disabled>Select a group</option>
+                    @for (role of store.roles(); track role) {
+                        <option [value]="role">{{ role }}</option>
+                    }
+                </select>
+                @if (form.controls.role.touched && form.controls.role.invalid) {
+                    <p class="mt-1 text-sm text-red-700 dark:text-red-300">Select a group.</p>
+                }
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" class="btn-secondary" [disabled]="store.saving()" (click)="closeForm()">Cancel</button>
+                <button type="submit" class="btn-primary" [disabled]="store.saving()">{{ store.saving() ? 'Saving...' : inviting() ? 'Invite user' : 'Assign' }}</button>
+            </div>
+        </form>
+    }
+
+    @if (removeTarget(); as member) {
+        <div class="mb-5 space-y-3 rounded-lg border border-gray-100 p-4 dark:border-white/[0.05]" role="region" aria-labelledby="member-remove-heading">
+            <h3 id="member-remove-heading" class="form-label">Remove {{ member.user }} from {{ member.role }}?</h3>
+            <div class="flex gap-3">
+                <button type="button" class="btn-secondary" [disabled]="store.removing()" (click)="cancelRemove()">Cancel</button>
+                <button type="button" class="btn-primary" [disabled]="store.removing()" (click)="remove()">{{ store.removing() ? 'Removing...' : 'Remove' }}</button>
+            </div>
+        </div>
+    }
+
+    @if (store.loading() && groups().length === 0) {
+        <p class="base-text pb-4" role="status">Loading members...</p>
+    } @else {
+        <table class="w-full table-fixed">
+            <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+                <tr>
+                    <th scope="col" class="table-label">Group</th>
+                    <th scope="col" class="table-label">Username</th>
+                    <th scope="col" class="table-label text-right pr-3">Actions</th>
+                </tr>
+            </thead>
+            @for (item of groups(); track item.groupName; let groupIndex = $index) {
+                <tbody class="member-group" [class.member-group-alt]="groupIndex % 2 === 1">
+                    @for (user of item.users; track user; let first = $first) {
+                        <tr>
+                            @if (first) {
+                                <th scope="row" [attr.rowspan]="item.users.length" class="base-text py-3 pl-3 text-left align-middle font-medium">
+                                    <p class="base-text">{{ item.groupName }}</p>
+                                </th>
+                            }
+                            <td class="py-3">
+                                <div class="truncate"><p class="mb-0.5 truncate base-text">{{ user }}</p></div>
+                            </td>
+                            <td class="py-3 pr-3 text-right align-middle">
+                                <button type="button" class="link-primary text-sm" [attr.aria-label]="'Remove ' + user + ' from ' + item.groupName" [disabled]="store.loading() || store.saving() || store.removing()" (click)="confirmRemove({ user, role: item.groupName })">Remove</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            } @empty {
+                <tbody>
+                    <tr><td colspan="3" class="py-3"><p class="base-text">No members yet.</p></td></tr>
+                </tbody>
             }
-        </tbody>
-    </table>
+        </table>
+    }
 </div>

@@ -1,0 +1,23 @@
+.member-group-alt {
+  background-color: rgb(249 250 251);
+}
+
+.member-group > tr + tr > td {
+  border-top: 1px solid rgb(229 231 235);
+}
+
+.member-group > tr:last-child > * {
+  border-bottom: 2px solid rgb(229 231 235);
+}
+
+:host-context(.dark) .member-group-alt {
+  background-color: rgb(255 255 255 / 3%);
+}
+
+:host-context(.dark) .member-group > tr + tr > td {
+  border-top-color: rgb(255 255 255 / 10%);
+}
+
+:host-context(.dark) .member-group > tr:last-child > * {
+  border-bottom-color: rgb(255 255 255 / 10%);
+}

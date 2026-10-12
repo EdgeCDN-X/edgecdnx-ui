@@ -1,56 +1,161 @@
-<div class="sub-card">
+<div class="sub-card" [attr.aria-busy]="store.loading()">
     <div class="flex justify-between pb-4 items-center">
         <h2 class="sub-card-title">Roles</h2>
+        @if (!editorOpen()) {
+            <button type="button" class="btn-secondary" (click)="openEditor()" [disabled]="store.loading() || store.loadingResourceTypes() || !!store.resourceTypesError() || store.saving() || store.deleting()">Create role</button>
+        }
     </div>
 
-    <table class="w-full table-fixed">
-        <thead class="border-gray-100 border-y dark:border-white/[0.05]">
-            <tr>
-                <th scope="col" class="table-label">
-                    Role
-                </th>
-                <th scope="col" class="table-label">
-                    Resource
-                </th>
-                <th scope="col" class="table-label">
-                    Action
-                </th>
-            </tr>
-        </thead>
-        <tbody class="table-divider">
-            @for (item of roles(); track $index) {
-            @for (rule of item.rules; track $index) {
-            <tr>
-                <td class="py-3">
-                    <div class="flex items-center gap-[18px]">
-                        <div>
-                            <p class="base-text">
-                                {{item.role}}
-                            </p>
-                        </div>
-                    </div>
-                </td>
-                <td class="py-3">
-                    <div class="flex items-center w-full gap-5">
-                        <div class="truncate">
-                            <p class="mb-0.5 truncate base-text">
-                                {{rule.resource}}
-                            </p>
-                        </div>
-                    </div>
-                </td>
-                <td class="py-3">
-                    <div class="flex items-center w-full gap-5">
-                        <div class="truncate">
-                            <p class="mb-0.5 truncate base-text">
-                                {{rule.action}}
-                            </p>
-                        </div>
-                    </div>
-                </td>
-            </tr>
+    @if (store.error()) { <p class="mb-4 text-red-700 dark:text-red-300" role="alert">{{ store.error() }}</p> }
+    @if (store.resourceTypesError()) { <p class="mb-4 text-red-700 dark:text-red-300" role="alert">Unable to load permission resources: {{ store.resourceTypesError() }}</p> }
+    @if (success()) { <p class="mb-4 text-green-700 dark:text-green-300" role="status">{{ success() }}</p> }
+
+    @if (editorOpen()) {
+        <form [formGroup]="form" (ngSubmit)="save()" class="mb-5 space-y-4 rounded-lg border border-gray-100 p-4 dark:border-white/[0.05]" aria-labelledby="role-form-heading">
+            <h3 id="role-form-heading" class="form-label">{{ editing() ? 'Edit role' : 'Create role' }}</h3>
+            @if (validationError()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ validationError() }}</p> }
+            <div>
+                <label for="role-name" class="form-label">Role name</label>
+                <input id="role-name" formControlName="name" class="form-input-field" autocomplete="off" />
+                @if (form.controls.name.touched && form.controls.name.invalid) {
+                    <p class="mt-1 text-sm text-red-700 dark:text-red-300">Use 1–63 letters, numbers, dots, underscores, or hyphens.</p>
+                }
+            </div>
+            <fieldset formArrayName="permissions" class="space-y-3" [disabled]="store.saving()">
+                <legend class="form-label">Permissions</legend>
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto">
+                        <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+                            <tr>
+                                <th scope="col" class="table-label text-left">Resource</th>
+                                @for (action of actions; track action) {
+                                    <th scope="col" class="table-label text-center">{{ action | titlecase }}</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody class="table-divider">
+                            @for (permission of form.controls.permissions.controls; track permission; let i = $index) {
+                                <tr [formGroupName]="i">
+                                    <th scope="row" class="base-text py-3 text-left font-medium">
+                                        {{ permission.controls.resource.value === '*' ? '* (all resources)' : permission.controls.resource.value }}
+                                    </th>
+                                    @for (action of actions; track action) {
+                                        <td class="py-3 text-center">
+                                            <input
+                                                type="checkbox"
+                                                class="h-4 w-4 accent-blue-600"
+                                                [formControlName]="action"
+                                                [attr.aria-label]="permission.controls.resource.value + ' ' + action"
+                                                [attr.title]="permission.controls.resource.value === 'project' && action === 'read' ? 'Project read permission is required' : null"
+                                            />
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (store.loadingResourceTypes()) { <p class="base-text" role="status">Loading resource types...</p> }
+            </fieldset>
+            <div class="flex justify-end gap-3">
+                <button type="button" class="btn-secondary" [disabled]="store.saving()" (click)="closeEditor()">Cancel</button>
+                <button type="submit" class="btn-primary" [disabled]="store.saving()">{{ store.saving() ? 'Saving...' : editing() ? 'Save changes' : 'Create role' }}</button>
+            </div>
+        </form>
+    }
+
+    @if (deleteTarget(); as role) {
+        <div class="mb-5 space-y-3 rounded-lg border border-gray-100 p-4 dark:border-white/[0.05]" role="region" aria-labelledby="role-delete-heading">
+            <h3 id="role-delete-heading" class="form-label">Delete role {{ role.name }}?</h3>
+            <p class="base-text">Deleting this role also removes its project membership bindings.</p>
+            <div class="flex gap-3">
+                <button type="button" class="btn-secondary" [disabled]="store.deleting()" (click)="cancelDelete()">Cancel</button>
+                <button type="button" class="btn-primary" [disabled]="store.deleting()" (click)="deleteRole()">{{ store.deleting() ? 'Deleting...' : 'Delete role' }}</button>
+            </div>
+        </div>
+    }
+
+    @if (store.loading() && roles().length === 0) {
+        <p class="base-text pb-4" role="status">Loading roles...</p>
+    } @else {
+        <table class="w-full table-fixed">
+            <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+                <tr>
+                    <th scope="col" class="table-label">Role</th>
+                    <th scope="col" class="table-label">Resource</th>
+                    <th scope="col" class="table-label">Action</th>
+                    <th scope="col" class="table-label text-center">Actions</th>
+                </tr>
+            </thead>
+            @for (item of roles(); track item.role; let roleIndex = $index) {
+            <tbody class="role-group" [class.role-group-alt]="roleIndex % 2 === 1">
+                    @if (item.rules.length > 0) {
+                        @for (rule of item.rules; track rule.resource + ':' + rule.action; let first = $first) {
+                            <tr>
+                                @if (first) {
+                                <th scope="row" [attr.rowspan]="item.rules.length" class="base-text role-group-cell py-3 pl-3 text-left align-middle font-medium">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="base-text">{{ item.role }}</p>
+                                        @if (item.role === 'admin') {
+                                            <span class="base-text text-xs">Built-in</span>
+                                        }
+                                    </div>
+                                </th>
+                                }
+                                <td class="py-3">
+                                    <div class="flex items-center w-full gap-5">
+                                        <div class="truncate"><p class="mb-0.5 truncate base-text">{{ rule.resource }}</p></div>
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="flex items-center w-full gap-5">
+                                        <div class="truncate"><p class="mb-0.5 truncate base-text">{{ rule.action }}</p></div>
+                                    </div>
+                                </td>
+                                @if (first) {
+                                <td [attr.rowspan]="item.rules.length" class="role-group-cell py-3 text-center align-middle">
+                                    @if (item.role !== 'admin') {
+                                        <div class="flex items-center justify-center gap-3">
+                                            <button type="button" class="link-primary text-sm" [attr.aria-label]="'Edit ' + item.role" [disabled]="store.loading() || store.saving() || store.deleting()" (click)="openEditor({name: item.role, permissions: item.rules})">Edit</button>
+                                            <button type="button" class="link-primary text-sm" [attr.aria-label]="'Delete ' + item.role" [disabled]="store.loading() || store.saving() || store.deleting()" (click)="confirmDelete({name: item.role, permissions: item.rules})">Delete</button>
+                                        </div>
+                                    } @else {
+                                        <span class="base-text text-xs">—</span>
+                                    }
+                                </td>
+                                }
+                            </tr>
+                        }
+                    } @else {
+                        <tr>
+                            <th scope="row" class="base-text role-group-cell py-3 pl-3 text-left align-middle font-medium">
+                                <div class="flex items-center gap-2">
+                                    <p class="base-text">{{ item.role }}</p>
+                                    @if (item.role === 'admin') {
+                                        <span class="base-text text-xs">Built-in</span>
+                                    }
+                                </div>
+                            </th>
+                            <td class="py-3"><p class="base-text">—</p></td>
+                            <td class="py-3"><p class="base-text">—</p></td>
+                            <td class="role-group-cell py-3 text-center align-middle">
+                                @if (item.role !== 'admin') {
+                                    <div class="flex items-center justify-center gap-3">
+                                        <button type="button" class="link-primary text-sm" [disabled]="store.loading() || store.saving() || store.deleting()" (click)="openEditor({name: item.role, permissions: item.rules})">Edit</button>
+                                        <button type="button" class="link-primary text-sm" [disabled]="store.loading() || store.saving() || store.deleting()" (click)="confirmDelete({name: item.role, permissions: item.rules})">Delete</button>
+                                    </div>
+                                } @else {
+                                    <span class="base-text text-xs">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+            </tbody>
+            } @empty {
+                @if (!store.loading() && !store.error()) {
+                    <tbody><tr><td colspan="4" class="py-3"><p class="base-text">No roles found.</p></td></tr></tbody>
+                }
             }
-            }
-        </tbody>
-    </table>
+        </table>
+    }
 </div>
