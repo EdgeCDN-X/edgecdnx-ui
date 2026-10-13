@@ -34,7 +34,7 @@
         .{{ zoneName() }}
       </span>
     </div>
-    <p id="dns-host-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave blank to create a record at @.</p>
+    <p id="dns-host-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave blank to create a record at @. Use * or *.me for a wildcard matching exactly one label. Only one leading * is allowed.</p>
     @if (form.controls.host.invalid && form.controls.host.touched) {
       <p class="mt-1 text-xs text-error-600">Enter a valid host name.</p>
     }

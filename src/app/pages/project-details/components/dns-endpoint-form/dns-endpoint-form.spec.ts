@@ -65,6 +65,59 @@ describe('DNSEndpointForm routing', () => {
     expect(fixture.nativeElement.querySelector('app-location-kv-builder')).toBeNull();
   });
 
+  for (const host of ['*', '*.me']) {
+    it(`creates a wildcard endpoint from host ${host}`, () => {
+      const { fixture, form, store } = setup();
+      const input = fixture.nativeElement.querySelector('#dns-host') as HTMLInputElement;
+      input.value = host;
+      input.dispatchEvent(new Event('input'));
+      form.form.controls.targets.setValue('192.0.2.1');
+      const saved = jasmine.createSpy('saved');
+      form.saved.subscribe(saved);
+      form.submit();
+      expect(store.create).toHaveBeenCalledOnceWith('project-a', 'example.com', {
+        dnsName: `${host}.example.com`, routingPolicy: 'Simple', recordTTL: 300,
+        recordType: 'A', targets: ['192.0.2.1'], routeSelector: null,
+      });
+      expect(saved).toHaveBeenCalledTimes(1);
+    });
+  }
+
+  it('preserves a wildcard owner when editing', () => {
+    const { fixture, form, store } = setup({
+      ...endpoint, spec: { ...endpoint.spec, dnsName: '*.me.example.com' },
+    });
+    expect((fixture.nativeElement.querySelector('#dns-host') as HTMLInputElement).value).toBe('*.me');
+    form.submit();
+    expect(store.update.calls.mostRecent().args[3].dnsName).toBe('*.me.example.com');
+  });
+
+  for (const host of ['*.*', 'api.*', '**', 'api*', '*.me.*', '*.', '*..me']) {
+    it(`rejects invalid wildcard host ${host}`, () => {
+      const { form, store } = setup();
+      form.form.controls.host.setValue(host);
+      form.form.controls.targets.setValue('192.0.2.1');
+      form.submit();
+      expect(form.form.controls.host.invalid).toBeTrue();
+      expect(store.create).not.toHaveBeenCalled();
+    });
+  }
+
+  it('allows wildcard owners for every record type without allowing wildcard SRV targets', () => {
+    const { fixture, form } = setup();
+    const select = fixture.nativeElement.querySelector('#record-type') as HTMLSelectElement;
+    for (const recordType of form.recordTypes) {
+      select.value = recordType;
+      select.dispatchEvent(new Event('change'));
+      form.form.controls.host.setValue('*.me');
+      expect(form.form.controls.host.valid).toBeTrue();
+    }
+    select.value = 'SRV';
+    select.dispatchEvent(new Event('change'));
+    form.srvRecords.at(0).controls.target.setValue('*.example.net.');
+    expect(form.srvRecords.at(0).controls.target.invalid).toBeTrue();
+  });
+
   for (const policy of ['RoundRobin', 'Weighted', 'Geolocation'] as const) {
     it(`creates ${policy} records using a locked project label and matchLabels without targets`, () => {
       const { fixture, form, store } = setup();

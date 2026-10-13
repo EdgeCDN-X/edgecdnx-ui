@@ -72,7 +72,7 @@ export class DNSEndpointForm {
     host: this.formBuilder.nonNullable.control('', {
       validators: [
         Validators.maxLength(253),
-        Validators.pattern(hostNamePattern),
+        dnsOwnerNameValidator(hostNamePattern),
       ],
     }),
     recordType: this.formBuilder.nonNullable.control<DNSRecordType>('A', {
@@ -277,7 +277,7 @@ export class DNSEndpointForm {
 
   private updateHostValidators(recordType: DNSRecordType): void {
     const pattern = recordType === 'SRV' ? serviceOwnerNamePattern : hostNamePattern;
-    this.form.controls.host.setValidators([Validators.maxLength(253), Validators.pattern(pattern)]);
+    this.form.controls.host.setValidators([Validators.maxLength(253), dnsOwnerNameValidator(pattern)]);
     this.form.controls.host.updateValueAndValidity({ emitEvent: false });
   }
 
@@ -339,6 +339,17 @@ export class DNSEndpointForm {
 
 const hostNamePattern = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)(?:\.(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))*$/;
 const serviceOwnerNamePattern = /^(?:[a-zA-Z0-9_](?:[a-zA-Z0-9_-]{0,61}[a-zA-Z0-9_])?)(?:\.(?:[a-zA-Z0-9_](?:[a-zA-Z0-9_-]{0,61}[a-zA-Z0-9_])?))*$/;
+
+function dnsOwnerNameValidator(pattern: RegExp) {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (value === '' || value === '*') {
+      return null;
+    }
+    const host = typeof value === 'string' && value.startsWith('*.') ? value.slice(2) : value;
+    return typeof host === 'string' && pattern.test(host) ? null : { pattern: true };
+  };
+}
 
 function quoteTxtTarget(target: string): string {
   return isQuotedTxtTarget(target) ? target : `"${target}"`;
