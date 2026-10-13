@@ -104,6 +104,12 @@ export class AppSidebarComponent {
         { name: 'Health Check Profiles', path: `/projects/${this.projectStore.selectedProjectId()}/locations/healthcheckprofiles` },
       ],
       visible: this.projectStore.selectedProjectId() !== null,
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 3.25a5.25 5.25 0 0 0-5.02 6.8l-6.81 6.81a.75.75 0 0 0-.22.53v2.86c0 .41.34.75.75.75h2.86c.41 0 .75-.34.75-.75v-1.25h1.25c.41 0 .75-.34.75-.75v-1.25h1.25c.2 0 .39-.08.53-.22l.86-.86A5.25 5.25 0 1 0 15.5 3.25Zm-3.75 5.25a3.75 3.75 0 1 1 2.74 3.61.75.75 0 0 0-.73.19l-.92.92H11.5a.75.75 0 0 0-.75.75v1.25H9.5a.75.75 0 0 0-.75.75v1.25H4.95v-1.8l6.94-6.94a.75.75 0 0 0 .19-.73 3.76 3.76 0 0 1-.33-1.25ZM16.25 6.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z" fill="currentColor"/></svg>`,
+      name: "API Keys",
+      path: `/projects/${this.projectStore.selectedProjectId()}/apikeys`,
+      visible: this.projectStore.selectedProjectId() !== null,
     }
   ])
 

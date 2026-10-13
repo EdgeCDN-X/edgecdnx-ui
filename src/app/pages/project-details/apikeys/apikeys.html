@@ -1,0 +1,147 @@
+<section class="space-y-5" aria-labelledby="apikeys-heading" [attr.aria-busy]="store.loading()">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 id="apikeys-heading" class="sub-card-title">API Keys</h2>
+    <button type="button" class="btn-primary" (click)="openEditor()" [disabled]="editorOpen() || busy() || !!deleteTarget()">Create API key</button>
+  </div>
+
+  @if (store.error()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ store.error() }}</p> }
+  @if (rolesStore.error()) { <p class="text-red-700 dark:text-red-300" role="alert">Unable to load roles: {{ rolesStore.error() }}</p> }
+  @if (success()) { <p class="text-green-700 dark:text-green-300" role="status">{{ success() }}</p> }
+
+  @if (createdKey(); as created) {
+    <div class="space-y-3 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-500/40 dark:bg-amber-500/10" role="region" aria-labelledby="apikey-token-heading">
+      <h3 id="apikey-token-heading" class="form-label">API key {{ created.displayName }} created</h3>
+      <p class="base-text">Copy this token now. It will not be shown again.</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <code class="apikey-token block min-w-0 flex-1 break-all rounded border border-gray-200 bg-white px-3 py-2 font-mono text-sm text-gray-800 dark:border-white/10 dark:bg-gray-900 dark:text-white/90">{{ created.token }}</code>
+        <button type="button" class="btn-secondary" (click)="copyToken()">{{ copied() ? 'Copied' : 'Copy' }}</button>
+      </div>
+      <p class="base-text text-sm">Use it as <code class="font-mono">Authorization: ApiKey &lt;token&gt;</code>.</p>
+      <div class="flex justify-end">
+        <button type="button" class="btn-primary" (click)="dismissToken()">I have copied the token</button>
+      </div>
+    </div>
+  }
+
+  @if (editorOpen()) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-lg border border-gray-100 p-4 dark:border-white/[0.05]" aria-labelledby="apikey-form-heading">
+      <h3 id="apikey-form-heading" class="form-label">{{ editing() ? 'Edit API key ' + editing()!.displayName : 'Create API key' }}</h3>
+      @if (validationError()) { <p class="text-red-700 dark:text-red-300" role="alert">{{ validationError() }}</p> }
+      @if (!editing()) {
+        <div>
+          <label for="apikey-name" class="form-label">Name</label>
+          <input id="apikey-name" formControlName="displayName" class="form-input-field" autocomplete="off" maxlength="128" />
+          @if (form.controls.displayName.touched && form.controls.displayName.invalid) {
+            <p class="mt-1 text-sm text-red-700 dark:text-red-300">Enter a name of up to 128 characters.</p>
+          }
+        </div>
+      }
+      <div class="space-y-2">
+        <label for="apikey-expires" class="form-label">Expires at</label>
+        <input id="apikey-expires" type="datetime-local" formControlName="expiresAt" class="form-input-field" />
+        <label class="base-text flex items-center gap-2">
+          <input id="apikey-never-expires" type="checkbox" class="h-4 w-4 accent-blue-600" formControlName="neverExpires" />
+          Never expires
+        </label>
+        @if (form.controls.neverExpires.value) {
+          <p class="text-sm text-amber-700 dark:text-amber-300">This key stays valid until it is revoked. Prefer an expiry for automation credentials.</p>
+        }
+      </div>
+      <fieldset class="space-y-2" [disabled]="store.saving()">
+        <legend class="form-label">Roles</legend>
+        @if (rolesStore.loading() && availableRoles().length === 0) {
+          <p class="base-text" role="status">Loading roles...</p>
+        } @else {
+          <div class="flex flex-wrap gap-4">
+            @for (role of availableRoles(); track role) {
+              <label class="base-text flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 accent-blue-600"
+                  [checked]="selectedRoles().includes(role)"
+                  (change)="toggleRole(role, $any($event.target).checked)"
+                />
+                {{ role }}
+              </label>
+            } @empty {
+              <p class="base-text">No roles defined in this project.</p>
+            }
+          </div>
+        }
+        <p class="base-text text-sm">A key without roles can authenticate but has no permissions.</p>
+      </fieldset>
+      <div class="flex justify-end gap-3">
+        <button type="button" class="btn-secondary" [disabled]="store.saving()" (click)="closeEditor()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="store.saving()">{{ store.saving() ? 'Saving...' : editing() ? 'Save changes' : 'Create API key' }}</button>
+      </div>
+    </form>
+  }
+
+  @if (deleteTarget(); as key) {
+    <div class="space-y-3 rounded-lg border border-gray-100 p-4 dark:border-white/[0.05]" role="region" aria-labelledby="apikey-delete-heading">
+      <h3 id="apikey-delete-heading" class="form-label">Revoke API key {{ key.displayName }}?</h3>
+      <p class="base-text">Clients using this key will immediately lose access. This cannot be undone.</p>
+      <div class="flex gap-3">
+        <button type="button" class="btn-secondary" [disabled]="store.deleting()" (click)="cancelDelete()">Cancel</button>
+        <button type="button" class="btn-primary" [disabled]="store.deleting()" (click)="deleteKey()">{{ store.deleting() ? 'Revoking...' : 'Revoke key' }}</button>
+      </div>
+    </div>
+  }
+
+  <div class="sub-card">
+    @if (store.loading() && store.apiKeys().length === 0) {
+      <p class="base-text" role="status">Loading API keys...</p>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+          <thead class="border-gray-100 border-y dark:border-white/[0.05]">
+            <tr>
+              <th scope="col" class="table-label text-left">Name</th>
+              <th scope="col" class="table-label text-left">Key ID</th>
+              <th scope="col" class="table-label text-left">Roles</th>
+              <th scope="col" class="table-label text-left">Expires</th>
+              <th scope="col" class="table-label text-left">Created</th>
+              <th scope="col" class="table-label text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="table-divider">
+            @for (key of store.apiKeys(); track key.id) {
+              <tr>
+                <th scope="row" class="base-text py-3 pr-3 text-left font-medium">{{ key.displayName }}</th>
+                <td class="py-3 pr-3"><code class="base-text font-mono text-sm">{{ key.name }}</code></td>
+                <td class="py-3 pr-3">
+                  <div class="flex flex-wrap gap-1">
+                    @for (role of key.roles; track role) {
+                      <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">{{ role }}</span>
+                    } @empty {
+                      <span class="base-text text-xs">No roles</span>
+                    }
+                  </div>
+                </td>
+                <td class="py-3 pr-3">
+                  @if (key.expiresAt) {
+                    <span class="base-text">{{ key.expiresAt | date: 'medium' }}</span>
+                  } @else {
+                    <span class="base-text">Never</span>
+                  }
+                  @if (isExpired(key)) { <span class="ml-1 text-xs font-medium text-red-700 dark:text-red-300">Expired</span> }
+                </td>
+                <td class="py-3 pr-3"><span class="base-text">{{ key.createdAt | date: 'medium' }}</span></td>
+                <td class="py-3 text-center">
+                  <div class="flex items-center justify-center gap-3">
+                    <button type="button" class="link-primary text-sm" [attr.aria-label]="'Edit ' + key.displayName" [disabled]="busy()" (click)="openEditor(key)">Edit</button>
+                    <button type="button" class="link-primary text-sm" [attr.aria-label]="'Revoke ' + key.displayName" [disabled]="busy()" (click)="confirmDelete(key)">Revoke</button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              @if (!store.loading() && !store.error()) {
+                <tr><td colspan="6" class="py-3"><p class="base-text">No API keys found.</p></td></tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>

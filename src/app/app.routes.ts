@@ -65,6 +65,12 @@ export const routes: Routes = [
             title: 'Zones',
           },
           {
+            path: 'apikeys',
+            loadComponent: () =>
+              import('./pages/project-details/apikeys/apikeys').then((m) => m.ApiKeys),
+            title: 'API Keys',
+          },
+          {
             path: 'locations/healthcheckprofiles',
             loadComponent: () =>
               import('./pages/project-details/healthcheckprofiles/healthcheckprofiles').then((m) => m.HealthCheckProfiles),
