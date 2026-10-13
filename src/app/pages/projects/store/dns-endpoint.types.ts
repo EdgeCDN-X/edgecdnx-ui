@@ -45,7 +45,7 @@ export interface CreateDNSEndpointDto {
   routeSelector?: Pick<LabelSelector, 'matchLabels'> | null;
 }
 
-export type UpdateDNSEndpointDto = Partial<CreateDNSEndpointDto>;
+export type UpdateDNSEndpointDto = Partial<Omit<CreateDNSEndpointDto, 'dnsName' | 'recordType'>>;
 
 export interface DNSEndpointActionError {
   message: string;

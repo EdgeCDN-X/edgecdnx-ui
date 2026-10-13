@@ -83,13 +83,23 @@ describe('DNSEndpointForm routing', () => {
     });
   }
 
-  it('preserves a wildcard owner when editing', () => {
+  it('locks the host and omits immutable identity fields when editing', () => {
     const { fixture, form, store } = setup({
       ...endpoint, spec: { ...endpoint.spec, dnsName: '*.me.example.com' },
     });
-    expect((fixture.nativeElement.querySelector('#dns-host') as HTMLInputElement).value).toBe('*.me');
+    const hostInput = fixture.nativeElement.querySelector('#dns-host') as HTMLInputElement;
+    expect(hostInput.value).toBe('*.me');
+    expect(hostInput.disabled).toBeTrue();
+    const hostField = hostInput.parentElement as HTMLDivElement;
+    expect(hostField.classList).toContain('bg-gray-100');
+    expect(hostField.classList).toContain('dark:bg-gray-800');
+    const recordTypeSelect = fixture.nativeElement.querySelector('#record-type') as HTMLSelectElement;
+    expect(recordTypeSelect.disabled).toBeTrue();
+    expect(recordTypeSelect.classList).toContain('bg-gray-100');
+    expect(recordTypeSelect.classList).toContain('dark:bg-gray-800');
     form.submit();
-    expect(store.update.calls.mostRecent().args[3].dnsName).toBe('*.me.example.com');
+    expect(Object.keys(store.update.calls.mostRecent().args[3]).sort())
+      .toEqual(['recordTTL', 'routeSelector', 'routingPolicy', 'targets']);
   });
 
   for (const host of ['*.*', 'api.*', '**', 'api*', '*.me.*', '*.', '*..me']) {
@@ -131,6 +141,8 @@ describe('DNSEndpointForm routing', () => {
       expect(projectKey.disabled).toBeTrue();
       expect(projectValue.disabled).toBeTrue();
       expect(fixture.nativeElement.querySelector('#record-targets')).toBeNull();
+      const addLabelButton = fixture.nativeElement.querySelector('app-location-kv-builder button.btn-secondary') as HTMLButtonElement;
+      expect(addLabelButton).toBeTruthy();
       form.form.controls.routeLabels.push(keyValueForm('region', 'eu'));
       const saved = jasmine.createSpy('saved');
       form.saved.subscribe(saved);
@@ -281,16 +293,20 @@ describe('DNSEndpointForm routing', () => {
   }
 
   it('loads and preserves an existing selector and policy while editing', () => {
-    const { form, store } = setup({
+    const { fixture, form, store } = setup({
       ...endpoint,
       spec: { ...endpoint.spec, targets: [], routingPolicy: 'Geolocation',
         routeSelector: { matchLabels: { region: 'eu', [projectLabelKey]: 'project-a' } } },
     });
     expect(form.form.controls.routeLabels.getRawValue()).toEqual([{ key: 'region', value: 'eu' }]);
     expect(form.form.controls.recordType.disabled).toBeTrue();
+    const addLabelButton = fixture.nativeElement.querySelector('app-location-kv-builder button.btn-secondary') as HTMLButtonElement;
+    const removeLabelButton = fixture.nativeElement.querySelector('app-location-kv-builder button[aria-label="Remove label"]') as HTMLButtonElement;
+    expect(addLabelButton).toBeTruthy();
+    expect(removeLabelButton.classList).toContain('btn-secondary');
     form.submit();
     expect(store.update.calls.mostRecent().args[3]).toEqual({
-      dnsName: 'www.example.com', recordTTL: 300, recordType: 'A', routingPolicy: 'Geolocation',
+      recordTTL: 300, routingPolicy: 'Geolocation',
       targets: [], routeSelector: { matchLabels: { region: 'eu', [projectLabelKey]: 'project-a' } },
     });
   });

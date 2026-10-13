@@ -43,7 +43,7 @@ import { keyValueForm } from './location-form.model';
             <label [for]="prefix() + '-value-' + rowIndex" class="form-label">Value</label>
             <input [id]="prefix() + '-value-' + rowIndex" formControlName="value" class="form-input-field" />
           </div>
-          <button type="button" class="location-icon-button" [disabled]="disabled()"
+          <button type="button" class="location-icon-button btn-secondary" [disabled]="disabled()"
             [title]="'Remove ' + kind()" [attr.aria-label]="'Remove ' + kind()" (click)="rows().removeAt(rowIndex)">
             <span aria-hidden="true">&times;</span>
           </button>

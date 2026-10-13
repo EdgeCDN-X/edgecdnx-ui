@@ -20,7 +20,13 @@
   </div>
   <div>
     <label for="dns-host" class="form-label">Host</label>
-    <div class="flex rounded-lg border border-gray-300 bg-white focus-within:border-brand-500 focus-within:ring-3 focus-within:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900">
+    <div
+      class="flex rounded-lg border border-gray-300 focus-within:border-brand-500 focus-within:ring-3 focus-within:ring-brand-500/10 dark:border-gray-700"
+      [class.bg-white]="!dnsEndpoint()"
+      [class.bg-gray-100]="!!dnsEndpoint()"
+      [class.dark:bg-gray-900]="!dnsEndpoint()"
+      [class.dark:bg-gray-800]="!!dnsEndpoint()"
+    >
       <input
         id="dns-host"
         type="text"
@@ -34,7 +40,13 @@
         .{{ zoneName() }}
       </span>
     </div>
-    <p id="dns-host-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave blank to create a record at @. Use * or *.me for a wildcard matching exactly one label. Only one leading * is allowed.</p>
+    <p id="dns-host-help" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+      @if (dnsEndpoint()) {
+        Host cannot be changed after creation. Delete and recreate the record to use a different host.
+      } @else {
+        Leave blank to create a record at @. Use * or *.me for a wildcard matching exactly one label. Only one leading * is allowed.
+      }
+    </p>
     @if (form.controls.host.invalid && form.controls.host.touched) {
       <p class="mt-1 text-xs text-error-600">Enter a valid host name.</p>
     }
@@ -43,7 +55,15 @@
   <div class="grid gap-4 sm:grid-cols-2">
     <div>
       <label for="record-type" class="form-label">Record type</label>
-      <select id="record-type" class="form-input-field" formControlName="recordType" [attr.aria-describedby]="dnsEndpoint() ? 'record-type-help' : null" (change)="selectRecordType($event)">
+      <select
+        id="record-type"
+        class="form-input-field"
+        [class.bg-gray-100]="!!dnsEndpoint()"
+        [class.dark:bg-gray-800]="!!dnsEndpoint()"
+        formControlName="recordType"
+        [attr.aria-describedby]="dnsEndpoint() ? 'record-type-help' : null"
+        (change)="selectRecordType($event)"
+      >
         @for (recordType of recordTypes; track recordType) {
           <option [value]="recordType">{{ recordType }}</option>
         }

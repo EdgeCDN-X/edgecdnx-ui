@@ -132,8 +132,10 @@ export class DNSEndpointForm {
       this.updateTargetValidators(recordType);
 
       if (dnsEndpoint) {
+        this.form.controls.host.disable({ emitEvent: false });
         this.form.controls.recordType.disable({ emitEvent: false });
       } else {
+        this.form.controls.host.enable({ emitEvent: false });
         this.form.controls.recordType.enable({ emitEvent: false });
       }
     });
@@ -169,7 +171,12 @@ export class DNSEndpointForm {
 
     const current = this.dnsEndpoint();
     const request = current
-      ? this.store.update(this.projectId(), this.zoneName(), current.metadata.name, dto)
+      ? this.store.update(this.projectId(), this.zoneName(), current.metadata.name, {
+          routingPolicy: dto.routingPolicy,
+          recordTTL: dto.recordTTL,
+          targets: dto.targets,
+          routeSelector: dto.routeSelector,
+        })
       : this.store.create(this.projectId(), this.zoneName(), dto);
 
     request.subscribe({ next: () => this.saved.emit() });
