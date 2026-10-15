@@ -67,10 +67,20 @@
                 <tr>
                   <td class="px-4 py-4 align-top font-mono text-sm text-gray-800 dark:text-gray-200">
                     <div class="flex items-start justify-between gap-2">
-                      <span class="min-w-0 break-all">{{ displayHost(dnsEndpoint.spec.dnsName) }}</span>
+                      <span class="min-w-0 flex-1 break-all">{{ displayHost(dnsEndpoint.spec.dnsName) }}</span>
+                      <div class="flex shrink-0 items-center gap-2">
+                      <button type="button" class="link-primary inline-flex h-5 w-5 items-center justify-center"
+                        [attr.aria-label]="'Resolve ' + dnsEndpoint.spec.dnsName" title="Resolve domain"
+                        (click)="openResolve(dnsEndpoint)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2" aria-hidden="true">
+                          <circle cx="10" cy="10" r="7" />
+                          <path d="m15 15 6 6M3 10h14M10 3c4 4 4 10 0 14M10 3c-4 4-4 10 0 14" />
+                        </svg>
+                      </button>
                       <button
                         type="button"
-                        class="shrink-0 text-gray-500 hover:text-brand-700 dark:text-gray-400 dark:hover:text-brand-300"
+                        class="inline-flex h-5 w-5 items-center justify-center text-gray-500 hover:text-brand-700 dark:text-gray-400 dark:hover:text-brand-300"
                         (click)="copyDNSName(dnsEndpoint)"
                         [attr.aria-label]="'Copy ' + dnsEndpoint.spec.dnsName"
                         [attr.title]="isCopied(dnsEndpoint) ? 'Copied' : 'Copy full domain name'"
@@ -81,6 +91,7 @@
                           <span aria-hidden="true">⧉</span>
                         }
                       </button>
+                      </div>
                     </div>
                   </td>
                   <td class="px-4 py-4 align-top">
@@ -153,6 +164,13 @@
         </div>
       }
     </div>
+  }
+
+  @if (dialogMode() === 'resolve' && selected()) {
+    <app-modal [isOpen]="dialogOpen()" (close)="closeDialog()" className="max-w-[800px] p-6 lg:p-8">
+      <app-zone-resolve [domain]="selected()!.spec.dnsName" [routingPolicy]="selected()!.spec.routingPolicy"
+        [recordType]="selected()!.spec.recordType" />
+    </app-modal>
   }
 
   @if ((dialogMode() === 'create' || dialogMode() === 'edit') && projectId() && zoneName()) {

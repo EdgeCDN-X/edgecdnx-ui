@@ -10,10 +10,11 @@ import { DNSEndpointStore } from '../../projects/store/dns-endpoint.store';
 import { DNSEndpoint, DNSRecordType, LabelSelector } from '../../projects/store/dns-endpoint.types';
 import { hostFromDnsName } from './dns-name';
 import { ZoneDelegation } from '../components/zone-delegation/zone-delegation';
+import { ZoneResolve } from '../components/zone-resolve/zone-resolve';
 
 @Component({
   selector: 'app-zone-details',
-  imports: [RouterLink, Placeholder, ModalComponent, ButtonComponent, DNSEndpointForm, ZoneDelegation],
+  imports: [RouterLink, Placeholder, ModalComponent, ButtonComponent, DNSEndpointForm, ZoneDelegation, ZoneResolve],
   templateUrl: './zone-details.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -30,7 +31,7 @@ export class ZoneDetails {
   readonly deleting = this.store.deleting;
   readonly error = this.store.error;
 
-  readonly dialogMode = signal<'create' | 'edit' | 'delete' | null>(null);
+  readonly dialogMode = signal<'create' | 'edit' | 'delete' | 'resolve' | null>(null);
   readonly selected = signal<DNSEndpoint | null>(null);
   readonly dialogOpen = computed(() => this.dialogMode() !== null);
   readonly searchTerm = signal('');
@@ -173,6 +174,11 @@ export class ZoneDetails {
   openEdit(dnsEndpoint: DNSEndpoint): void {
     this.selected.set(dnsEndpoint);
     this.dialogMode.set('edit');
+  }
+
+  openResolve(dnsEndpoint: DNSEndpoint): void {
+    this.selected.set(dnsEndpoint);
+    this.dialogMode.set('resolve');
   }
 
   openDelete(dnsEndpoint: DNSEndpoint): void {

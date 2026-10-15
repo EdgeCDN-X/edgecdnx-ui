@@ -25,7 +25,7 @@
     }
     <ul class="space-y-1" aria-label="Delegation nameservers">
         @for (nameserver of nameservers(); track $index) {
-        <li><code class="break-all">{{ domain() ? domain() + ' ' : '' }}NS {{ nameserver }}</code></li>
+        <li><code class="break-all">{{ domain() ? domain() + ' ' : '' }}NS {{ nameserver.ns }}</code></li>
         }
     </ul>
     } @else {

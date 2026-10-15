@@ -84,11 +84,16 @@ The New Zone modal and zone details page share guidance on delegating a whole
 domain or a subzone. Zone details show this guidance below the title and
 description, above the DNS records, with NS suggestions for the current zone.
 Set `dnsNameservers` in the runtime configuration at `public/config/config.json`
-(served as `config/config.json`) to a JSON array of nameserver hostnames:
+(served as `config/config.json`) to an array of nameserver objects:
 
 ```json
 {
-  "dnsNameservers": ["ns1.demo.edgecdnx.com"]
+  "dnsNameservers": [
+    {
+      "ns": "ns1.demo.edgecdnx.com",
+      "routeResolver": "https://dns-router.example.com/route"
+    }
+  ]
 }
 ```
 
@@ -98,6 +103,28 @@ Domain, the suggestions update to include that domain, for example
 `random.mydomain.com NS ns1.demo.edgecdnx.com`.
 If the array is missing or empty, it displays a
 configuration warning instead of using demo nameservers.
+
+Each entry's `ns` is the plain nameserver FQDN used for delegation.
+`routeResolver` is the complete HTTP router URL, including `/route`; existing
+string-array configurations must be migrated to this object format.
+
+Click the resolve icon beside an individual DNS host on the zone details page to open a DNS lookup
+modal. Choose one nameserver or all nameservers. Geolocation records require a
+valid IPv4 or IPv6 source address (AAAA records require IPv6); other routing policies hide the source IP field
+and never send it. Wildcard names such as `*.example.com` require an additional
+host prefix (for example `www` or `api.eu`), which replaces `*` in the query.
+Each selected server is queried independently through the
+API with the selected record's `record_type` (`A`, `AAAA`, `CNAME`, `TXT`, `MX`,
+`SRV`, or `NS`), which is forwarded to the router and used as the DNS question type.
+SRV names retain their `_service._protocol` labels. Queries go through the
+authenticated API's `POST /utils/resolve` endpoint, with `ns` set to its
+`routeResolver` URL. The modal displays response status and a record table
+(section, name, type, class, TTL in seconds, and value) for each server.
+Answer, authority, and additional records are included; empty replies show an
+explicit no-records message. Full JSON, including flags and EDNS metadata, remains
+available under "Full DNS response". Errors are shown independently for each
+server, so one failed request does not hide successful results. Closing the modal
+cancels outstanding requests.
 
 For a whole domain, users must update the domain's nameservers at their registrar.
 For a subzone, users must add an NS record for each configured nameserver under

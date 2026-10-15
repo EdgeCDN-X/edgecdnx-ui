@@ -8,7 +8,10 @@ describe('ZoneCreateForm delegation', () => {
   const config: Environment = {
     production: false,
     apiUrl: 'https://api.example.com',
-    dnsNameservers: ['ns1.demo.edgecdnx.com', 'ns2.example.com'],
+    dnsNameservers: [
+      { ns: 'ns1.demo.edgecdnx.com', routeResolver: 'https://ns1.example.com/route' },
+      { ns: 'ns2.example.com', routeResolver: 'https://ns2.example.com/route' },
+    ],
     auth: {
       oidc: {
         issuer: 'https://auth.example.com',
@@ -55,7 +58,9 @@ describe('ZoneCreateForm delegation', () => {
       record => record.textContent?.trim(),
     );
     expect(records()).toEqual(['NS ns1.demo.edgecdnx.com', 'NS ns2.example.com']);
-    environment.set({ ...config, dnsNameservers: ['ns.production.example.com'] });
+    environment.set({ ...config, dnsNameservers: [
+      { ns: 'ns.production.example.com', routeResolver: 'https://ns.production.example.com/route' },
+    ] });
     fixture.detectChanges();
     expect(records()).toEqual(['NS ns.production.example.com']);
     expect(element.querySelector('[role="alert"]')).toBeNull();

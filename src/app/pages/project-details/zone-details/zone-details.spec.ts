@@ -6,11 +6,56 @@ import { ZoneDetails } from './zone-details';
 import { DNSEndpointStore } from '../../projects/store/dns-endpoint.store';
 import { DNSEndpoint, DNSEndpointActionError, DNSRoutingPolicy } from '../../projects/store/dns-endpoint.types';
 import { ConfigService } from '../../../config/config.store';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { By } from '@angular/platform-browser';
+import { ZoneResolve } from '../components/zone-resolve/zone-resolve';
 
 describe('ZoneDetails selector records', () => {
+  it('opens a resolver for the individual full host name, including managed records', () => {
+    const endpoints: DNSEndpoint[] = ['www', 'api'].map(host => ({
+      kind: 'DNSEndpoint',
+      apiVersion: 'infrastructure.edgecdnx.com/v1alpha1',
+      metadata: { name: host, namespace: 'edgecdnx', labels: { service: 'managed' } },
+      spec: {
+        dnsName: `${host}.example.com`, routingPolicy: 'Simple', recordType: 'A',
+        recordTTL: 300, targets: ['192.0.2.1'],
+      },
+    }));
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]), provideHttpClient(), provideHttpClientTesting(),
+        { provide: ActivatedRoute, useValue: {
+          parent: { paramMap: of(convertToParamMap({ name: 'project-a' })) },
+          paramMap: of(convertToParamMap({ zoneName: 'example.com' })),
+        } },
+        { provide: DNSEndpointStore, useValue: {
+          dnsEndpoints: signal(endpoints), loading: signal(false), deleting: signal(false),
+          error: signal(null), load: jasmine.createSpy('load'), clearError: jasmine.createSpy('clearError'),
+        } },
+      ],
+    });
+    const fixture = TestBed.createComponent(ZoneDetails);
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelectorAll('button[title="Resolve domain"]').length).toBe(2);
+    for (const endpoint of endpoints) {
+      element.querySelector<HTMLButtonElement>(`button[aria-label="Resolve ${endpoint.spec.dnsName}"]`)!.click();
+      fixture.detectChanges();
+      const resolver = fixture.debugElement.query(By.directive(ZoneResolve)).componentInstance as ZoneResolve;
+      expect(resolver.domain()).toBe(endpoint.spec.dnsName);
+      fixture.componentInstance.closeDialog();
+      fixture.detectChanges();
+      expect(element.querySelector('app-zone-resolve')).toBeNull();
+    }
+  });
+
   it('shows delegation below the description and above records for the current zone', () => {
     const params = new BehaviorSubject(convertToParamMap({ zoneName: 'random.mydomain.com' }));
-    const environment = signal({ dnsNameservers: ['ns1.demo.edgecdnx.com', 'ns2.example.com'] });
+    const environment = signal({ dnsNameservers: [
+      { ns: 'ns1.demo.edgecdnx.com', routeResolver: 'https://ns1.example.com/route' },
+      { ns: 'ns2.example.com', routeResolver: 'https://ns2.example.com/route' },
+    ] });
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),

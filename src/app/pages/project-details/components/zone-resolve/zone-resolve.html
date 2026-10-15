@@ -1,0 +1,94 @@
+<h2 class="sub-card-title mb-4">Resolve {{ domain() }}</h2>
+<form (ngSubmit)="resolve()" class="space-y-4">
+    <div>
+        <label for="resolve-ns" class="form-label">Nameserver</label>
+        <select id="resolve-ns" name="nameserver" [(ngModel)]="selectedNS"
+            [disabled]="loading()" class="w-full rounded border p-2 base-text">
+            <option value="all">All nameservers</option>
+            @for (nameserver of nameservers(); track $index) {
+            <option [value]="nameserver.ns">{{ nameserver.ns }}</option>
+            }
+        </select>
+    </div>
+    @if (wildcard()) {
+    <div>
+        <label for="resolve-host" class="form-label">Additional host (required)</label>
+        <input id="resolve-host" name="additionalHost" type="text" [(ngModel)]="additionalHost"
+            required [disabled]="loading()" placeholder="www"
+            class="w-full rounded border p-2 base-text" />
+        <p class="text-sm base-text">Replaces * in {{ domain() }}. Example: www{{ domain().slice(1) }}</p>
+    </div>
+    }
+    @if (requiresSourceIP()) {
+    <div>
+        <label for="resolve-source-ip" class="form-label">{{ requiresIPv6() ? 'Source IPv6 address (required)' : 'Source IP (required)' }}</label>
+        <input id="resolve-source-ip" name="sourceIP" type="text" [(ngModel)]="sourceIP"
+            required [disabled]="loading()" [placeholder]="requiresIPv6() ? '2001:db8::1' : '85.216.128.10'"
+            class="w-full rounded border p-2 base-text" />
+    </div>
+    }
+    @if (!nameservers().length) {
+    <p role="alert" class="text-red-600">No DNS nameservers are configured.</p>
+    }
+    @if (error()) {
+    <p role="alert" class="text-red-600">{{ error() }}</p>
+    }
+    <button type="submit" [disabled]="loading() || !nameservers().length"
+        class="rounded bg-brand-500 px-4 py-2 text-white disabled:opacity-50">
+        {{ loading() ? 'Resolving...' : 'Resolve' }}
+    </button>
+</form>
+<div class="mt-4 max-h-[45vh] overflow-auto space-y-4" aria-live="polite">
+    @for (result of results(); track $index) {
+    <section class="rounded border p-3 base-text">
+        <h3 class="font-semibold">{{ result.nameserver.ns }}</h3>
+        @if (result.loading) {
+        <p>Resolving...</p>
+        } @else if (result.error) {
+        <p role="alert" class="text-red-600">{{ result.error }}</p>
+        } @else if (result.parsed; as parsed) {
+        <dl class="my-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <div><dt class="inline font-semibold">Status: </dt><dd class="inline">{{ parsed.rcode }}</dd></div>
+            @if (parsed.domain) {
+            <div><dt class="inline font-semibold">Domain: </dt><dd class="inline break-all">{{ parsed.domain }}</dd></div>
+            }
+            @if (requiresSourceIP() && parsed.sourceIP) {
+            <div><dt class="inline font-semibold">Source IP: </dt><dd class="inline">{{ parsed.sourceIP }}</dd></div>
+            }
+        </dl>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm" [attr.aria-label]="'DNS records from ' + result.nameserver.ns">
+                <thead>
+                    <tr class="border-b">
+                        <th scope="col" class="p-2">Section</th>
+                        <th scope="col" class="p-2">Name</th>
+                        <th scope="col" class="p-2">Type</th>
+                        <th scope="col" class="p-2">Class</th>
+                        <th scope="col" class="p-2">TTL (s)</th>
+                        <th scope="col" class="p-2">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (record of parsed.records; track $index) {
+                    <tr class="border-b align-top">
+                        <td class="p-2">{{ record.section }}</td>
+                        <td class="p-2 font-mono break-all">{{ record.name }}</td>
+                        <td class="p-2">{{ record.type }}</td>
+                        <td class="p-2">{{ record.class }}</td>
+                        <td class="p-2">{{ record.ttl }}</td>
+                        <td class="p-2 font-mono whitespace-pre-wrap break-all">{{ record.data }}</td>
+                    </tr>
+                    } @empty {
+                    <tr><td colspan="6" class="p-2">No DNS records returned ({{ parsed.rcode }}).</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <details class="mt-3">
+            <summary class="cursor-pointer link-primary">Full DNS response</summary>
+            <pre class="mt-2 whitespace-pre-wrap break-all text-xs">{{ result.response | json }}</pre>
+        </details>
+        }
+    </section>
+    }
+</div>

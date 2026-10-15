@@ -1,9 +1,14 @@
 import { Injectable, signal } from '@angular/core';
 
+export interface DNSNameserver {
+    ns: string;
+    routeResolver: string;
+}
+
 export interface Environment {
     production: boolean;
     apiUrl: string;
-    dnsNameservers?: string[];
+    dnsNameservers?: DNSNameserver[];
     auth: {
         oidc: {
             issuer: string;
